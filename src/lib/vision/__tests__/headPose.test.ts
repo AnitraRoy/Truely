@@ -1,54 +1,60 @@
+import { describe, it, expect } from "vitest";
+import { estimateYawProxy, estimateHeadPose, headMotionSpeed, type Landmark } from "../headPose";
 
-import { describe, expect, it } from "vitest";
-import { estimateYawProxy } from "../headPose";
-import type { Landmark } from "../headPose";
-
-function makeLandmarks(
-  noseX = 0.5,
-  faceWidth = 0.3
-): Landmark[] {
-  const landmarks: Landmark[] = Array.from(
-    { length: 468 },
-    () => ({ x: 0.5, y: 0.5, z: 0 })
-  );
-
-  landmarks[1] = { x: noseX, y: 0.5, z: 0 };
-  landmarks[234] = { x: 0.5 - faceWidth / 2, y: 0.5, z: 0 };
-  landmarks[454] = { x: 0.5 + faceWidth / 2, y: 0.5, z: 0 };
-  landmarks[10] = { x: 0.5, y: 0.2, z: 0 };
-  landmarks[152] = { x: 0.5, y: 0.8, z: 0 };
-
-  return landmarks;
+function face(noseX: number, width = 0.3): Landmark[] {
+  const lm: Landmark[] = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
+  lm[234] = { x: 0.5 - width / 2, y: 0.5, z: 0 };
+  lm[454] = { x: 0.5 + width / 2, y: 0.5, z: 0 };
+  lm[1] = { x: noseX, y: 0.5, z: 0 };
+  lm[10] = { x: 0.5, y: 0.35, z: 0 };
+  lm[152] = { x: 0.5, y: 0.65, z: 0 };
+  return lm;
 }
 
 describe("estimateYawProxy", () => {
-  it("returns invalid for missing landmarks", () => {
-    expect(estimateYawProxy(null).valid).toBe(false);
+  it("is ~0 and valid for a centered face", () => {
+    const s = estimateYawProxy(face(0.5));
+    expect(s.valid).toBe(true);
+    expect(Math.abs(s.value)).toBeLessThan(1e-6);
   });
-
-  it("returns a valid sample for a large, in-frame face", () => {
-    const result = estimateYawProxy(makeLandmarks());
-
-    expect(result.valid).toBe(true);
-    expect(result.quality).toBe(1);
-    expect(result.value).toBeCloseTo(0);
+  it("is positive when the nose shifts right, negative when left", () => {
+    expect(estimateYawProxy(face(0.6)).value).toBeGreaterThan(0);
+    expect(estimateYawProxy(face(0.4)).value).toBeLessThan(0);
   });
-
-  it("returns a positive proxy when the nose is right of the face midpoint", () => {
-    const result = estimateYawProxy(makeLandmarks(0.53));
-
-    expect(result.value).toBeGreaterThan(0);
+  it("is invalid with no face", () => {
+    const s = estimateYawProxy(null);
+    expect(s.valid).toBe(false);
+    expect(s.value).toBe(0);
   });
-
-  it("returns a negative proxy when the nose is left of the face midpoint", () => {
-    const result = estimateYawProxy(makeLandmarks(0.47));
-
-    expect(result.value).toBeLessThan(0);
+  it("is invalid for a tiny face", () => {
+    expect(estimateYawProxy(face(0.5, 0.05)).valid).toBe(false);
   });
+});
 
-  it("marks a very small face as invalid", () => {
-    const result = estimateYawProxy(makeLandmarks(0.5, 0.05));
+describe("estimateHeadPose", () => {
+  it("pitch proxy increases as the nose moves toward the chin", () => {
+    const level = face(0.5);
+    const lower = face(0.5);
+    lower[1] = { x: 0.5, y: 0.55, z: 0 };
+    expect(estimateHeadPose(lower).pitch).toBeGreaterThan(estimateHeadPose(level).pitch);
+  });
+  it("reports why tracking is invalid", () => {
+    expect(estimateHeadPose(null).issue).toBe("no_face");
+    expect(estimateHeadPose(face(0.5, 0.05)).issue).toBe("face_too_small");
+  });
+});
 
-    expect(result.valid).toBe(false);
+describe("headMotionSpeed", () => {
+  const a = { noseX: 0.5, noseY: 0.5, faceWidth: 0.3, timestamp: 0 };
+  it("is 0 when the nose does not move", () => {
+    expect(headMotionSpeed(a, { ...a, timestamp: 100 }, 640, 480)).toBe(0);
+  });
+  it("is in face-widths per second", () => {
+    // 0.03 * 640 = 19.2 px; face = 192 px; 0.1 face-widths in 0.1 s = 1.0 /s
+    const v = headMotionSpeed(a, { ...a, noseX: 0.53, timestamp: 100 }, 640, 480);
+    expect(v).toBeCloseTo(1.0, 5);
+  });
+  it("returns null across a tracking gap", () => {
+    expect(headMotionSpeed(a, { ...a, timestamp: 600 }, 640, 480)).toBeNull();
   });
 });

@@ -70,9 +70,6 @@ export function createVisionEngine(): VisionEngine {
         timestamp,
         faceDetected: yawSample.valid,
         trackingConfidence: yawSample.quality,
-        // The current estimator returns a unitless proxy, not degrees.
-        // Keep headPose unset until we implement a degree-based estimate
-        // or agree on a backward-compatible shared type change.
       };
     },
 
@@ -84,12 +81,36 @@ export function createVisionEngine(): VisionEngine {
   };
 }
 
-// Public vision helpers
+// Public landmarker helpers
 export { createLandmarker, detectLandmarks } from "./landmarkerService";
-export type {
-  Landmarker,
-  LandmarkerOptions,
-} from "./landmarkerService";
+export type { Landmarker, LandmarkerOptions } from "./landmarkerService";
 
-export { estimateYawProxy, HEAD_POSE_CONSTANTS } from "./headPose";
-export type { Landmark, YawSample } from "./headPose";
+// Head-pose estimation and movement helpers
+export {
+  estimateHeadPose,
+  estimateYawProxy,
+  headMotionSpeed,
+  HEAD_POSE_CONSTANTS,
+} from "./headPose";
+
+export type {
+  Landmark,
+  FaceBox,
+  HeadPoseSample,
+  PoseAnchor,
+  PoseIssue,
+  TrackingIssue,
+  YawSample,
+} from "./headPose";
+
+// Lighting assessment
+export {
+  LightingProbe,
+  classifyLuma,
+  LIGHTING_CONSTANTS,
+} from "./lighting";
+
+export type {
+  LightingIssue,
+  LightingResult,
+} from "./lighting";
