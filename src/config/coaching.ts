@@ -172,3 +172,23 @@ export const GOAL_CUE_OVERRIDES: Partial<
 
 export const TRACKING_LIMITED_MESSAGE =
   "Tracking is limited. Adjust your lighting or camera position.";
+
+/**
+ * Sample cues the live screen rotates through to showcase the overlay before the
+ * vision pipeline emits real ones. Always labelled as samples in the UI: they are
+ * not observations of the person (CLAUDE.md §5). Drawn from the cue library so the
+ * copy stays in one place.
+ */
+export const SAMPLE_CUES: readonly string[] = Array.from(
+  new Set([
+    ...Object.values(CUE_LIBRARY),
+    ...Object.values(GOAL_CUE_OVERRIDES).flatMap((byGoal) => Object.values(byGoal ?? {})),
+  ]),
+);
+
+/** Sample-cue rotation timing (ms). Shorter gap than `cueCooldownMs`, for demos. */
+export const SAMPLE_CUE_TIMING = {
+  firstDelayMs: 3000,
+  visibleMs: COACHING_CONFIG.cueVisibleMs,
+  gapMs: 5000,
+} as const;

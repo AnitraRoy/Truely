@@ -6,13 +6,15 @@ import { StepHeading } from "./StepHeading";
 
 /**
  * Step 4: camera permission through a clear user action (PRD §6 Screen B).
- * Denied and no-device states say what to do next and offer a retry.
+ * Denied and no-device states say what to do next and offer a retry. A busy
+ * camera retries on its own; the steps to share it show under the preview.
  */
 const STATUS: Record<PreviewState, { tone: "positive" | "muted" | "warning"; text: string }> = {
   off: { tone: "muted", text: "camera off" },
   requesting: { tone: "muted", text: "waiting for permission" },
   live: { tone: "positive", text: "camera on, local only" },
   denied: { tone: "warning", text: "camera blocked" },
+  busy: { tone: "warning", text: "camera in use by another app" },
   unavailable: { tone: "warning", text: "no camera found" },
 };
 
@@ -49,8 +51,7 @@ export function CameraStep({
       )}
       {state === "unavailable" && (
         <p className="mt-4 text-[15px] text-text-muted">
-          Cue couldn&apos;t find a camera. Connect one, or close other apps that might be using it, then try
-          again.
+          Cue couldn&apos;t find a camera. Connect one, then try again.
         </p>
       )}
 
@@ -58,6 +59,10 @@ export function CameraStep({
         {state === "live" ? (
           <Button variant="ghost" onClick={onDisable}>
             Turn camera off
+          </Button>
+        ) : state === "busy" ? (
+          <Button variant="ghost" onClick={onDisable}>
+            Stop waiting for the camera
           </Button>
         ) : (
           <Button onClick={onEnable} disabled={state === "requesting"}>

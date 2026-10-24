@@ -16,6 +16,14 @@ npm run dev
 ```
 Other scripts: `npm run build`, `npm run test`, `npm run lint`.
 
+### Desktop app (overlay hidden from screen shares)
+```bash
+npm run desktop:dev
+```
+Runs the same app in an Electron shell (`electron/`). There, the live session's
+"Float over other windows" overlay stays above every app and is excluded from screen
+shares and recordings on Windows and macOS. `npm run desktop` runs a production build.
+
 ## Repo layout
 ```
 src/

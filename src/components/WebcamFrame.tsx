@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { CameraBusyHelp } from "./CameraBusyHelp";
 import type { PreviewState } from "./useWebcamPreview";
 
 /**
@@ -7,12 +8,14 @@ import type { PreviewState } from "./useWebcamPreview";
  * person themselves — never a subject under inspection (CLAUDE.md §5).
  *
  * When the camera is off/unavailable it shows an honest, actionable placeholder
- * (a flat neutral field), never a generated figure (CLAUDE.md §4A.3).
+ * (a flat neutral field), never a generated figure (CLAUDE.md §4A.3). When the
+ * camera is busy, the steps to share it appear under the preview.
  */
 const MESSAGE: Record<Exclude<PreviewState, "live">, string> = {
   off: "Camera off. Enable it to see your preview.",
   requesting: "Requesting camera…",
   denied: "Camera blocked. Allow access in your browser, then try again.",
+  busy: "Another app is using your camera.",
   unavailable: "No camera is available on this device.",
 };
 
@@ -43,6 +46,11 @@ export function WebcamFrame({
           </p>
         )}
       </div>
+      {state === "busy" && (
+        <div className="mt-4 px-1 pb-1">
+          <CameraBusyHelp />
+        </div>
+      )}
     </div>
   );
 }
