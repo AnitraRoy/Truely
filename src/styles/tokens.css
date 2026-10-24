@@ -1,0 +1,15 @@
+/*
+ * Design tokens (PRD §11). Owner: Design System team.
+ * Values are RGB channels (space-separated) so Tailwind's <alpha-value> works.
+ * Neutral dark interface by default — no bright-red alerts for ordinary deviations.
+ */
+:root {
+  --cue-bg: 17 18 20; /* deep charcoal / near-black */
+  --cue-surface: 28 30 33; /* slightly lighter charcoal */
+  --cue-border: 52 55 60; /* subtle gray */
+  --cue-accent: 56 189 207; /* muted cyan */
+  --cue-positive: 94 169 121; /* restrained green */
+  --cue-warning: 212 167 92; /* muted amber */
+  --cue-text-primary: 238 240 242; /* off-white */
+  --cue-text-muted: 150 156 164; /* gray */
+}
