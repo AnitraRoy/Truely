@@ -19,6 +19,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, screen, sess
 const fs = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
+const { registerServices } = require("./services.cjs");
 
 const DEV_URL = process.env.CUE_DEV_URL;
 const DIST = path.join(__dirname, "..", "dist");
@@ -207,6 +208,9 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionCheckHandler((_wc, permission, origin) => {
     return permission === "media" && origin === APP_ORIGIN;
   });
+
+  // Moss / Cartesia / Apify live in the main process so their keys stay out of the renderer.
+  registerServices({ isTrustedSender: (event) => isAppUrl(event.senderFrame?.url ?? "") });
 
   ipcMain.handle("cue:overlay-state", () => overlayState());
   // Fixed target, never a renderer-supplied URL: Settings › Bluetooth & devices › Cameras.

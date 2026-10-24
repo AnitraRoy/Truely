@@ -8,6 +8,13 @@ contextBridge.exposeInMainWorld("cueDesktop", {
   overlayName: "cue-overlay",
   getOverlayState: () => ipcRenderer.invoke("cue:overlay-state"),
   openCameraSettings: () => ipcRenderer.invoke("cue:open-camera-settings"),
+  // Third-party services; keys stay in the main process (electron/services.cjs).
+  services: {
+    status: () => ipcRenderer.invoke("cue:svc:status"),
+    llmChat: (req) => ipcRenderer.invoke("cue:llm:chat", req),
+    cartesiaToken: () => ipcRenderer.invoke("cue:cartesia:token"),
+    apifyRun: (req) => ipcRenderer.invoke("cue:apify:run", req),
+  },
   onOverlayState: (callback) => {
     const listener = (_event, state) => callback(state);
     ipcRenderer.on("cue:overlay-state", listener);
