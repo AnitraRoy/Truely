@@ -2,23 +2,30 @@
  * UI-facing access to saved session data and the data-deletion actions
  * (PRD §12: delete history, reset baseline). Owner: App-shell / State team.
  *
- * Thin wrapper over lib/storage. The adapter is still a stub that throws, so
- * every call here degrades to an honest "nothing saved yet" instead of
- * crashing the screen. No fabricated counts (CLAUDE.md §5).
+ * Thin wrapper over lib/storage (IndexedDB in the browser, memory elsewhere).
+ * One shared CueStorage instance for the app — pass `getStorage()` to
+ * `createSessionController` when Live Coaching is wired so both read the same
+ * data. If storage can't be opened, screens show an honest "unavailable" state
+ * rather than crashing. No fabricated counts (CLAUDE.md §5).
  */
 
 import { useEffect, useState } from "react";
-import { createStorageAdapter, type StorageAdapter } from "@/lib/storage";
+import { createDefaultStorage, type CueStorage } from "@/lib/storage";
+import { toSessionSummary } from "@/lib/reports";
 import type { SessionSummary } from "@/types";
 import { useProfileStore } from "./profileStore";
 import { useSessionStore } from "./sessionStore";
 
-function tryAdapter(): StorageAdapter | null {
-  try {
-    return createStorageAdapter();
-  } catch {
-    return null;
-  }
+let shared: CueStorage | null = null;
+
+/** The app's single storage instance (lazy; IndexedDB is only touched on first use). */
+export function getStorage(): CueStorage {
+  return (shared ??= createDefaultStorage());
+}
+
+/** Test hook: swap in e.g. `createMemoryStorage()`. */
+export function setStorageForTests(storage: CueStorage | null): void {
+  shared = storage;
 }
 
 export type SavedSessions =
@@ -26,27 +33,15 @@ export type SavedSessions =
   | { status: "unavailable" }
   | { status: "ready"; sessions: SessionSummary[] };
 
-/**
- * Sessions saved on this device, newest first, or "unavailable" while storage
- * isn't implemented (or can't be opened).
- */
+/** Sessions saved on this device, newest first, or "unavailable" if storage can't be read. */
 export function useSavedSessions(refreshKey = 0): SavedSessions {
   const [state, setState] = useState<SavedSessions>({ status: "loading" });
 
   useEffect(() => {
     let cancelled = false;
-    const adapter = tryAdapter();
-    if (!adapter) {
-      setState({ status: "unavailable" });
-      return;
-    }
-    adapter
+    getStorage()
       .listSessions()
-      .then(
-        (list) =>
-          !cancelled &&
-          setState({ status: "ready", sessions: [...list].sort((a, b) => b.startedAt - a.startedAt) }),
-      )
+      .then((list) => !cancelled && setState({ status: "ready", sessions: list.map(toSessionSummary) }))
       .catch(() => !cancelled && setState({ status: "unavailable" }));
     return () => {
       cancelled = true;
@@ -56,28 +51,30 @@ export function useSavedSessions(refreshKey = 0): SavedSessions {
   return state;
 }
 
-/** Remove every saved session; baselines and preferences stay. */
-export async function deleteSessionHistory(): Promise<void> {
-  const adapter = tryAdapter();
-  if (!adapter) return;
-  const sessions = await adapter.listSessions().catch(() => []);
-  await Promise.all(sessions.map((s) => adapter.deleteSession(s.id)));
+/**
+ * Mirror the profile's saving consent into storage, where the session
+ * controller reads it (`controller.init()` → `storage.getConsent()`).
+ */
+export async function syncSaveConsent(allowed: boolean): Promise<void> {
+  await getStorage().setConsent(allowed);
 }
 
-/**
- * Forget the learned baseline so the next session recalibrates.
- * TODO(data-team): StorageAdapter has no baseline-only delete; add an optional
- * `resetBaselines()` so saved baselines are removed too. Until then this
- * clears the in-app calibration state only.
- */
+/** Remove every saved session; baselines, feedback history and preferences stay. */
+export async function deleteSessionHistory(): Promise<void> {
+  const storage = getStorage();
+  const sessions = await storage.listSessions();
+  await Promise.all(sessions.map((s) => storage.deleteSession(s.id)));
+}
+
+/** Forget the learned baseline (saved and in-app) so the next session recalibrates. */
 export async function resetBaseline(): Promise<void> {
+  await getStorage().clearBaselines();
   useSessionStore.getState().setCalibrated(false);
 }
 
-/** Delete saved sessions and baselines, and return the profile to first-run. */
+/** Delete everything saved (sessions, baselines, feedback history, consent) and return to first-run. */
 export async function resetEverything(): Promise<void> {
-  const adapter = tryAdapter();
-  if (adapter) await adapter.resetAll().catch(() => undefined);
+  await getStorage().deleteAllData();
   useSessionStore.getState().reset();
   useProfileStore.getState().resetProfile();
 }

@@ -10,6 +10,7 @@ import { LiveCoaching } from "./screens/LiveCoaching";
 import { PostSession } from "./screens/PostSession";
 import { useProfileStore } from "./state/profileStore";
 import { useSessionStore } from "./state/sessionStore";
+import { getStorage, syncSaveConsent } from "./state/savedData";
 import { applyTheme } from "./styles/theme";
 
 /**
@@ -21,12 +22,26 @@ export function App() {
   const theme = useProfileStore((s) => s.settings.theme);
   const reducedMotion = useProfileStore((s) => s.settings.reducedMotion);
   const primaryGoal = useProfileStore((s) => s.primaryGoal);
+  const consent = useProfileStore((s) => s.consentSaveMetrics);
 
   useEffect(() => applyTheme(theme), [theme]);
   useEffect(() => {
     if (reducedMotion === "on") document.documentElement.setAttribute("data-motion", "reduce");
     else document.documentElement.removeAttribute("data-motion");
   }, [reducedMotion]);
+
+  // The profile is the UI's source of truth for saving consent; storage keeps a copy for the engine.
+  useEffect(() => {
+    syncSaveConsent(consent).catch(() => undefined);
+  }, [consent]);
+
+  // A baseline saved in an earlier visit counts as calibrated.
+  useEffect(() => {
+    getStorage()
+      .loadBaselines()
+      .then((b) => b.length > 0 && useSessionStore.getState().setCalibrated(true))
+      .catch(() => undefined);
+  }, []);
 
   // The saved primary goal seeds each new session's goal.
   useEffect(() => {

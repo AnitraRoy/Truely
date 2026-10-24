@@ -29,7 +29,7 @@ export function Overview({ onOpenTab }: { onOpenTab: (tab: "settings" | "data") 
       : saved.status === "loading"
         ? "Checking…"
         : consent
-          ? "None saved yet. Session saving isn't available in this build."
+          ? "Saved sessions couldn't be read in this browser."
           : "None saved. Saving is off.";
 
   return (
@@ -83,7 +83,7 @@ export function Overview({ onOpenTab }: { onOpenTab: (tab: "settings" | "data") 
           {isCalibrated ? (
             <LedgerValue>Calibrated</LedgerValue>
           ) : (
-            <span className="text-text-muted">Not calibrated in this visit.</span>
+            <span className="text-text-muted">Not calibrated yet.</span>
           )}
         </LedgerRow>
 

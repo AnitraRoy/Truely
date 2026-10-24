@@ -82,7 +82,7 @@ export function Dashboard() {
                 </>
               ) : (
                 <span className="text-text-muted">
-                  Not calibrated in this visit. A short calibration runs before your next session.
+                  Not calibrated yet. A short calibration runs before your next session.
                 </span>
               )}
             </LedgerRow>

@@ -272,7 +272,11 @@ Every screen folder keeps its `README.md` stating owner and "done when", as the 
 2. Should `/home` remain separate from the landing page, or should returning users skip the landing page entirely?
 3. Is a profile name or avatar wanted? Recommendation is no: it adds nothing without accounts.
 4. Who owns the new screens (`docs/OWNERSHIP.md` lists only the original four)?
-5. **For the Data team:** `StorageAdapter` has no baseline-only delete, so "Reset baseline" clears only
-   in-app calibration state. Proposed additive method: `resetBaselines?(): Promise<void>`.
+5. ~~Baseline-only delete~~ Resolved by `main`'s `CueStorage.clearBaselines()`. `src/state/savedData.ts`
+   now wraps the real storage (`getStorage()` is the one shared instance; pass it to
+   `createSessionController` when Live Coaching is wired). The profile's saving consent is mirrored into
+   `storage.setConsent()` from `App.tsx`, since the controller reads consent from storage.
+7. **For the report screen:** `components/Timeline` still uses its own point-entry type; move it onto
+   `lib/reports`' `Timeline`/`TimelineItem` model (spans, response windows, paused periods).
 6. **For Live Coaching:** `muteCues`, `cueFrequency`, and `showSignalViz` are stored in `profileStore`
    but nothing reads them yet.

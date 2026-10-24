@@ -11,5 +11,6 @@ to `/report/:sessionId`.
   offers a session.
 - Goal and event columns hide below the `sm` breakpoint; the date, length, and cues stay.
 
-## Done when
-- `lib/storage` implements `listSessions()`; until then the page always shows an empty state.
+## Data
+`useSavedSessions()` reads `CueStorage.listSessions()` (IndexedDB) and maps each session through
+`lib/reports`' `toSessionSummary`.

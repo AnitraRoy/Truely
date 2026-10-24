@@ -12,9 +12,8 @@ Three tabs from `docs/FRONTEND_GUIDE.md` §3.3, selected by `?tab=` (`settings`,
 ## Rules
 - There is no account. Never word anything as if there were one.
 - Settings store overrides only; thresholds and timing come from `src/config/coaching.ts`.
-- No fabricated counts: while `lib/storage` is unimplemented, sessions read as "none saved".
+- No fabricated counts: sessions come from `lib/storage` via `state/savedData`; if it can't be read,
+  the page says so.
 
 ## Done when
 - Live Coaching reads `muteCues`, `cueFrequency`, and `showSignalViz`.
-- `StorageAdapter` gains a baseline-only delete so "Reset baseline" removes saved baselines
-  (see the TODO in `state/savedData.ts`).

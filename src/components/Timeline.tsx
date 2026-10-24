@@ -1,4 +1,4 @@
-import type { TimelineEntry } from "@/lib/reports";
+import type { CoachingEvent } from "@/types";
 
 /**
  * Behavioral timeline — a measured strip of recorded events on a time axis
@@ -7,7 +7,17 @@ import type { TimelineEntry } from "@/lib/reports";
  * Event identity is carried by LABEL + SHAPE as well as hue, never colour alone
  * (CLAUDE.md §3/§6). It renders only the entries it is given — no fabricated
  * events (CLAUDE.md §5); an empty session renders an empty axis.
+ *
+ * TODO(report): lib/reports now builds a richer `Timeline` (`TimelineItem` spans
+ * incl. response windows and paused periods). Move this component onto that
+ * model when the post-session report is wired; until then it keeps its own
+ * point-entry shape below.
  */
+export interface TimelineEntry {
+  timestamp: number;
+  kind: "deviation" | "cue" | "tracking_gap";
+  event?: CoachingEvent;
+}
 const KIND: Record<
   TimelineEntry["kind"],
   { label: string; stem: number; mark: string; swatch: string }
