@@ -156,9 +156,38 @@ export interface Session {
   endedAt?: number;
   goal: CoachingGoal;
   status: SessionStatus;
+  /** Number of detected deviation stretches (derived from `segments`). */
   eventCount: number;
+  /** Cue events generated this session (including any shown while muted). */
   cueCount: number;
   events: CoachingEvent[];
+  /** Timeline segments: deviations, tracking gaps, paused periods. Added by `lib/sessions`. */
+  segments?: SessionSegment[];
+  /** Downsampled deviation series (≈2 Hz) for the report charts. NO raw frames. */
+  series?: SeriesPoint[];
+  /** Cue ids that fired while the user had visual notifications muted. */
+  mutedCueIds?: string[];
+}
+
+/** What a timeline segment represents (derived by `lib/sessions/recorder`). */
+export type SegmentKind = "deviation" | "tracking_gap" | "paused";
+
+/** A period on the session timeline. Timestamps share the frame clock (Date.now ms). */
+export interface SessionSegment {
+  kind: SegmentKind;
+  start: number;
+  end: number;
+  signal?: SignalName;
+  /** For deviations: the cue this pattern led to, if any. */
+  eventId?: string;
+}
+
+/** One downsampled measurement: deviation from baseline in std-devs (z-score). */
+export interface SeriesPoint {
+  t: number;
+  signal: SignalName;
+  z: number;
+  confidence: number;
 }
 
 /** Lightweight summary for lists/dashboard (derived by `lib/reports`). */
