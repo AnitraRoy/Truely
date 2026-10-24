@@ -5,7 +5,7 @@ sizes to your crew — the folder boundaries are what keep merges clean.
 
 | Team | Owns (folders) | Deliverable |
 |------|----------------|-------------|
-| **Computer-Vision** | `src/lib/camera`, `src/lib/vision`, `src/lib/signals` | Webcam → clean, normalized signal observations with confidence |
+| **Computer-Vision** | `src/lib/camera`, `src/lib/vision`, `src/lib/signals`, `src/lib/audio` | Webcam and microphone → aligned signal observations with confidence |
 | **Personalization** ⭐ | `src/lib/personalization`, `src/lib/coaching`, `src/config/coaching.ts` | Baseline + deviation detection + cue state machine (the differentiator) |
 | **Data** | `src/lib/sessions`, `src/lib/reports`, `src/lib/storage` | Session lifecycle, timeline/insights, IndexedDB persistence |
 | **Screen A** | `src/screens/Dashboard` | Dashboard + start/empty states |

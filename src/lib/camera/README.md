@@ -14,3 +14,8 @@ Manages webcam lifecycle and permissions. See PRD §9 (camera) and §4.4 (privac
 
 ## Done when
 - User can grant/deny permission; missing devices are handled; preview appears on grant.
+
+
+## Public surface
+
+Exports include `createCameraController`, `openCamera`, `releaseStream`, `CameraController`, `CameraPermission`, `CameraErrorCode`, and `CameraResult`. See `index.ts` for the complete export list.
