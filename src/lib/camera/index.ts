@@ -1,28 +1,70 @@
+
 /**
- * camera module (PRD §9)
- * Owner: Computer-Vision team.
- *
- * Responsibilities:
- *  - Request webcam permission through a clear user action.
- *  - Start / stop the camera and manage the MediaStream.
- *  - Handle permission failures & missing devices gracefully.
- *  - Release camera tracks when the session ends.
- *
- * Must NOT: upload frames anywhere (PRD §4.4 privacy-by-default).
+ * Camera module (PRD §9).
+ * Requests webcam access and releases tracks when stopped.
+ * Frames are never uploaded by this module.
  */
 
 export type CameraPermission = "prompt" | "granted" | "denied" | "no_device";
 
 export interface CameraController {
-  /** Prompt + acquire a stream. Resolves with the stream or throws. */
   start(constraints?: MediaStreamConstraints): Promise<MediaStream>;
-  /** Stop all tracks and release the device. */
   stop(): void;
   getStream(): MediaStream | null;
   getPermission(): CameraPermission;
 }
 
-// TODO(cv-team): implement with navigator.mediaDevices.getUserMedia.
 export function createCameraController(): CameraController {
-  throw new Error("camera.createCameraController not implemented");
+  let stream: MediaStream | null = null;
+  let permission: CameraPermission = "prompt";
+
+  return {
+    async start(constraints = { video: true, audio: false }) {
+      if (stream?.getVideoTracks().some((track) => track.readyState === "live")) {
+        return stream;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        permission = "no_device";
+        throw new Error("Camera API unavailable. Use HTTPS or localhost.");
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        permission = "granted";
+        return stream;
+      } catch (error) {
+        stream = null;
+
+        const name = error instanceof DOMException ? error.name : "";
+
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          permission = "denied";
+        } else if (
+          name === "NotFoundError" ||
+          name === "OverconstrainedError"
+        ) {
+          permission = "no_device";
+        }
+
+        throw error;
+      }
+    },
+
+    stop() {
+      stream?.getTracks().forEach((track) => track.stop());
+      stream = null;
+    },
+
+    getStream() {
+      return stream;
+    },
+
+    getPermission() {
+      return permission;
+    },
+  };
 }
+
+export { openCamera, releaseStream } from "./cameraController";
+export type { CameraErrorCode, CameraResult } from "./cameraController";

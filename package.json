@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "desktop:dev": "node scripts/desktop-dev.mjs",
-    "desktop": "npm run build && electron ."
+    "desktop": "npm run build && electron .",
+    "setup:vision": "node scripts/setup-vision.mjs"
   },
   "dependencies": {
     "@cartesia/cartesia-js": "^4.2.0",
