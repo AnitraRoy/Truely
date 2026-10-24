@@ -11,6 +11,7 @@ import { ConfirmDialog } from "../ConfirmDialog";
 import { PrivacyNote, DEFAULT_PRIVACY_COPY } from "../PrivacyNote";
 import { EmptyState } from "../EmptyState";
 import { FeedbackGroup } from "../FeedbackGroup";
+import { GoalPicker } from "../GoalPicker";
 import { applyTheme } from "../../styles/theme";
 
 const noop = () => {};
@@ -23,7 +24,7 @@ describe("SiteNav", () => {
       </MemoryRouter>,
     );
     expect(html).toContain('aria-label="Primary"');
-    expect(html).toContain("Reports");
+    expect(html).toContain("Profile");
     expect(html).toMatch(/href="\/profile"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/profile"/);
   });
 });
@@ -114,6 +115,16 @@ describe("FeedbackGroup", () => {
     expect(html).toContain("Too distracting");
     expect(html).toContain("✓");
     expect(html).toContain('name="feedback-e1"');
+  });
+});
+
+describe("GoalPicker", () => {
+  it("offers the three goals as native radios and labels the selection in text", () => {
+    const html = renderToStaticMarkup(<GoalPicker value="head_movement" onChange={noop} labelledBy="h" />);
+    expect(html.match(/type="radio"/g)).toHaveLength(3);
+    expect(html).toContain("Head movement awareness");
+    expect(html).toContain("selected");
+    expect(html).toContain('aria-labelledby="h"');
   });
 });
 

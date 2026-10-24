@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSessionStore } from "@/state/sessionStore";
-import { GOAL_LABELS, GOAL_SIGNALS } from "@/config/coaching";
-import type { CoachingGoal } from "@/types";
 import { Masthead } from "@/components/Masthead";
 import { Button } from "@/components/Button";
-import { Pill } from "@/components/Pill";
+import { GoalPicker } from "@/components/GoalPicker";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { WebcamFrame } from "@/components/WebcamFrame";
-
-const GOALS: CoachingGoal[] = ["camera_engagement", "head_movement", "general_awareness"];
 
 /**
  * Screen B: Goal selection + calibration (PRD §6 Screen B). Field Journal.
@@ -43,34 +39,11 @@ export function Calibration() {
       {/* Step 1 — goal */}
       <section className="mt-9">
         <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted">Step 1 · choose a goal</p>
-        <h2 className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">
+        <h2 id="calibration-goal-heading" className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">
           What would you like to work on?
         </h2>
-        <div role="radiogroup" aria-label="Coaching goal" className="mt-5 border-t border-border">
-          {GOALS.map((g) => {
-            const selected = goal === g;
-            return (
-              <button
-                key={g}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => setGoal(g)}
-                className={`grid w-full grid-cols-[1fr_auto] items-baseline gap-4 border-b border-border py-4 text-left transition-colors duration-cue ease-cue hover:bg-surface ${
-                  selected ? "bg-surface" : ""
-                }`}
-              >
-                <span>
-                  <span className="font-display text-[20px]">{GOAL_LABELS[g]}</span>
-                  <br />
-                  <span className="font-mono text-[12px] text-text-muted">
-                    {GOAL_SIGNALS[g].join(" · ").replace(/_/g, " ")}
-                  </span>
-                </span>
-                {selected && <Pill tone="positive">selected</Pill>}
-              </button>
-            );
-          })}
+        <div className="mt-5">
+          <GoalPicker value={goal} onChange={setGoal} labelledBy="calibration-goal-heading" />
         </div>
         <p className="mt-3 font-serif italic text-text-muted">
           Looking at the camera all the time isn&apos;t the goal — Cue learns your own normal.

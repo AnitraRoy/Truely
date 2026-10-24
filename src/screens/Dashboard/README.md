@@ -1,15 +1,18 @@
 # Screen A — Dashboard
 
-**Owner:** Screen A team · **Route:** `/` · PRD §6 Screen A
+**Owner:** Screen A team · **Route:** `/home` · PRD §6 Screen A
 
-Intro the product and start a session.
+The returning person's journal: start a session and see where things stand. PRD Screen A is split
+across two routes. The public introduction (logo, headline "Show up as yourself. A little better every
+time.", privacy explanation) is the Landing page at `/`. This screen keeps the working parts.
 
 ## Must include
-- Logo + headline "Show up as yourself. A little better every time."
-- Primary "Start a session" + secondary "View past sessions".
-- Selected goal, calibration-status card, recent-session summary (when data exists).
-- First-run empty state: explain baseline learning, webcam permission, local processing, privacy.
+- Primary "Start a session" ("Continue setup" until setup is finished).
+- Selected goal and calibration status.
+- Recent sessions (latest three, linking to their reports) when data exists, plus "All reports";
+  "View past sessions" is also the Reports link in the site nav.
+- Honest empty states: say why nothing is listed (saving off vs. nothing filed yet).
 - **No fabricated progress, scores, or history.**
 
 ## Reads
-`storage.listSessions()`, `useSessionStore`. Feels like a premium productivity app (PRD §11).
+`useSavedSessions()` (wraps `storage.listSessions()`), `useSessionStore`, `useProfileStore`.

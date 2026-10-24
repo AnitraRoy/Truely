@@ -72,7 +72,8 @@ export function PostSession() {
 
       <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-border pt-6">
         <Button onClick={() => navigate("/calibrate")}>Start another session</Button>
-        <Button variant="ghost" onClick={() => navigate("/")}>Return to dashboard</Button>
+        <Button variant="ghost" onClick={() => navigate("/home")}>Return to dashboard</Button>
+        <Button variant="ghost" onClick={() => navigate("/reports")}>View previous sessions</Button>
       </div>
     </main>
   );

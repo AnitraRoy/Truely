@@ -1,95 +1,135 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSessionStore } from "@/state/sessionStore";
+import { useProfileStore } from "@/state/profileStore";
+import { useSavedSessions } from "@/state/savedData";
 import { GOAL_LABELS, GOAL_SIGNALS } from "@/config/coaching";
-import { Masthead } from "@/components/Masthead";
+import { SiteNav } from "@/components/SiteNav";
 import { Button } from "@/components/Button";
-import { SpecimenPlate } from "@/components/SpecimenPlate";
 import { Ledger, LedgerRow, LedgerValue } from "@/components/Ledger";
-import { Pill } from "@/components/Pill";
 import { PrivacyNote } from "@/components/PrivacyNote";
-import bluejay from "@/assets/bluejay_final.jpg";
+import { formatDate, formatDuration, plural } from "@/components/format";
 
 /**
- * Screen A: Dashboard (PRD §6 Screen A). Field Journal art direction.
- * Honest states only — no fabricated progress, scores, or history (PRD §6,
- * CLAUDE.md §5). Focal point: the oversize headline + the specimen plate.
+ * Screen A: Dashboard (PRD §6 Screen A), the returning person's journal at
+ * /home. Field Journal. The public introduction and the blue jay plate live on
+ * the Landing page now. Honest states only — no fabricated progress, scores,
+ * or history (PRD §6, CLAUDE.md §5).
+ * Focal point: the headline and the start action; the ledger supports it and
+ * recent sessions sit in the narrow column.
  */
+const RECENT = 3;
+
 export function Dashboard() {
   const navigate = useNavigate();
   const goal = useSessionStore((s) => s.goal);
   const isCalibrated = useSessionStore((s) => s.isCalibrated);
+  const setupComplete = useProfileStore((s) => s.setupComplete);
+  const consent = useProfileStore((s) => s.consentSaveMetrics);
+  const saved = useSavedSessions();
+  const sessions = saved.status === "ready" ? saved.sessions : [];
 
-  const signals = goal ? GOAL_SIGNALS[goal].join(" · ").replace(/_/g, " ") : null;
+  const signals = goal ? GOAL_SIGNALS[goal].map((s) => s.replace(/_/g, " ")).join(" and ") : null;
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
-      <Masthead
-        folio={
-          <>
-            FIELD JOURNAL
-            <br />
-            No.&nbsp;001 — self observation
-          </>
-        }
-      />
+      <SiteNav />
 
-      <section className="mt-8 grid items-start gap-x-[clamp(26px,4vw,58px)] gap-y-10 md:grid-cols-[1fr_minmax(280px,380px)]">
-        <div>
-          <h1 className="font-display text-[clamp(40px,7vw,78px)] font-semibold leading-[0.98] tracking-[-0.02em]">
-            Show up
+      <div className="mt-10 grid items-start gap-x-[clamp(28px,5vw,72px)] gap-y-12 md:mt-14 md:grid-cols-[minmax(0,1fr)_260px]">
+        <section aria-labelledby="home-title">
+          <h1
+            id="home-title"
+            className="font-display text-[clamp(40px,7vw,78px)] font-semibold leading-[0.98] tracking-[-0.02em]"
+          >
+            Ready when
             <br />
-            as yourself.
+            you are.
           </h1>
-          <p className="mt-4 max-w-[32ch] font-serif text-[clamp(18px,2.3vw,23px)] italic leading-snug text-text-muted">
-            A field journal for your on-camera habits — Cue records what you do, session by session,
-            so you can study it in your own time.
+          <p className="mt-4 max-w-[38ch] font-serif text-[clamp(18px,2.3vw,22px)] italic leading-snug text-text-muted">
+            {setupComplete
+              ? "Start a session whenever you're about to be on camera, or before one to warm up."
+              : "Finish setup first so Cue can learn your normal before it offers any cues."}
           </p>
           <div className="mt-8">
-            <Button onClick={() => navigate("/calibrate")}>Start a session</Button>
+            <Button onClick={() => navigate(setupComplete ? "/calibrate" : "/start")}>
+              {setupComplete ? "Start a session" : "Continue setup"}
+            </Button>
           </div>
-        </div>
 
-        <SpecimenPlate
-          src={bluejay}
-          alt="Hand-coloured engraving of blue jays on a branch with trumpet flowers, after J. J. Audubon"
-          title="Plate CII — Corvus cristatus"
-          note="hand-coloured"
-        />
-      </section>
+          <Ledger className="mt-14">
+            <LedgerRow
+              label="Goal"
+              meta={
+                <Link to="/profile" className="font-serif italic underline decoration-1 underline-offset-4 hover:text-accent">
+                  Change
+                </Link>
+              }
+            >
+              {goal ? (
+                <>
+                  <LedgerValue>{GOAL_LABELS[goal]}</LedgerValue>
+                  <span className="mt-0.5 block text-[14.5px] text-text-muted">Prioritizes {signals}</span>
+                </>
+              ) : (
+                <span className="text-text-muted">Not chosen yet. You&apos;ll pick one in setup.</span>
+              )}
+            </LedgerRow>
 
-      <Ledger className="mt-12">
-        <LedgerRow label="Goal" meta={goal ? <Pill tone="positive">selected</Pill> : "not set"}>
-          {goal ? (
+            <LedgerRow label="Baseline">
+              {isCalibrated ? (
+                <>
+                  <LedgerValue>Calibrated</LedgerValue>
+                  <span className="mt-0.5 block text-[14.5px] text-text-muted">Learned from your natural patterns</span>
+                </>
+              ) : (
+                <span className="text-text-muted">
+                  Not calibrated in this visit. A short calibration runs before your next session.
+                </span>
+              )}
+            </LedgerRow>
+          </Ledger>
+        </section>
+
+        <aside aria-labelledby="recent-title" className="md:pt-3">
+          <h2 id="recent-title" className="font-display text-[20px] leading-snug">
+            Recent sessions
+          </h2>
+          {sessions.length > 0 ? (
             <>
-              <LedgerValue>{GOAL_LABELS[goal]}</LedgerValue>
-              <br />
-              <span className="font-mono text-[12px] text-text-muted">prioritizes {signals}</span>
+              <ul className="mt-3 border-t border-border">
+                {sessions.slice(0, RECENT).map((s) => (
+                  <li key={s.id} className="border-b border-border py-3">
+                    <Link
+                      to={`/report/${encodeURIComponent(s.id)}`}
+                      className="font-display text-[17px] underline decoration-border decoration-1 underline-offset-4 hover:text-accent hover:decoration-accent"
+                    >
+                      {formatDate(s.startedAt)}
+                    </Link>
+                    <span className="block text-[14px] text-text-muted">
+                      {formatDuration(s.durationMs)}, {plural(s.cueCount, "cue")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Link to="/reports" className="mt-3 inline-block font-serif italic underline decoration-1 underline-offset-4 hover:text-accent">
+                All reports
+              </Link>
             </>
           ) : (
-            <span className="text-text-muted">Choose a goal when you start a session.</span>
+            <p className="mt-3 font-serif italic text-text-muted">
+              {consent
+                ? "Nothing filed yet. Your sessions will be listed here."
+                : "Saving is off, so past sessions aren't listed."}{" "}
+              {!consent && (
+                <Link to="/profile?tab=data" className="not-italic underline decoration-1 underline-offset-4 hover:text-accent">
+                  Change this
+                </Link>
+              )}
+            </p>
           )}
-        </LedgerRow>
 
-        <LedgerRow label="Baseline" meta={isCalibrated ? "updated today" : undefined}>
-          {isCalibrated ? (
-            <>
-              <LedgerValue>Calibrated</LedgerValue>
-              <br />
-              <span className="font-mono text-[12px] text-text-muted">learned from your natural patterns</span>
-            </>
-          ) : (
-            <span className="text-text-muted">
-              Not calibrated yet — a short calibration draws your baseline before any cues.
-            </span>
-          )}
-        </LedgerRow>
-
-        <LedgerRow label="Sessions">
-          <span className="text-text-muted">No sessions filed yet. Your first run will be recorded here.</span>
-        </LedgerRow>
-      </Ledger>
-
-      <PrivacyNote className="mt-7" />
+          <PrivacyNote className="mt-10" />
+        </aside>
+      </div>
     </main>
   );
 }

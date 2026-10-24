@@ -35,3 +35,11 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Same, when turned on in Profile → Settings regardless of the device setting. */
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}

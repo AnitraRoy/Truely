@@ -21,5 +21,11 @@ const VARIANT: Record<Variant, string> = {
 };
 
 export function Button({ variant = "primary", className = "", type = "button", ...rest }: ButtonProps) {
-  return <button type={type} className={`${VARIANT[variant]} ${className}`} {...rest} />;
+  return (
+    <button
+      type={type}
+      className={`${VARIANT[variant]} disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+      {...rest}
+    />
+  );
 }

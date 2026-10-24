@@ -34,7 +34,7 @@ export function Toggle({
       <span
         aria-hidden
         className={`relative h-[18px] w-[34px] rounded-pill border transition-colors duration-cue ease-cue ${
-          checked ? "border-text-primary bg-text-primary" : "border-border bg-transparent"
+          checked ? "border-text-primary bg-text-primary" : "border-text-muted bg-transparent"
         }`}
       >
         <span

@@ -39,7 +39,7 @@ export function ConfirmDialog({
         e.preventDefault();
         onCancel();
       }}
-      className="w-[min(92vw,440px)] rounded border border-text-primary bg-bg p-0 text-text-primary backdrop:bg-text-primary/40"
+      className="w-[min(92vw,440px)] rounded border border-text-primary bg-bg p-0 text-text-primary backdrop:bg-scrim/50"
     >
       <div className="p-6">
         <h2 id="confirm-dialog-title" className="border-l-2 border-warning pl-3 font-display text-[22px] leading-tight">

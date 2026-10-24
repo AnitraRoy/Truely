@@ -244,10 +244,25 @@ Every screen folder keeps its `README.md` stating owner and "done when", as the 
    still use arbitrary `text-[Npx]` values.
 2. **Primitives:** ~~`SiteNav`, `Tabs`, `Toggle`, `SettingRow`, `ConfirmDialog`, `Stepper`, `EmptyState`,
    `FeedbackGroup`, `PrivacyNote`~~ (done).
-3. **State:** `profileStore`, hydration, guarded storage access.
-4. **Screens in dependency order:** Setup, Profile, Landing (move current Dashboard to `/home`), Reports
-   history, then fill the single report from `lib/reports` once the engine lands.
-5. **Routing:** update `App.tsx` per §2, including the first-run redirect.
+3. **State:** ~~`profileStore`, hydration, guarded storage access~~ (done: `src/state/profileStore.ts`,
+   zustand `persist` to localStorage under `cue-profile`, storage errors swallowed; `App.tsx` applies the
+   theme and seeds `sessionStore.goal` from `primaryGoal`; `index.html` applies the theme before paint).
+4. **Screens in dependency order:** ~~Setup~~ (done: `/start`, `src/screens/Setup`; Dashboard's "Start a
+   session" routes there until `setupComplete`; `GoalPicker` is shared with `/calibrate`), ~~Profile~~
+   (done: `/profile`, tab in `?tab=`; data actions in `src/state/savedData.ts` degrade honestly while
+   `lib/storage` is a stub; Dashboard now uses `SiteNav`, whose Reports link is hidden until `/reports`
+   exists; reduce-motion override sets `data-motion="reduce"`; new `ChoiceGroup` primitive and `scrim`
+   token), ~~Landing (move current Dashboard to `/home`)~~ (done: `src/screens/Landing`; the blue jay
+   plate moved there from the Dashboard, which is now the returning hub with recent sessions; the
+   wordmark links to `/home` in `SiteNav` and to `/` in Setup; shared date/duration helpers live in
+   `src/components/format.ts`), ~~Reports history~~ (done: `/reports`,
+   `src/screens/Reports`; a real `<table>` whose date cell links to `/report/:id`; `useSavedSessions()`
+   in `savedData.ts` returns sessions newest first; two empty states, saving off vs. nothing filed;
+   Reports link back in `SiteNav`; Post-session report gained "View previous sessions"), then fill the
+   single report from `lib/reports` once the engine lands.
+5. **Routing:** ~~update `App.tsx` per §2~~ (done). There is no automatic redirect: `/` stays the landing
+   page for everyone, and returning people get the site nav plus "Open your journal" there (see open
+   question 2).
 6. **Review:** run `design-review` on each screen and `dataviz` before the timeline work; then
    `npm run build`, `npm run lint`, `npm run test`.
 
@@ -257,3 +272,7 @@ Every screen folder keeps its `README.md` stating owner and "done when", as the 
 2. Should `/home` remain separate from the landing page, or should returning users skip the landing page entirely?
 3. Is a profile name or avatar wanted? Recommendation is no: it adds nothing without accounts.
 4. Who owns the new screens (`docs/OWNERSHIP.md` lists only the original four)?
+5. **For the Data team:** `StorageAdapter` has no baseline-only delete, so "Reset baseline" clears only
+   in-app calibration state. Proposed additive method: `resetBaselines?(): Promise<void>`.
+6. **For Live Coaching:** `muteCues`, `cueFrequency`, and `showSignalViz` are stored in `profileStore`
+   but nothing reads them yet.

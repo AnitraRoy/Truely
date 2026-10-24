@@ -17,6 +17,7 @@ export default {
         warning: "rgb(var(--cue-warning) / <alpha-value>)",
         "text-primary": "rgb(var(--cue-text-primary) / <alpha-value>)",
         "text-muted": "rgb(var(--cue-text-muted) / <alpha-value>)",
+        scrim: "rgb(var(--cue-scrim) / <alpha-value>)",
       },
       fontFamily: {
         display: "var(--cue-font-display)",

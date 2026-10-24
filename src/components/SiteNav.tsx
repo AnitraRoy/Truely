@@ -14,6 +14,7 @@ const LINKS = [
 export function SiteNav() {
   return (
     <Masthead
+      homeHref="/home"
       folio={
         <nav aria-label="Primary" className="flex items-center gap-6">
           {LINKS.map(({ to, label }) => (

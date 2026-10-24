@@ -20,6 +20,7 @@
   --cue-warning: 154 123 51; /* muted amber — never bright red */
   --cue-text-primary: 35 33 27; /* ink */
   --cue-text-muted: 81 76 64; /* soft ink */
+  --cue-scrim: 35 33 27; /* dims the page behind dialogs; always darker than bg */
 
   /* typography */
   --cue-font-display: "Fraunces", Georgia, "Times New Roman", serif;
@@ -55,6 +56,7 @@
   --cue-warning: 214 176 92;
   --cue-text-primary: 236 230 216; /* bone */
   --cue-text-muted: 178 170 154;
+  --cue-scrim: 0 0 0;
 
   color-scheme: dark;
 }
@@ -70,6 +72,7 @@
     --cue-warning: 214 176 92;
     --cue-text-primary: 236 230 216;
     --cue-text-muted: 178 170 154;
+    --cue-scrim: 0 0 0;
 
     color-scheme: dark;
   }
