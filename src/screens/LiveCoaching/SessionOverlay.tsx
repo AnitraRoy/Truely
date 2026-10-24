@@ -6,8 +6,12 @@ import type { SampleCue } from "./useSampleCues";
  * carries no video, no controls, and no status beyond a quiet idle line — the
  * Cue window keeps the preview and the session controls (CLAUDE.md §6).
  *
- * In the desktop shell the window is frameless: the top row is the drag handle
- * and ✕ docks cues back into the Cue window.
+ * In the desktop shell the window is frameless and fully transparent
+ * (electron/main.cjs) and opens top-center, clear of most meeting controls.
+ * This panel is what actually draws its shape: a slightly translucent fill,
+ * clipped to rounded corners so the transparent window shows through outside
+ * them. The top row is the drag handle, and ✕ docks cues back into the Cue
+ * window.
  */
 const DRAG = "[-webkit-app-region:drag]";
 const NO_DRAG = "[-webkit-app-region:no-drag]";
@@ -27,7 +31,7 @@ export function SessionOverlay({
   onDock?: () => void;
 }) {
   return (
-    <main className="flex h-screen select-none flex-col gap-2 p-2.5">
+    <main className="flex h-screen select-none flex-col gap-2 overflow-hidden rounded-xl border border-border bg-bg/90 p-2.5">
       <header className={`flex items-center gap-2 ${draggable ? DRAG : ""}`}>
         <span className="font-display text-[14px] font-semibold leading-none">
           Cue<span className="text-ochre">.</span>
@@ -47,7 +51,7 @@ export function SessionOverlay({
 
       <div className={`flex flex-1 flex-col justify-center ${NO_DRAG}`}>
         {cue ? (
-          <CueBubble key={cue.id} text={cue.text} label="sample" onDismiss={onDismiss} />
+          <CueBubble key={cue.id} text={cue.text} label="sample" onDismiss={onDismiss} floating />
         ) : (
           <p className="m-0 px-1 font-serif text-[14px] italic text-text-muted">
             {paused ? "Coaching is paused." : "Observing quietly. Cues appear here."}

@@ -3,12 +3,15 @@ import { createPortal } from "react-dom";
 
 /**
  * Renders its children into the always-on-top window from useFloatingOverlay().
- * The body gets the app's paper + ink so the window reads as the same journal.
+ * The body stays transparent — the desktop window itself is fully transparent
+ * (electron/main.cjs), so SessionOverlay's own rounded, slightly-translucent
+ * panel is what gives the window its shape and fill, not an opaque body.
  * Owner: Design System team.
  */
 export function FloatingOverlay({ target, children }: { target: Window; children: ReactNode }) {
   useLayoutEffect(() => {
-    target.document.body.className = "m-0 bg-bg text-text-primary";
+    target.document.documentElement.className = "bg-transparent";
+    target.document.body.className = "m-0 bg-transparent text-text-primary";
   }, [target]);
   return createPortal(children, target.document.body);
 }

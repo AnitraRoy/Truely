@@ -94,13 +94,11 @@ function protectOverlay(win) {
   win.setAlwaysOnTop(true, "screen-saver");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  // Bottom-right of the screen Cue is on, out of the way of a meeting's controls.
+  // Top-center of the screen Cue is on, clear of most meeting controls (which
+  // tend to sit bottom-center or in a corner).
   const { width, height } = win.getBounds();
   const { workArea } = screen.getDisplayMatching(mainWindow?.getBounds() ?? win.getBounds());
-  win.setPosition(
-    workArea.x + workArea.width - width - OVERLAY_MARGIN,
-    workArea.y + workArea.height - height - OVERLAY_MARGIN,
-  );
+  win.setPosition(workArea.x + Math.round((workArea.width - width) / 2), workArea.y + OVERLAY_MARGIN);
 
   // Shortcuts are system-wide, so hold them only while the overlay exists.
   globalShortcut.register(SHORTCUTS.toggleHidden, toggleHidden);
@@ -160,7 +158,11 @@ function createMainWindow() {
           minimizable: false,
           maximizable: false,
           fullscreenable: false,
-          backgroundColor: PAPER,
+          // Fully transparent at the OS level: the slightly-translucent fill and
+          // rounded corners are drawn in CSS (FloatingOverlay/SessionOverlay), so
+          // the window itself must have no opaque square behind them.
+          transparent: true,
+          hasShadow: false,
           webPreferences: { backgroundThrottling: false },
         },
       };

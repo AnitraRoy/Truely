@@ -27,6 +27,16 @@ describe("SiteNav", () => {
     expect(html).toContain("Profile");
     expect(html).toMatch(/href="\/profile"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/profile"/);
   });
+
+  it("links Home to the landing page, not the signed-in dashboard", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <SiteNav />
+      </MemoryRouter>,
+    );
+    expect(html).toMatch(/href="\/"[^>]*>Home</);
+    expect(html).not.toMatch(/href="\/"[^>]*aria-current="page"/); // not marked current on another page
+  });
 });
 
 describe("Stepper", () => {
