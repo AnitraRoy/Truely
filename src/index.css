@@ -14,7 +14,17 @@ body {
   margin: 0;
   background: rgb(var(--cue-bg));
   color: rgb(var(--cue-text-primary));
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--cue-font-serif);
+  font-size: 16.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible, token-coloured focus for keyboard users (CLAUDE.md §3). */
+:focus-visible {
+  outline: 2px solid rgb(var(--cue-accent));
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
