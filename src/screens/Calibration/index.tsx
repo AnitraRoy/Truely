@@ -1,17 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { COACHING_CONFIG } from "@/config/coaching";
 import { useSessionStore } from "@/state/sessionStore";
 import { Masthead } from "@/components/Masthead";
 import { Button } from "@/components/Button";
 import { GoalPicker } from "@/components/GoalPicker";
+import { HeadRangePrompt, HeadRangeSteps, useHeadRange } from "@/components/HeadRangeGuide";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { WebcamFrame } from "@/components/WebcamFrame";
 
 /**
  * Screen B: Goal selection + calibration (PRD §6 Screen B). Field Journal.
- * Pick one goal → enable the camera → draw a baseline. Honest copy only; no
+ * Pick one goal → enable the camera → draw a baseline in two parts: head range
+ * (directions shown on the preview) then natural speech. The preview holds the
+ * left column throughout so the directions stay in view. Honest copy only; no
  * fabricated precision or personality assessment (PRD §6, CLAUDE.md §5).
  */
+type Phase = "setup" | "range" | "calibrating" | "ready";
+
+const SECONDS = Math.round(COACHING_CONFIG.calibrationDurationMs / 1000);
+
+const HEADING = "font-display text-[clamp(26px,3.4vw,34px)] font-semibold leading-tight";
+const PART = "text-[14.5px] text-text-muted";
+
 export function Calibration() {
   const navigate = useNavigate();
   const goal = useSessionStore((s) => s.goal);
@@ -19,127 +30,128 @@ export function Calibration() {
   const setStatus = useSessionStore((s) => s.setStatus);
   const setCalibrated = useSessionStore((s) => s.setCalibrated);
   const { videoRef, state, enable, disable } = useWebcamPreview();
-  const [phase, setPhase] = useState<"setup" | "calibrating" | "ready">("setup");
+  const [phase, setPhase] = useState<Phase>("setup");
 
   const live = state === "live";
+  const startSpeaking = () => setPhase("calibrating");
+  const range = useHeadRange({ active: phase === "range" && live, onComplete: startSpeaking });
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10 md:py-14">
-      <Masthead
-        size="sm"
-        folio={
-          <>
-            SET-UP
-            <br />
-            No.&nbsp;001 — baseline
-          </>
-        }
-      />
+    <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
+      <Masthead size="sm" folio="Set-up: baseline" />
 
-      {/* Step 1 — goal */}
-      <section className="mt-9">
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted">Step 1 · choose a goal</p>
-        <h2 id="calibration-goal-heading" className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">
-          What would you like to work on?
-        </h2>
-        <div className="mt-5">
-          <GoalPicker value={goal} onChange={setGoal} labelledBy="calibration-goal-heading" />
-        </div>
-        <p className="mt-3 font-serif italic text-text-muted">
-          Looking at the camera all the time isn&apos;t the goal — Cue learns your own normal.
-        </p>
-      </section>
-
-      {/* Step 2 — camera */}
-      <section className="mt-12">
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted">Step 2 · camera</p>
-        <h2 className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">Enable your camera</h2>
-        <div className="mt-5 grid items-start gap-6 md:grid-cols-[1fr_200px]">
-          <WebcamFrame videoRef={videoRef} state={state} />
-          <div>
-            <p className="flex items-center gap-2 font-mono text-[12px] text-text-muted">
+      <div className="mt-10 grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-8 md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]">
+        <div className="md:sticky md:top-8">
+          <WebcamFrame
+            videoRef={videoRef}
+            state={state}
+            overlay={phase === "range" ? <HeadRangePrompt range={range} /> : undefined}
+          />
+          <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <p className="flex items-center gap-2 text-[14.5px] text-text-muted">
               <span aria-hidden className={`h-[7px] w-[7px] rounded-pill ${live ? "bg-positive" : "bg-text-muted"}`} />
-              {live ? "Camera on · local only" : "Camera off"}
+              {live ? "Camera on, local only. Frames are never uploaded." : "Camera off"}
             </p>
-            <p className="mt-3 font-serif text-[14.5px] italic text-text-muted">
-              Frames stay on your device — nothing is uploaded.
-            </p>
-            <div className="mt-4 flex flex-col gap-3">
-              {live ? (
-                <Button variant="ghost" onClick={disable}>Turn camera off</Button>
-              ) : (
-                <Button onClick={enable}>Enable camera</Button>
-              )}
-            </div>
+            {live ? (
+              <Button variant="ghost" size="sm" onClick={disable}>
+                Turn camera off
+              </Button>
+            ) : (
+              <Button size="sm" onClick={enable} disabled={state === "requesting"}>
+                Enable camera
+              </Button>
+            )}
           </div>
         </div>
-      </section>
 
-      {/* Step 3 — calibration */}
-      <section className="mt-12">
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-muted">Step 3 · baseline</p>
-        {phase === "setup" && (
-          <>
-            <h2 className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">Draw your baseline</h2>
-            <p className="mt-3 max-w-[54ch] font-serif text-text-muted">
-              Speak naturally for about a minute. Cue notes your typical head orientation and gaze so it
-              can tell your normal from a real, sustained change.
-            </p>
-            <div className="mt-6">
-              <Button
-                disabled={!goal || !live}
-                onClick={() => {
-                  setStatus("calibrating");
-                  setPhase("calibrating");
-                }}
-                className={!goal || !live ? "opacity-40" : ""}
-              >
-                Begin calibration
-              </Button>
-              {(!goal || !live) && (
-                <p className="mt-2 font-mono text-[11px] text-text-muted">
-                  Choose a goal and enable the camera first.
+        <div>
+          {phase === "setup" && (
+            <>
+              <section>
+                <h2 id="calibration-goal-heading" className={HEADING}>
+                  What would you like to work on?
+                </h2>
+                <div className="mt-5">
+                  <GoalPicker value={goal} onChange={setGoal} labelledBy="calibration-goal-heading" />
+                </div>
+                <p className="mt-3 italic text-text-muted">
+                  Looking at the camera all the time isn&apos;t the goal. Cue learns your own normal.
                 </p>
-              )}
-            </div>
-          </>
-        )}
+              </section>
 
-        {phase === "calibrating" && (
-          <>
-            <h2 className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">Observing…</h2>
-            <p className="mt-3 max-w-[54ch] font-serif text-text-muted">
-              Keep speaking as you naturally would. Cue is collecting your baseline — it will confirm
-              when it has enough.
-            </p>
-            {/* The CV/personalization engine confirms at the configured sample count
-                (src/config/coaching.ts). Pending that engine, you confirm when ready. */}
-            <div className="mt-6">
-              <Button
-                onClick={() => {
-                  setCalibrated(true);
-                  setStatus("ready");
-                  setPhase("ready");
-                }}
-              >
-                My baseline is ready
-              </Button>
-            </div>
-          </>
-        )}
+              <section className="mt-10 border-t border-border pt-8">
+                <h2 className={HEADING}>Draw your baseline</h2>
+                <p className="mt-3 text-text-muted">
+                  Two short parts. First, follow the directions on your preview to look up, down, left and
+                  right. Then speak naturally for about {SECONDS} seconds, so Cue can tell your normal from a
+                  real, sustained change.
+                </p>
+                <div className="mt-6">
+                  <Button
+                    disabled={!goal || !live}
+                    onClick={() => {
+                      setStatus("calibrating");
+                      setPhase("range");
+                    }}
+                  >
+                    Begin calibration
+                  </Button>
+                  {(!goal || !live) && (
+                    <p className="mt-2 text-[14.5px] text-text-muted">Choose a goal and enable the camera first.</p>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
 
-        {phase === "ready" && (
-          <>
-            <h2 className="mt-2 font-display text-[clamp(26px,4vw,38px)] font-semibold leading-tight">Baseline ready</h2>
-            <p className="mt-3 max-w-[54ch] font-serif text-text-muted">
-              Cue will use your normal patterns to personalize feedback. You can recalibrate any time.
-            </p>
-            <div className="mt-6">
-              <Button onClick={() => navigate("/session")}>Start session</Button>
-            </div>
-          </>
-        )}
-      </section>
+          {phase === "range" && (
+            <section>
+              <p className={PART}>Part 1 of 2</p>
+              <h2 className={HEADING}>Look around</h2>
+              <div className="mt-3">
+                <HeadRangeSteps range={range} onSkip={startSpeaking} />
+              </div>
+              {!live && <p className="mt-4 text-[14.5px] text-text-muted">The camera is off, so this part is on hold.</p>}
+            </section>
+          )}
+
+          {phase === "calibrating" && (
+            <section>
+              <p className={PART}>Part 2 of 2</p>
+              <h2 className={HEADING}>Now just talk</h2>
+              <p className="mt-3 text-text-muted">
+                Keep speaking as you naturally would. Glancing away while you think is fine; Cue is collecting
+                your baseline.
+              </p>
+              {/* The CV/personalization engine confirms at the configured sample count
+                  (src/config/coaching.ts). Pending that engine, you confirm when ready. */}
+              <div className="mt-6">
+                <Button
+                  onClick={() => {
+                    setCalibrated(true);
+                    setStatus("ready");
+                    setPhase("ready");
+                  }}
+                >
+                  My baseline is ready
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {phase === "ready" && (
+            <section>
+              <h2 className={HEADING}>Your baseline is ready.</h2>
+              <p className="mt-3 text-text-muted">
+                Cue will use your normal patterns to personalize feedback. You can recalibrate any time.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => navigate("/session")}>Start session</Button>
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

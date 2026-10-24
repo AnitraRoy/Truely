@@ -5,6 +5,7 @@ import { Stepper } from "@/components/Stepper";
 import { Button } from "@/components/Button";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
+import { HeadRangePrompt, useHeadRange } from "@/components/HeadRangeGuide";
 import { useProfileStore } from "@/state/profileStore";
 import { useSessionStore } from "@/state/sessionStore";
 import { WelcomeStep } from "./steps/Welcome";
@@ -51,6 +52,9 @@ export function Setup() {
     headingRef.current?.focus();
   }, [step]);
 
+  const startSpeaking = () => setPhase("calibrating");
+  const range = useHeadRange({ active: step === BASELINE && phase === "range" && live, onComplete: startSpeaking });
+
   const canContinue = step === 1 ? goal != null : step === CAMERA ? live : true;
 
   const finishBaseline = () => {
@@ -78,10 +82,12 @@ export function Setup() {
       headingRef={headingRef}
       phase={phase}
       cameraLive={live}
+      range={range}
       onBegin={() => {
         setStatus("calibrating");
-        setPhase("calibrating");
+        setPhase("range");
       }}
+      onRangeSkip={startSpeaking}
       onReady={finishBaseline}
       onStartSession={() => navigate("/session")}
       onDashboard={() => navigate("/home")}
@@ -109,6 +115,7 @@ export function Setup() {
           videoRef={camera.videoRef}
           state={camera.state}
           className={usesCamera ? "" : "hidden"}
+          overlay={step === BASELINE && phase === "range" ? <HeadRangePrompt range={range} /> : undefined}
         />
 
         <section className={usesCamera || step === 0 ? "" : "max-w-3xl"}>

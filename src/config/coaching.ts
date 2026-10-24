@@ -170,6 +170,33 @@ export const GOAL_CUE_OVERRIDES: Partial<
   },
 };
 
+/** A position in the head-range part of calibration. Directions are the person's own. */
+export type HeadDirection = "center" | "up" | "down" | "left" | "right";
+
+/**
+ * Head-range calibration (the first part of the baseline): the person looks
+ * up, down, left and right so the vision engine can sample their comfortable
+ * range of movement. Each position is held for `holdMs`. Copy stays gentle:
+ * "as far as is comfortable", never a target to hit.
+ */
+export const HEAD_RANGE_CALIBRATION = {
+  holdMs: 3500,
+  steps: [
+    { direction: "center", label: "Centre", prompt: "Look at the screen", instruction: "Look at the screen as you normally would" },
+    { direction: "up", label: "Up", prompt: "Tilt your head up", instruction: "Tilt your head up a little" },
+    { direction: "down", label: "Down", prompt: "Tilt your head down", instruction: "Now tilt your head down" },
+    { direction: "left", label: "Left", prompt: "Turn left", instruction: "Turn your head to your left" },
+    { direction: "right", label: "Right", prompt: "Turn right", instruction: "Turn your head to your right" },
+  ] as const satisfies ReadonlyArray<{
+    direction: HeadDirection;
+    label: string;
+    /** Short text drawn on the preview. */
+    prompt: string;
+    /** Full sentence, announced to screen readers. */
+    instruction: string;
+  }>,
+} as const;
+
 export const TRACKING_LIMITED_MESSAGE =
   "Tracking is limited. Adjust your lighting or camera position.";
 

@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { CameraBusyHelp } from "./CameraBusyHelp";
 import type { PreviewState } from "./useWebcamPreview";
 
@@ -23,10 +23,13 @@ export function WebcamFrame({
   videoRef,
   state,
   className = "",
+  overlay,
 }: {
   videoRef: RefObject<HTMLVideoElement>;
   state: PreviewState;
   className?: string;
+  /** Guidance drawn over the live preview (e.g. calibration directions). Hidden when the camera is off. */
+  overlay?: ReactNode;
 }) {
   const live = state === "live";
   return (
@@ -40,6 +43,7 @@ export function WebcamFrame({
           aria-label="Your webcam preview"
           className={`h-full w-full -scale-x-100 object-cover ${live ? "" : "invisible"}`}
         />
+        {live && overlay}
         {!live && (
           <p className="absolute inset-0 m-auto flex items-center justify-center px-8 text-center font-serif italic text-text-muted">
             {MESSAGE[state]}
