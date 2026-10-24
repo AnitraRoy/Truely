@@ -106,6 +106,28 @@ export interface DeviationAssessment {
 // Coaching layer (produced by `lib/coaching`)
 // -----------------------------------------------------------------------------
 
+/**
+ * What the measured signal did in the window after a cue (PRD §6 Screen D).
+ * Purely observational — NEVER evidence that the cue caused the change.
+ */
+export type ObservedChange =
+  | "closer_to_baseline"
+  | "no_clear_change"
+  | "further_from_baseline"
+  | "insufficient_data";
+
+/** Measurements around a cue, in baseline std-devs (z-scores). */
+export interface CueResponseSummary {
+  /** Mean deviation while the pattern was building, just before the cue. */
+  preDeviation: number;
+  /** Mean deviation over the response window (undefined if no samples). */
+  postMeanDeviation?: number;
+  postSampleCount: number;
+  /** False if the session ended (or tracking was lost) before the window closed. */
+  windowComplete: boolean;
+  observedChange: ObservedChange;
+}
+
 /** A single coaching intervention record (PRD §10). */
 export interface CoachingEvent {
   id: string;
@@ -117,6 +139,10 @@ export interface CoachingEvent {
   feedback?: CueFeedback;
   /** End of the window in which we observe the signal's response. */
   responseWindowEnd?: number;
+  /** True if the user dismissed the cue; false if it expired on its own. */
+  dismissed?: boolean;
+  /** Filled in once the response window closes (or the session ends). */
+  response?: CueResponseSummary;
 }
 
 // -----------------------------------------------------------------------------
