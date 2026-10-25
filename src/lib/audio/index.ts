@@ -6,3 +6,5 @@ export { AudioCalibrator, CALIBRATION_CONSTANTS } from "./calibration";
 export type { AudioCalibration, CalibrationResult, CalibrationFailureReason } from "./calibration";export { LevelMeter } from "./levelMeter";
 export { SpeechTally, isSilentClip } from "./speechTally";
 export type { SpeechSummary } from "./speechTally";
+export { startPcmCapture, floatTo16BitPCM } from "./pcmStream";
+export type { PcmCapture } from "./pcmStream";

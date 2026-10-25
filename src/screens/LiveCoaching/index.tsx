@@ -154,8 +154,8 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
   const transcriptBlock = choices.microphone && (
     <LiveTranscript
       segments={convo.transcript}
-      pending={paused ? "Paused: not listening." : convo.transcribing ? "Transcribing…" : undefined}
-      emptyText="Listening. Lines appear here every few seconds."
+      pending={paused ? "Paused: not listening." : undefined}
+      emptyText="Listening. Words appear here as you speak."
       label="Live transcript"
       maxHeight={camera ? "max-h-[220px]" : "max-h-[460px]"}
     />

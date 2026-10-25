@@ -7,12 +7,15 @@
  * renderer. Like the rest of `lib/services`, nothing here throws: failures
  * resolve to { ok: false, error }. Owner: Integration (person 4).
  *
- * Turn-based by design: a recorded answer (or a chunk of live audio) is sent
- * to batch transcription. That is what the current bridge and SDK support
- * reliably; streaming STT can replace `transcribeAudio` later without
- * changing callers.
+ * `transcribeAudio` stays turn-based: a recorded answer (one clip, sent once
+ * it's done) is the right fit for voice coaching and mock interviews.
+ * `streamLiveTranscription` is the realtime counterpart, for Live Coaching's
+ * transcript: raw PCM goes to Cartesia's STT websocket continuously, and the
+ * cumulative text for the turn-in-progress comes back as it's recognized —
+ * word by word, not in fixed chunks.
  */
 import { CARTESIA } from "@/config/conversation";
+import { floatTo16BitPCM } from "@/lib/audio";
 import { getCartesiaToken } from "./index";
 import { pcmPlayer } from "./playback";
 import type { ServiceResult } from "./types";
@@ -55,6 +58,54 @@ export async function transcribeAudio(audio: Blob): Promise<ServiceResult<{ text
     return { ok: true, text: (res.text ?? "").trim() };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "stt_failed" };
+  }
+}
+
+export interface LiveTranscriptionHandle {
+  /** Send one buffer of mic audio (lib/audio.startPcmCapture's `onFrame`). */
+  push(samples: Float32Array): void;
+  /** Flushes any audio still buffered into a final `onTurnEnd`, then disconnects. */
+  close(): void;
+}
+
+/**
+ * Open a realtime transcription connection: push raw mic audio in as it's
+ * captured, and get the current turn's cumulative transcript back as
+ * Cartesia recognizes it — several times a second, not once per chunk. Stays
+ * open across turns (one call per session, not per utterance).
+ */
+export async function streamLiveTranscription(opts: {
+  /** The capturing AudioContext's rate (lib/audio.startPcmCapture). */
+  sampleRate: number;
+  onTurnStart?: () => void;
+  /** Cumulative text for the turn in progress — replaces, not appends. */
+  onTurnUpdate: (text: string) => void;
+  /** The turn's final text. */
+  onTurnEnd: (text: string) => void;
+  onError?: (message: string) => void;
+}): Promise<ServiceResult<LiveTranscriptionHandle>> {
+  const c = await client();
+  if (!c.ok) return c;
+  try {
+    const ws = c.client.stt.autoFinalize.websocket({
+      encoding: "pcm_s16le",
+      model: CARTESIA.liveSttModel,
+      sample_rate: opts.sampleRate,
+    });
+    ws.on("event", (event) => {
+      if (event.type === "turn.start") opts.onTurnStart?.();
+      else if (event.type === "turn.update") opts.onTurnUpdate(event.transcript);
+      else if (event.type === "turn.end") opts.onTurnEnd(event.transcript);
+      else if (event.type === "error") opts.onError?.(event.message);
+    });
+    ws.on("error", (err) => opts.onError?.(err.message));
+    return {
+      ok: true,
+      push: (samples) => ws.sendRaw(floatTo16BitPCM(samples)),
+      close: () => ws.send({ type: "close" }),
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "stt_stream_failed" };
   }
 }
 

@@ -12,6 +12,8 @@ import type { FeedbackCategory } from "@/types";
 /** Cartesia models and voices. Same ids as scripts/smoke-services.mjs. */
 export const CARTESIA = {
   sttModel: "ink-whisper",
+  /** Realtime model for the live transcript's streaming websocket (word by word). */
+  liveSttModel: "ink-2",
   ttsModel: "sonic-3.6",
   /** One calm voice for both the coach and the interviewer. */
   voiceId: "a0e99841-438c-4a64-b679-ae501e7d6091",
@@ -84,8 +86,6 @@ export const INTERVIEW_QUESTION_COUNT = 6;
 
 /** Live conversation transcript + suggestions. */
 export const LIVE_CONVERSATION = {
-  /** Audio is transcribed in chunks of about this length. */
-  chunkMs: 9000,
   /** New transcript lines required before another suggestion is considered. */
   minNewSegments: 2,
   /** Minimum gap between two suggestions, so the person is still mostly left alone. */

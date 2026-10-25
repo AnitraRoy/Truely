@@ -90,6 +90,9 @@ export function useMicrophone() {
     setState("off");
   }, []);
 
+  /** The raw stream, for piping into a streaming transcription connection. */
+  const stream = useCallback(() => streamRef.current, []);
+
   /** Start recording one clip. Resolves `stop()` to the clip's audio. */
   const record = useCallback((): ClipRecorder | null => {
     const stream = streamRef.current;
@@ -136,5 +139,5 @@ export function useMicrophone() {
     [],
   );
 
-  return { state, enable, disable, record, startFullRecording, stopFullRecording };
+  return { state, enable, disable, record, stream, startFullRecording, stopFullRecording };
 }
