@@ -1,7 +1,7 @@
 /**
  * Development-only sample sessions for the three report boards, so their
  * layout can be reviewed before any real session exists. Fictional, flagged
- * `sample: true`, labelled on screen, and only reachable in dev builds
+ * `sample: true`, labeled on screen, and only reachable in dev builds
  * (CLAUDE.md §5). Never shown as a real person's results.
  */
 import type { ConversationKind, ConversationSession, TranscriptSegment } from "@/types";

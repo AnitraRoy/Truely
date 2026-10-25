@@ -23,7 +23,7 @@ import { TURN_STATUS_LABEL, type TurnStatus } from "./useTurnTaking";
  * app uses). Secondary: the caption of what it just said, along the bottom,
  * and the control bar. Tertiary: the person's own camera in a small self-view
  * tile, and what truely. notices: a camera cue (from the on-device analysis the
- * screen runs, useCameraCoaching) and suggestions arrive at the top centre and
+ * screen runs, useCameraCoaching) and suggestions arrive at the top center and
  * fade on their own; suggestions stay in Notes. A session without live
  * suggestions (mock interviews) omits them and gets a transcript panel only.
  * The camera is opened by the screen, never here; this only shows it.
@@ -36,7 +36,7 @@ type PanelTab = "notes" | "transcript";
 
 export interface MeetingStageProps {
   title: string;
-  /** What is being practised, shown in the header. */
+  /** What is being practiced, shown in the header. */
   topic: string;
   aiName: string;
   status: TurnStatus;
@@ -57,7 +57,7 @@ export interface MeetingStageProps {
   closedHint?: string;
   /** Label of the end button. */
   endLabel?: string;
-  /** Development sample: labelled, not real feedback. */
+  /** Development sample: labeled, not real feedback. */
   sample?: boolean;
   /** The session recording is running (shown, always, while it is). */
   recording?: boolean;
@@ -70,7 +70,7 @@ export interface MeetingStageProps {
   /** The camera baseline is being learned (LearningNotice), with its 0..1 progress. */
   learning?: boolean;
   learnProgress?: number;
-  analysing?: boolean;
+  analyzing?: boolean;
   /** The session's focus, shown as the standing cue until the first real one arrives. */
   focus?: string;
   /** Camera status text (e.g. face not visible). Never a judgment. */
@@ -198,7 +198,7 @@ function SelfView({
   );
 }
 
-/** The newest suggestion, top centre. Fades after a while; always kept in Notes. */
+/** The newest suggestion, top center. Fades after a while; always kept in Notes. */
 function SuggestionToast({ suggestion, sample, onHide }: { suggestion: FeedbackEvent; sample?: boolean; onHide: () => void }) {
   return (
     <div className="rounded-lg border border-border-strong bg-bg/95 px-4 py-3">
@@ -272,7 +272,7 @@ export function MeetingStage(props: MeetingStageProps) {
   }, [cueId]);
   const focusCue = props.focus ? { id: "focus", text: props.focus, detail: "Your focus for this session." } : null;
 
-  // The floating overlay (top centre of the screen in the desktop app; a
+  // The floating overlay (top center of the screen in the desktop app; a
   // picture-in-picture window in the browser) carries the cues once open. It
   // opens with the call, while the Start click still counts as a gesture.
   const overlay = useFloatingOverlay({ title: "truely.", ...OVERLAY_SIZE });
@@ -358,9 +358,9 @@ export function MeetingStage(props: MeetingStageProps) {
           )}
 
           {props.learning !== undefined && (
-            // Bottom-left, clear of the cues (top) and the caption (centred, inset past this corner).
+            // Bottom-left, clear of the cues (top) and the caption (centered, inset past this corner).
             <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-176px)] sm:bottom-3 sm:top-auto sm:max-w-none">
-              <LearningNotice learning={props.learning} progress={props.learnProgress ?? 0} analysing={Boolean(props.analysing)} />
+              <LearningNotice learning={props.learning} progress={props.learnProgress ?? 0} analyzing={Boolean(props.analyzing)} />
             </div>
           )}
 

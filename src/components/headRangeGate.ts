@@ -6,7 +6,7 @@ import { HEAD_RANGE_CALIBRATION, type HeadDirection } from "@/config/coaching";
  * rules are unit-tested. Thresholds live in `HEAD_RANGE_CALIBRATION.detect`.
  *
  * Measurements come from `estimateHeadPose` (lib/vision): unitless proxies, not
- * angles. Each position is judged against the person's own centre pose.
+ * angles. Each position is judged against the person's own center pose.
  */
 export interface PoseReading {
   yaw: number;
@@ -28,14 +28,14 @@ const median = (values: number[]): number => {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
 
-/** The person's centre pose: the median of the readings taken while they looked at the screen. */
+/** The person's center pose: the median of the readings taken while they looked at the screen. */
 export function neutralFrom(readings: PoseReading[]): Neutral | null {
   const usable = readings.filter((r) => r.valid);
   if (usable.length === 0) return null;
   return { yaw: median(usable.map((r) => r.yaw)), pitch: median(usable.map((r) => r.pitch)) };
 }
 
-/** Change from the centre pose, signed so that positive = toward the named direction. */
+/** Change from the center pose, signed so that positive = toward the named direction. */
 export function movementToward(direction: HeadDirection, reading: PoseReading, neutral: Neutral): number {
   const dyaw = reading.yaw - neutral.yaw;
   const dpitch = reading.pitch - neutral.pitch;
@@ -53,7 +53,7 @@ export function movementToward(direction: HeadDirection, reading: PoseReading, n
   }
 }
 
-/** True while the head is in the requested position. Centre only needs a visible face. */
+/** True while the head is in the requested position. Center only needs a visible face. */
 export function isDirectionMet(direction: HeadDirection, reading: PoseReading | null, neutral: Neutral | null): boolean {
   if (!reading || !reading.valid) return false;
   if (direction === "center") return true;

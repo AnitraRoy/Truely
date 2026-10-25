@@ -171,7 +171,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
         <PageHeader
           step="Step 3 of 4: realistic practice"
           title="Rehearse the moments that matter."
-          lede="Practise a real scenario with an AI interviewer that listens, follows up, and leaves the feedback for afterwards."
+          lede="Practice a real scenario with an AI interviewer that listens, follows up, and leaves the feedback for afterwards."
         />
         <div className="mt-10 grid items-start gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,1fr)]">
           <Sheet aria-labelledby="setup-title" className="px-6 py-7 md:px-9 md:py-9">
@@ -235,7 +235,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
               {[
                 ["Length", `About ${INTERVIEW_QUESTION_COUNT} questions, 15 to 20 minutes`],
                 ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type. After each answer, truely. adds a private note at the top of your screen."],
-                ["After", "A review with selected moments from your answers and a next step to practise."],
+                ["After", "A review with selected moments from your answers and a next step to practice."],
                 ["Camera", "Once calibrated, truely. watches head and gaze on this device and marks those moments in your review."],
                 ["Privacy", "Your speech goes to Cartesia and the transcript to Moss, only during the interview. The recording and camera stay on this device."],
               ].map(([k, v]) => (

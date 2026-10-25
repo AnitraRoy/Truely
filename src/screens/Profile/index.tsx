@@ -33,7 +33,7 @@ export function Profile() {
       <PageHeader
         step="My profile"
         title="A style that still sounds like you."
-        lede="Use this profile as a compass, not a script. Your goals can change as you practise and review real conversations."
+        lede="Use this profile as a compass, not a script. Your goals can change as you practice and review real conversations."
       />
       <div className="mt-9">
         <Tabs

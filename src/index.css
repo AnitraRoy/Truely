@@ -21,7 +21,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Visible, token-coloured focus for keyboard users (CLAUDE.md §3). */
+/* Visible, token-colored focus for keyboard users (CLAUDE.md §3). */
 :focus-visible {
   outline: 2px solid rgb(var(--cue-accent));
   outline-offset: 2px;
@@ -35,7 +35,7 @@ body {
 /*
  * FieldArt: a faded plate behind the page. Two masks stack: the outer element
  * fades the plate toward the content (data-fade); an engraving's own shape is
- * a second mask painted in the ink token, so themes recolour it.
+ * a second mask painted in the ink token, so themes recolor it.
  */
 @layer components {
   .field-art {

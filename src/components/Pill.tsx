@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * Small typographic pill with a status dot + text label (never colour alone —
+ * Small typographic pill with a status dot + text label (never color alone —
  * CLAUDE.md §3). Owner: Design System team.
  */
 export type PillTone = "positive" | "ochre" | "warning" | "muted";

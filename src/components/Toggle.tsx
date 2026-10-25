@@ -1,6 +1,6 @@
 /**
  * On/off switch (ARIA `switch`). The state is spelled out as "On"/"Off" beside
- * the track, so it never relies on colour or knob position alone (CLAUDE.md §3).
+ * the track, so it never relies on color or knob position alone (CLAUDE.md §3).
  * Owner: Design System team.
  */
 export function Toggle({

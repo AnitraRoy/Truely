@@ -1,8 +1,8 @@
 /**
  * Development-only scripted turns, so the running practice screens can be
- * designed and reviewed without provider keys. Every line is labelled
+ * designed and reviewed without provider keys. Every line is labeled
  * "sample" on screen and these never run in production builds (CLAUDE.md §5:
- * mock data is clearly labelled in development).
+ * mock data is clearly labeled in development).
  */
 import type { ParsedSuggestion } from "@/lib/conversation";
 

@@ -216,8 +216,8 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
               <span aria-hidden className={`h-[7px] w-[7px] rounded-pill ${camera && state === "live" ? "bg-positive" : "border border-text-muted"}`} />
               {camera
                 ? state === "live"
-                  ? cam.analysing
-                    ? "Camera on, analysed on this device"
+                  ? cam.analyzing
+                    ? "Camera on, analyzed on this device"
                     : cam.learning
                       ? "Camera on, learning your usual look"
                       : "Camera on"
@@ -231,7 +231,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
               </li>
             )}
           </ul>
-          {camera && <LearningNotice className="mt-4" learning={cam.learning} progress={cam.learnProgress} analysing={cam.analysing} />}
+          {camera && <LearningNotice className="mt-4" learning={cam.learning} progress={cam.learnProgress} analyzing={cam.analyzing} />}
           {convo.problem && <p className="mt-3 text-[13.5px] text-warning">{convo.problem}</p>}
           {(convo.micState === "denied" || convo.micState === "unavailable") && (
             <div className="mt-3">

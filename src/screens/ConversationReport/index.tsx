@@ -190,7 +190,7 @@ function Board({ session, recordingUrl }: { session: ConversationSession; record
             action={
               <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
                 <Button variant="inverse" onClick={() => navigate(again)}>
-                  {session.kind === "live" ? "Set up another session" : "Practise again"}
+                  {session.kind === "live" ? "Set up another session" : "Practice again"}
                 </Button>
                 {r.nextSteps[0] && <AddToGoals text={r.nextSteps[0]} category={session.feedback[0]?.category} disabled={session.sample} />}
               </div>

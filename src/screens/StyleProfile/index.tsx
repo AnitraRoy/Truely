@@ -31,7 +31,7 @@ import { ReferenceSearch } from "./ReferenceSearch";
  * baseline comes from webcam calibration and is kept separate (§ note below).
  */
 type Mode = "search" | "link" | "paste";
-type Phase = { kind: "idle" } | { kind: "searching" } | { kind: "reading" } | { kind: "analysing" } | { kind: "error"; message: string };
+type Phase = { kind: "idle" } | { kind: "searching" } | { kind: "reading" } | { kind: "analyzing" } | { kind: "error"; message: string };
 
 const LABEL_FOR = Object.fromEntries(FEEDBACK_CATEGORIES.map((c) => [FEEDBACK_CATEGORY_LABELS[c], c])) as Record<string, FeedbackCategory>;
 
@@ -104,14 +104,14 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
   const [draftDesc, setDraftDesc] = useState("");
   const [draftCat, setDraftCat] = useState(FEEDBACK_CATEGORY_LABELS.clarity);
 
-  const busy = phase.kind === "searching" || phase.kind === "reading" || phase.kind === "analysing";
+  const busy = phase.kind === "searching" || phase.kind === "reading" || phase.kind === "analyzing";
   // The link to read: the video picked from search results, or the one typed in.
   const refUrl = mode === "search" ? picked : mode === "link" ? url.trim() : "";
   const urlError = mode === "link" && refUrl && !isYouTubeUrl(refUrl) && !isArticleUrl(refUrl) ? "That doesn't look like a web link. Paste the full address, starting with https://." : null;
   const needed: ServiceName[] = mode === "paste" ? ["moss"] : ["moss", "apify"];
   const missing = services ? needed.filter((s) => !services[s]) : [];
   const canSearch = !busy && Boolean(services?.apify) && request.trim().length > 0;
-  const canAnalyse = !busy && services?.moss && (admire.trim().length > 0 || refUrl || (mode === "paste" && pasted.trim())) && !urlError && (!refUrl || services.apify);
+  const canAnalyze = !busy && services?.moss && (admire.trim().length > 0 || refUrl || (mode === "paste" && pasted.trim())) && !urlError && (!refUrl || services.apify);
 
   async function find() {
     setSavedNote("");
@@ -139,7 +139,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
     setPhase({ kind: "idle" });
   }
 
-  async function analyse() {
+  async function analyze() {
     setSavedNote("");
     let referenceText: string | undefined;
     let ref: StyleReference | undefined;
@@ -175,7 +175,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
         ...(res.speech ? { speech: res.speech } : {}),
       };
     }
-    setPhase({ kind: "analysing" });
+    setPhase({ kind: "analyzing" });
     const style = await extractStyle({ admire, contexts, referenceText, speech });
     if (!style) {
       setPhase({ kind: "error", message: "truely. couldn't draft patterns this time. Try again, or write your own below." });
@@ -227,7 +227,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
             className="mt-6 space-y-6"
             onSubmit={(e) => {
               e.preventDefault();
-              if (canAnalyse) void analyse();
+              if (canAnalyze) void analyze();
             }}
           >
             <div>
@@ -277,7 +277,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
             {mode === "paste" && (
               <TextArea
                 label="Reference text"
-                help="Paste a transcript or article you have the right to use. Only the first few pages are analysed."
+                help="Paste a transcript or article you have the right to use. Only the first few pages are analyzed."
                 value={pasted}
                 onChange={(e) => setPasted(e.target.value)}
                 rows={6}
@@ -296,8 +296,8 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
             <CheckChips legend="Where you'll use it" options={STYLE_CONTEXTS} value={contexts} onChange={setContexts} />
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-border pt-5">
-              <Button type="submit" disabled={!canAnalyse}>
-                {phase.kind === "reading" ? "Reading the reference…" : phase.kind === "analysing" ? "Finding patterns…" : "Analyse reference"}
+              <Button type="submit" disabled={!canAnalyze}>
+                {phase.kind === "reading" ? "Reading the reference…" : phase.kind === "analyzing" ? "Finding patterns…" : "Analyze reference"}
               </Button>
               <p className="text-[13.5px] text-text-muted" aria-live="polite">
                 {busy ? "This can take up to a minute." : ""}

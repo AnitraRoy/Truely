@@ -12,14 +12,14 @@
  *        head_yaw_proxy → head_orientation        (signed; deviation is |value − baseline|)
  *        head_motion    → movement_variability    (face-widths / second)
  *     head_pitch_proxy is NOT forwarded: it is marked experimental, and its resting value
- *     isn't centred on 0, so folding it into an "offset" would be wrong.
+ *     isn't centered on 0, so folding it into an "offset" would be wrong.
  *  2. UNITS. The pipeline's values are unitless face-relative proxies, but config/coaching.ts
  *     assumes degrees (`minStdDev.head_orientation = 2.0`). Used as-is, that floor is ~100×
  *     larger than a real head turn (≈0.06 in proxy units) and NO cue could ever fire.
  *     `PIPELINE_CONFIG_OVERRIDES` fixes that; pass it as `config` to the controller.
  *     The numbers are PROVISIONAL — measure real baselines (vision-test.html) and adjust.
  *  3. Concurrency. `SignalPipeline.start()` returns false if a start is already running and
- *     doesn't honour a stop() issued mid-start (a camera can be left on). start()/stop()
+ *     doesn't honor a stop() issued mid-start (a camera can be left on). start()/stop()
  *     here are serialized so React StrictMode's mount → unmount → mount is safe.
  *
  * Privacy: frames never leave the pipeline; this file only sees numbers.

@@ -17,7 +17,7 @@ import { applyTheme } from "../../styles/theme";
 const noop = () => {};
 
 describe("SiteNav", () => {
-  it("renders labelled text links and marks the current page", () => {
+  it("renders labeled text links and marks the current page", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={["/profile"]}>
         <SiteNav />
@@ -41,7 +41,7 @@ describe("SiteNav", () => {
 });
 
 describe("Stepper", () => {
-  it("states progress in words, not colour alone", () => {
+  it("states progress in words, not color alone", () => {
     const html = renderToStaticMarkup(<Stepper steps={["Welcome", "Goal", "Camera"]} current={1} />);
     expect(html).toContain("Step 2 of 3: Goal");
     expect(html).toContain('aria-current="step"');

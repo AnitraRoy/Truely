@@ -165,7 +165,7 @@ async function fetchVideo(url: string): Promise<ReferenceResult> {
 async function fetchArticle(url: string): Promise<ReferenceResult> {
   const res = await runApifyActor({
     actorId: APIFY_ARTICLE_ACTOR,
-    // One page only: depth 0, a single result, plain HTTP (fast, cheap), robots.txt honoured.
+    // One page only: depth 0, a single result, plain HTTP (fast, cheap), robots.txt honored.
     input: {
       startUrls: [{ url }],
       crawlerType: "cheerio",

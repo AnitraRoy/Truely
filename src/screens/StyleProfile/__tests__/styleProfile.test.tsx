@@ -82,7 +82,7 @@ describe("Communication profile: find a reference", () => {
 
     // Nothing is read until the person picks one.
     await click(radios[0]);
-    await click(button("Analyse reference"));
+    await click(button("Analyze reference"));
     await settle();
     await settle();
     expect(apifyRun).toHaveBeenCalledTimes(2);

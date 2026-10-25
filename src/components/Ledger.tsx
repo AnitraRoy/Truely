@@ -26,7 +26,7 @@ export function LedgerRow({
   );
 }
 
-/** The emphasised value inside a ledger row. */
+/** The emphasized value inside a ledger row. */
 export function LedgerValue({ children }: { children: ReactNode }) {
   return <span className="font-display text-[21px] leading-tight">{children}</span>;
 }

@@ -27,7 +27,7 @@ const APP_ORIGIN = DEV_URL ? new URL(DEV_URL).origin : "app://cue";
 
 const OVERLAY_NAME = "cue-overlay";
 const OVERLAY_MARGIN = 24;
-/** Paper colour from src/styles/tokens.css, shown only before first paint. */
+/** Paper color from src/styles/tokens.css, shown only before first paint. */
 const PAPER = "#f3eee3";
 
 const SHORTCUTS = {
@@ -72,10 +72,10 @@ function sendOverlayState() {
 
 /**
  * Explicit placements used for visual calibration (src/screens/Calibration):
- * "camera" (top centre, under a typical webcam) plus the four edges, so moving
+ * "camera" (top center, under a typical webcam) plus the four edges, so moving
  * the overlay there gets the person to look at the camera, then
  * up/down/left/right. "center" is the middle of the screen.
- * Unrelated to the default top-centre placement a session's cue overlay opens
+ * Unrelated to the default top-center placement a session's cue overlay opens
  * at (`protectOverlay`) — this only runs when the renderer asks for it.
  */
 function positionOverlay(key) {
@@ -86,7 +86,7 @@ function positionOverlay(key) {
   const cy = workArea.y + Math.round((workArea.height - height) / 2);
   const positions = {
     center: [cx, cy],
-    // Flush with the top centre, as close as a window gets to a typical webcam.
+    // Flush with the top center, as close as a window gets to a typical webcam.
     camera: [cx, workArea.y],
     up: [cx, workArea.y + OVERLAY_MARGIN],
     down: [cx, workArea.y + workArea.height - height - OVERLAY_MARGIN],

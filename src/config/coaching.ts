@@ -197,20 +197,20 @@ export const HEAD_RANGE_CALIBRATION = {
    * is actually in it. Values are in the head-pose proxy's own unitless scale
    * (`estimateHeadPose`: nose offset / face width for yaw, nose position between
    * forehead and chin for pitch), measured as a change from the person's own
-   * centre pose, so they are personal rather than absolute angles.
+   * center pose, so they are personal rather than absolute angles.
    * UNTUNED: first estimates, roughly 12-15 degrees. Check on a real camera with
    * `?headdebug=1` on the calibration page, which prints the live readings.
    */
   detect: {
-    /** How far the head must move from centre to count as "left"/"right". */
+    /** How far the head must move from center to count as "left"/"right". */
     yawDelta: 0.07,
-    /** How far the head must move from centre to count as "up"/"down". */
+    /** How far the head must move from center to count as "up"/"down". */
     pitchDelta: 0.05,
     /** +1: turning to the person's left raises the raw yaw proxy. Flip if `?headdebug=1` shows the opposite. */
     yawLeftSign: 1,
     /** -1: tilting up lowers the raw pitch proxy. Flip if `?headdebug=1` shows the opposite. */
     pitchUpSign: -1,
-    /** Used for the up/down/left/right checks only if the person skips the centre position. */
+    /** Used for the up/down/left/right checks only if the person skips the center position. */
     fallbackNeutral: { yaw: 0, pitch: 0.55 },
     /** How long a position may drop out before the hold restarts (ms). */
     graceMs: 700,
@@ -220,13 +220,13 @@ export const HEAD_RANGE_CALIBRATION = {
     loadTimeoutMs: 15000,
     /** How often the preview is sampled (ms). */
     pollMs: 100,
-    /** Most recent centre samples used to find the person's centre pose. */
+    /** Most recent center samples used to find the person's center pose. */
     neutralMaxSamples: 40,
   },
   steps: [
-    // The centre pose is the person looking at their camera, so its target sits
-    // at the top centre of the screen, just under where most webcams are.
-    { direction: "center", overlayPosition: "camera", label: "Centre", prompt: "Look at the camera", instruction: "Look at your camera, at the top of your screen" },
+    // The center pose is the person looking at their camera, so its target sits
+    // at the top center of the screen, just under where most webcams are.
+    { direction: "center", overlayPosition: "camera", label: "Center", prompt: "Look at the camera", instruction: "Look at your camera, at the top of your screen" },
     { direction: "up", label: "Up", prompt: "Tilt your head up", instruction: "Tilt your head up a little" },
     { direction: "down", label: "Down", prompt: "Tilt your head down", instruction: "Now tilt your head down" },
     { direction: "left", label: "Left", prompt: "Turn left", instruction: "Turn your head to your left" },
@@ -248,7 +248,7 @@ export const TRACKING_LIMITED_MESSAGE =
 
 /**
  * Sample cues the live screen rotates through to showcase the overlay before the
- * vision pipeline emits real ones. Always labelled as samples in the UI: they are
+ * vision pipeline emits real ones. Always labeled as samples in the UI: they are
  * not observations of the person (CLAUDE.md §5). Drawn from the cue library so the
  * copy stays in one place.
  */

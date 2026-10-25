@@ -6,7 +6,7 @@ import type { HeadRangeTracker } from "./useHeadPose";
 
 /**
  * Head-range calibration: the first part of the baseline (PRD §6 Screen B).
- * The person looks centre, up, down, left and right, holding each position
+ * The person looks center, up, down, left and right, holding each position
  * briefly. Steps and timing come from HEAD_RANGE_CALIBRATION.
  *
  * Three pieces, so both calibration flows (Setup and /calibrate) share them:
@@ -18,7 +18,7 @@ import type { HeadRangeTracker } from "./useHeadPose";
  *
  * Gated mode: when a `tracker` (useHeadPose) is passed and ready, a position's
  * hold only advances while the person's head is actually in it, judged against
- * their own centre pose (headRangeGate). Without a tracker, or if face tracking
+ * their own center pose (headRangeGate). Without a tracker, or if face tracking
  * can't load, it falls back to the original timer and says so. The person can
  * always skip one position or the whole part, so nothing can trap them.
  *
@@ -224,7 +224,7 @@ export function useHeadRange({
   };
 }
 
-/** Arrow rotation per direction; the centre position shows a still mark instead. */
+/** Arrow rotation per direction; the center position shows a still mark instead. */
 const ROTATE: Record<Exclude<HeadDirection, "center">, string> = {
   up: "-rotate-90",
   down: "rotate-90",
@@ -287,7 +287,7 @@ export function HeadRangePrompt({ range }: { range: HeadRange }) {
  * The same direction, drawn inside the floating overlay window instead of on
  * the preview (Calibration screen, desktop shell only — see
  * `useFloatingOverlay.setPosition`). The window itself has already moved to
- * the matching screen position (centre, then each edge); this is just what
+ * the matching screen position (center, then each edge); this is just what
  * fills it, styled like SessionOverlay's panel: rounded, slightly
  * translucent, no header or dismiss control since its position is automatic.
  */

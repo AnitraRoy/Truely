@@ -1,8 +1,8 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 /**
- * Labelled form controls: a visible label, optional help, and an error that is
- * linked with aria-describedby and stated in words (never colour alone).
+ * Labeled form controls: a visible label, optional help, and an error that is
+ * linked with aria-describedby and stated in words (never color alone).
  * Owner: Design System team. Native elements only.
  */
 const CONTROL =

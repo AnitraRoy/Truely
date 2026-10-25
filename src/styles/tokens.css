@@ -1,7 +1,7 @@
 /*
  * Design tokens — Private Field Journal (revised 2026-10-24 from the Truely
  * concept file). Owner: Design System team. The single source of truth for
- * colour, type, radius, and motion. Colour values are RGB channels
+ * color, type, radius, and motion. Color values are RGB channels
  * (space-separated) so Tailwind's <alpha-value> works. Changing a value here
  * re-skins the whole app — that is the test of centralization (CLAUDE.md §7).
  *
@@ -17,22 +17,22 @@
  *   (decorative); control edges use `border-strong`.
  */
 :root {
-  /* colour: surfaces */
+  /* color: surfaces */
   --cue-bg: 243 240 232; /* #F3F0E8 warm paper */
   --cue-surface: 250 248 243; /* raised sheet */
   --cue-sunken: 234 230 220; /* inset fill: wells, tracks, idle preview */
   --cue-scrim: 37 41 35; /* dims the page behind dialogs; always darker than bg */
 
-  /* colour: lines */
+  /* color: lines */
   --cue-border: 217 212 200; /* #D9D4C8 divider */
   --cue-border-strong: 140 138 128; /* control edges, ≥ 3:1 */
 
-  /* colour: text */
+  /* color: text */
   --cue-text-primary: 37 41 35; /* #252923 ink */
   --cue-text-muted: 90 94 86;
   --cue-on-accent: 250 248 243;
 
-  /* colour: accents */
+  /* color: accents */
   --cue-accent: 82 107 88; /* #526B58 forest */
   --cue-accent-hover: 64 86 70;
   --cue-ochre: 128 94 40; /* ochre for text */
@@ -57,7 +57,7 @@
   --cue-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
 
   /* artwork — faded plates behind the page (FieldArt). Engravings are alpha
-     masks painted in `art-ink`, so a theme recolours them; the hand-coloured
+     masks painted in `art-ink`, so a theme recolors them; the hand-colored
      plate takes `art-plate-filter`. Opacities keep text-muted ≥ 4.5:1 even
      over the densest ink (checked at 0.12 on paper). */
   --cue-art-ink: 37 41 35;

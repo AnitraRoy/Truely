@@ -1,6 +1,6 @@
 import type { ReviewMarkerKind } from "./types";
 
-/** Identity is carried by label + shape as well as hue, never colour alone (CLAUDE.md §3). */
+/** Identity is carried by label + shape as well as hue, never color alone (CLAUDE.md §3). */
 export const MARKER_KIND: Record<ReviewMarkerKind, { label: string; swatch: string }> = {
   cue: { label: "Cue delivered", swatch: "bg-ochre" },
   observation: { label: "Behavioral observation", swatch: "bg-positive" },

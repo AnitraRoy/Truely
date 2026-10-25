@@ -108,7 +108,7 @@ export function Reports() {
 
         {import.meta.env.DEV && (
           <p className="mt-8 text-[13.5px] text-text-muted">
-            Development only: preview the report boards with clearly labelled sample data:{" "}
+            Development only: preview the report boards with clearly labeled sample data:{" "}
             {SAMPLE_REPORT_LINKS.map((l, i) => (
               <span key={l.href}>
                 {i > 0 && ", "}

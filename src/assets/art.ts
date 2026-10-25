@@ -9,7 +9,7 @@ import bluejayVine from "./bluejay_vine.webp";
  * together, or not at all.
  *
  * `engraving`: a black-line wood-engraving shipped as an alpha mask and painted
- * in the `--cue-art-ink` token. `plate`: hand-coloured, shown as drawn (through
+ * in the `--cue-art-ink` token. `plate`: hand-colored, shown as drawn (through
  * `--cue-art-plate-filter` in the dark scheme).
  */
 export interface Plate {

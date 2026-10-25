@@ -122,19 +122,19 @@ describe("movement-gated head-range calibration", () => {
   it("holds, and says why, while there is no usable face", () => {
     show(ready(pose(0, 0.5, false)));
     advance(holdMs * 3);
-    expect(current()).toContain("Centre");
+    expect(current()).toContain("Center");
     expect(container.textContent).toContain("Can't see your face");
   });
 
   it("waits while face tracking starts and falls back to the timer if it is unavailable", () => {
     show({ status: "loading", sample: null });
     advance(holdMs * 3);
-    expect(current()).toContain("Centre");
+    expect(current()).toContain("Center");
     expect(container.textContent).toContain("Getting face tracking ready");
 
     show({ status: "unavailable", sample: null });
     advance(holdMs + 200);
-    expect(current()).toContain("Up"); // the original timed behaviour
+    expect(current()).toContain("Up"); // the original timed behavior
     expect(container.textContent).toContain("runs on a timer");
   });
 
@@ -158,9 +158,9 @@ describe("movement-gated head-range calibration", () => {
     expect(result.held).toEqual({});
   });
 
-  it("judges up/down/left/right against the fallback centre if the centre position was skipped", () => {
+  it("judges up/down/left/right against the fallback center if the center position was skipped", () => {
     show(ready(POSES.left));
-    click("Skip this position"); // skip centre
+    click("Skip this position"); // skip center
     click("Skip this position"); // skip up
     click("Skip this position"); // skip down
     expect(current()).toContain("Left");

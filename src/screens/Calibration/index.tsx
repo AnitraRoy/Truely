@@ -25,7 +25,7 @@ import { FloatingOverlay } from "@/components/FloatingOverlay";
  *
  * Where the desktop shell can actually move a window (`supportsPositioning` —
  * not Document PiP, which has no position API), the head-range part also
- * floats a small target to the top centre of the screen, under the camera,
+ * floats a small target to the top center of the screen, under the camera,
  * then each edge, so the person looks at the camera and then up/down/left/right at a real
  * on-screen point rather than an arrow drawn over their own preview. The
  * direction (`HeadRangePrompt`) is also shown in a banner above the preview the
@@ -156,7 +156,7 @@ export function Calibration() {
               <h2 className={HEADING}>Look around</h2>
               {target.overlayWindow && target.supportsPositioning && (
                 <p className="mt-2 italic text-text-muted">
-                  A small target will move to the centre of your screen, then each edge — follow it with your eyes
+                  A small target will move to the center of your screen, then each edge — follow it with your eyes
                   and head.
                 </p>
               )}

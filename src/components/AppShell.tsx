@@ -40,12 +40,12 @@ const TOOLS: Tool[] = [
   {
     to: "/profile?tab=style",
     label: "Find your style",
-    purpose: "Pick a speaker you admire and the habits to practise",
+    purpose: "Pick a speaker you admire and the habits to practice",
     match: (p, q) => p === "/profile" && isStyleTab(q),
   },
   {
     to: "/practice/voice",
-    label: "Practise out loud",
+    label: "Practice out loud",
     purpose: "Talk it through with a coach who suggests small fixes",
     match: (p) => p === "/practice/voice",
     top: true,
@@ -203,7 +203,8 @@ export function AppShell({
       {/* Top toolbar */}
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="flex h-16 items-center gap-4 px-4 sm:px-8 lg:px-6">
-          <span className="flex items-baseline gap-3 lg:w-[236px]">
+          {/* min-w, not w: the wordmark + tagline must stay on one line so the baseline sits mid-bar. */}
+          <span className="flex shrink-0 items-baseline gap-3 lg:min-w-[236px]">
             <Link
               to="/"
               aria-label="truely. landing page"
@@ -212,7 +213,7 @@ export function AppShell({
             >
               truely<span className="text-ochre-mark">.</span>
             </Link>
-            <span className="hidden font-serif text-[14px] italic text-text-muted 2xl:inline">Your communication journal</span>
+            <span className="hidden whitespace-nowrap font-serif text-[14px] italic text-text-muted 2xl:inline">Your communication journal</span>
           </span>
 
           <nav

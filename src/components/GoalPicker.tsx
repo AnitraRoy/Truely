@@ -5,7 +5,7 @@ import { Pill } from "./Pill";
 /**
  * Pick one primary coaching goal (PRD §6 Screen B, one goal for the MVP).
  * Native radios, so arrow keys and form semantics come for free. The selected
- * row says "selected" in text, never colour alone. Owner: Design System team.
+ * row says "selected" in text, never color alone. Owner: Design System team.
  */
 const GOALS = Object.keys(GOAL_LABELS) as CoachingGoal[];
 

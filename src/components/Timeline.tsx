@@ -7,7 +7,7 @@ import type { TimelineItem, TimelineItemKind } from "@/lib/reports";
  * window, tracking gaps, paused stretches). Owner: Design System team, per
  * the `dataviz` method.
  *
- * Event identity is carried by LABEL + SHAPE as well as hue, never colour
+ * Event identity is carried by LABEL + SHAPE as well as hue, never color
  * alone (CLAUDE.md §3/§6). It renders only the items it is given — no
  * fabricated events (CLAUDE.md §5); an empty session renders an empty axis.
  */
@@ -53,7 +53,7 @@ export function Timeline({
 
   return (
     <div>
-      {/* legend — identity is never colour alone */}
+      {/* legend — identity is never color alone */}
       <ul className="mb-4 flex flex-wrap gap-5 font-mono text-[11px] text-text-muted">
         {(present.length > 0 ? present : (["deviation", "cue", "tracking_gap"] as TimelineItemKind[])).map((k) => (
           <li key={k} className="flex items-center gap-2">

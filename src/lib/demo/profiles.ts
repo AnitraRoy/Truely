@@ -2,7 +2,7 @@
  * Two-profile personalization demo (PRD §16 Scene 5, §17).
  *
  * EVERYTHING HERE IS SIMULATED. The baselines and the input stream are
- * illustrative, deterministic, and must be labelled "Simulated input" in the UI.
+ * illustrative, deterministic, and must be labeled "Simulated input" in the UI.
  * The decisions, however, come from the REAL personalization + coaching engines —
  * the same code that runs on live webcam data.
  *

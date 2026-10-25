@@ -14,7 +14,7 @@ const DONE_VISIBLE_MS = 5000;
 export function LearningNotice({
   learning,
   progress,
-  analysing,
+  analyzing,
   className = "",
 }: {
   /** The baseline is being learned now. */
@@ -22,7 +22,7 @@ export function LearningNotice({
   /** 0..1 */
   progress: number;
   /** Camera analysis is running (shows the brief "on" message after learning). */
-  analysing: boolean;
+  analyzing: boolean;
   className?: string;
 }) {
   const wasLearning = useRef(false);
@@ -33,12 +33,12 @@ export function LearningNotice({
       wasLearning.current = true;
       return;
     }
-    if (!analysing || !wasLearning.current) return;
+    if (!analyzing || !wasLearning.current) return;
     wasLearning.current = false;
     setDone(true);
     const id = window.setTimeout(() => setDone(false), DONE_VISIBLE_MS);
     return () => window.clearTimeout(id);
-  }, [learning, analysing]);
+  }, [learning, analyzing]);
 
   if (!learning && !done) return null;
   const pct = Math.round(Math.min(1, Math.max(0, progress)) * 100);

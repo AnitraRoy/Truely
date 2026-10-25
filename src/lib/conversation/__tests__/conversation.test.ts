@@ -42,7 +42,7 @@ describe("parseTurn", () => {
       reply: "Try again, leading with the point.",
       suggestions: [
         { category: "clarity", title: "Lead with it", why: "The ask came last." },
-        { category: "confidence", title: "Sound sure", why: "Trait judgement, not allowed." },
+        { category: "confidence", title: "Sound sure", why: "Trait judgment, not allowed." },
         { category: "pacing", title: "Pause", why: "a" },
         { category: "structure", title: "One example", why: "b" },
         { category: "warmth", title: "Thank them", why: "c" },

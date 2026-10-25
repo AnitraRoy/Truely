@@ -53,7 +53,7 @@ export function describeProfile(profile: CommunicationProfile | null, goals: str
   const lines = [
     goals.length ? `Their goals for this session: ${goals.join("; ")}.` : "",
     profile?.intent ? `What they want to work toward: ${profile.intent}` : "",
-    kept.length ? `Patterns they chose to practise: ${kept.map((t) => `${t.name} (${t.description})`).join("; ")}.` : "",
+    kept.length ? `Patterns they chose to practice: ${kept.map((t) => `${t.name} (${t.description})`).join("; ")}.` : "",
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -85,11 +85,11 @@ export async function coachTurn(input: {
 }): Promise<TurnResult | null> {
   const system = [
     "You are truely., a voice communication coach running a short question-and-answer practice.",
-    `The person is practising this: "${input.prompt}".`,
+    `The person is practicing this: "${input.prompt}".`,
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
     "After each answer: reply in at most two spoken sentences (acknowledge one thing that worked, then ask them to try again or go one step further).",
-    `Then give 1 to 3 cues about their LAST answer, most important first, judged against what they are practising. Each: {"category": one of ${CATS}, "title": the cue, "why": string, "try": optional short example phrasing}.`,
+    `Then give 1 to 3 cues about their LAST answer, most important first, judged against what they are practicing. Each: {"category": one of ${CATS}, "title": the cue, "why": string, "try": optional short example phrasing}.`,
     CUE_STYLE,
     alreadySaid(input.previous),
     'Respond with JSON only: {"reply": string, "suggestions": [...]}',
@@ -137,7 +137,7 @@ export async function liveSuggestion(input: {
 }) {
   const recent = input.transcript.slice(-12);
   const system = [
-    "You are truely., a discreet coach listening to a real conversation through one microphone, so lines are not labelled by speaker. The person glances at your suggestion while talking, so it must be very short.",
+    "You are truely., a discreet coach listening to a real conversation through one microphone, so lines are not labeled by speaker. The person glances at your suggestion while talking, so it must be very short.",
     input.context ? `The conversation: ${input.context}.` : "",
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
@@ -251,8 +251,8 @@ export async function extractStyle(input: { admire: string; contexts: string[]; 
     "You help someone describe the communication style they want to work toward.",
     "First restate, in one sentence starting with a verb, what they want to improve (\"intent\").",
     input.referenceText
-      ? "Then identify 3 to 5 observable communication patterns in the reference material that match what they admire: sentence structure, vocabulary, answer organisation, pacing cues, presentation style."
-      : "No reference material was supplied, so derive 3 to 5 practisable patterns from their own description.",
+      ? "Then identify 3 to 5 observable communication patterns in the reference material that match what they admire: sentence structure, vocabulary, answer organization, pacing cues, presentation style."
+      : "No reference material was supplied, so derive 3 to 5 patterns they can practice from their own description.",
     input.speech ? "Pacing numbers are provided below as measured facts. If you include a pacing pattern, base it on those numbers, not on a guess from the text." : "",
     "Patterns are practice goals, not rules to imitate. Describe language, never the speaker's personality.",
     `Respond with JSON only: {"intent": string, "traits": [{"category": one of ${CATS}, "name": 1-3 words, "description": one practical sentence, "evidence": optional short quote from the reference}]}`,

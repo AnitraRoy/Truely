@@ -307,7 +307,7 @@ export interface ConversationSession {
   behavioralSessionId?: string;
   /** Camera cues from that session, on this session's clock, for the report. */
   cameraObservations?: CameraObservation[];
-  /** Development sample, never real data. Always labelled in the UI. */
+  /** Development sample, never real data. Always labeled in the UI. */
   sample?: boolean;
 }
 
@@ -340,7 +340,7 @@ export interface StyleReference {
   source: "youtube" | "article" | "pasted";
   url?: string;
   title?: string;
-  /** Character count of the material analysed (never the full text). */
+  /** Character count of the material analyzed (never the full text). */
   analysedChars?: number;
   /** What the person searched for to find this reference, when they searched. */
   query?: string;

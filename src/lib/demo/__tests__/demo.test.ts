@@ -5,7 +5,7 @@ import { DEMO_PROFILES, runDemoComparison } from "../profiles";
 describe("two-profile demo (simulated input, real engines)", () => {
   const [a, b] = runDemoComparison();
 
-  it("is labelled simulated", () => {
+  it("is labeled simulated", () => {
     expect(a.simulated && b.simulated).toBe(true);
     expect(DEMO_PROFILES.every((p) => p.simulated)).toBe(true);
   });

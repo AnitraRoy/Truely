@@ -20,7 +20,7 @@ const missingBaseline = (s: Pick<SessionSnapshot, "goal" | "baselines">) =>
  * With a behavioral baseline, `start()` runs a full coaching session, so real
  * cues arrive in `cue`. Without one (the head-range setup screen doesn't make
  * one), it first learns the baseline from the session's own frames, about 45 s
- * (config/coaching.ts `calibrationDurationMs`), then starts analysing on its
+ * (config/coaching.ts `calibrationDurationMs`), then starts analyzing on its
  * own; `note` says so meanwhile. The baseline is then kept for later sessions
  * (on disk when the person allows saving). Frames never leave the device; only
  * derived cues are kept (`stop()`).
@@ -30,7 +30,7 @@ export function useCameraCoaching() {
   const snap = useSession();
   const preview = useCameraPreview();
   const active = useRef(false);
-  /** Start analysing as soon as the baseline being learned is ready. */
+  /** Start analyzing as soon as the baseline being learned is ready. */
   const startWhenLearned = useRef(false);
 
   const start = useCallback(async (): Promise<boolean> => {
@@ -116,7 +116,7 @@ export function useCameraCoaching() {
     setVideo,
     pause: () => controller.pause(),
     resume: () => controller.resume(),
-    analysing: snap.phase === "live",
+    analyzing: snap.phase === "live",
     learning: snap.phase === "calibrating",
     /** 0..1 progress of the baseline being learned. */
     learnProgress: snap.calibration?.fraction ?? 0,
@@ -159,7 +159,7 @@ export function usePracticeCamera() {
     trackingMessage: videoOn ? cam.note : null,
     learning: videoOn && cam.learning,
     learnProgress: cam.learnProgress,
-    analysing: cam.analysing,
+    analyzing: cam.analyzing,
     cue: cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null,
     onDismissCue: cam.dismissCue,
     recording,

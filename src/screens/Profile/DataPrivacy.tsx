@@ -65,7 +65,7 @@ export function DataPrivacy() {
       <Ledger className="mt-3">
         <LedgerRow label="By default">A video and audio recording of each session, with its transcript and notes, on this device for playback. Turn recording off before any session to skip it.</LedgerRow>
         <LedgerRow label="If you allow">Summaries and notes of sessions you didn&apos;t record, on this device.</LedgerRow>
-        <LedgerRow label="Never">Camera frames on their own. They&apos;re analysed on this device and discarded; only the recording keeps video.</LedgerRow>
+        <LedgerRow label="Never">Camera frames on their own. They&apos;re analyzed on this device and discarded; only the recording keeps video.</LedgerRow>
         <LedgerRow label="Always">Your communication profile, goal and settings, so truely. remembers them.</LedgerRow>
       </Ledger>
 

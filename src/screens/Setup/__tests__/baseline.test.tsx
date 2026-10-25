@@ -12,7 +12,7 @@ const render = (phase: BaselinePhase) =>
       headingRef={createRef()}
       phase={phase}
       cameraLive
-      range={{ index: 0, step: { direction: "center", label: "Centre", prompt: "", instruction: "" }, progress: 0, done: false } as unknown as HeadRange}
+      range={{ index: 0, step: { direction: "center", label: "Center", prompt: "", instruction: "" }, progress: 0, done: false } as unknown as HeadRange}
       onBegin={noop}
       onRangeSkip={noop}
       onDesiredStyle={noop}

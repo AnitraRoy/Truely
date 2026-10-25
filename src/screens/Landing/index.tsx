@@ -16,8 +16,8 @@ import bluejay from "@/assets/bluejay_final.jpg";
  * Never requests the camera.
  */
 const STEPS = [
-  { title: "Learn how you want to sound", body: "Point truely. at a talk or interview you admire. It drafts patterns you can practise, and you keep the ones that fit." },
-  { title: "Practise out loud", body: "A short voice session or a mock interview, with suggestions tied to what you actually said." },
+  { title: "Learn how you want to sound", body: "Point truely. at a talk or interview you admire. It drafts patterns you can practice, and you keep the ones that fit." },
+  { title: "Practice out loud", body: "A short voice session or a mock interview, with suggestions tied to what you actually said." },
   { title: "Get quiet help in the real thing", body: "During a meeting or interview, truely. offers a small note only when it's useful, then leaves you alone." },
   { title: "Review and carry it forward", body: "A transcript, the moments worth revisiting, and one thing to try next time. Never a score." },
 ];
@@ -89,9 +89,9 @@ export function Landing() {
 
           <SpecimenPlate
             src={bluejay}
-            alt="Hand-coloured engraving of blue jays on a branch with trumpet flowers, after J. J. Audubon"
+            alt="Hand-colored engraving of blue jays on a branch with trumpet flowers, after J. J. Audubon"
             title="Plate CII — Corvus cristatus"
-            note="hand-coloured"
+            note="hand-colored"
           />
         </section>
 

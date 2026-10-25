@@ -24,7 +24,7 @@ export function SuggestionNote({
   suggestion?: string;
   onDismiss?: () => void;
   compact?: boolean;
-  /** Development sample, labelled as such. */
+  /** Development sample, labeled as such. */
   sample?: boolean;
 }) {
   return (

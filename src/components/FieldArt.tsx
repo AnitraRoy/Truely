@@ -9,7 +9,7 @@ export type ArtFade = "top-right" | "bottom-right" | "up" | "left";
  * (a page header's right side, the foot of a short page, the side toolbar);
  * it never carries information, so it is hidden from assistive tech.
  *
- * Colour, strength and dark-scheme treatment come from the `--cue-art-*`
+ * Color, strength and dark-scheme treatment come from the `--cue-art-*`
  * tokens (see `.field-art` in index.css). Position and size come from
  * `className`. Never used on a screen with a live camera preview
  * (CLAUDE.md §4A.3, §6), and never under body text without the fade.

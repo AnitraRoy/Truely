@@ -5,7 +5,7 @@ import { StatusChip } from "../StatusChip";
 import { Timeline } from "../Timeline";
 
 describe("StatusChip", () => {
-  it("conveys status with a text label, never colour alone (CLAUDE.md §3)", () => {
+  it("conveys status with a text label, never color alone (CLAUDE.md §3)", () => {
     expect(renderToStaticMarkup(<StatusChip status="observing" />)).toContain("Observing");
     expect(renderToStaticMarkup(<StatusChip status="tracking_unavailable" />)).toContain("Tracking limited");
     expect(renderToStaticMarkup(<StatusChip status="paused" />)).toContain("Paused");

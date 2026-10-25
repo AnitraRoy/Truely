@@ -18,6 +18,6 @@ Two artwork primitives, both fed only by plates in `src/assets` (registry: `src/
 
 - `SpecimenPlate`: a plate tipped in and captioned. The screen's expressive moment (Landing, Setup welcome).
 - `FieldArt`: a plate printed faintly behind the page and faded toward the content, filling
-  deliberate empty space. Decorative (`aria-hidden`), token-coloured, hidden below `md`. Usually
+  deliberate empty space. Decorative (`aria-hidden`), token-colored, hidden below `md`. Usually
   reached through `AppShell`'s `art` prop, which also adds the side-toolbar woodcock. Never beside a
   camera preview.

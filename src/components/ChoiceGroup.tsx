@@ -1,6 +1,6 @@
 /**
  * A small set of mutually exclusive choices as pill-shaped native radios.
- * The chosen option is marked with ✓ text, never colour alone (CLAUDE.md §3).
+ * The chosen option is marked with ✓ text, never color alone (CLAUDE.md §3).
  * Owner: Design System team. Used by FeedbackGroup and Profile settings.
  */
 export interface Choice<V extends string> {

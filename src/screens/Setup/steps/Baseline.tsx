@@ -76,7 +76,7 @@ export function BaselineStep({
         <p className="mt-3 text-text-muted">
           {hasStyle
             ? "For how you sound, truely. coaches toward the desired style you chose."
-            : "For how you sound, there's no recording of you to compare against. Instead, you choose a desired style: a speaker or talk you admire, and the patterns you want to practise."}
+            : "For how you sound, there's no recording of you to compare against. Instead, you choose a desired style: a speaker or talk you admire, and the patterns you want to practice."}
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-6">
           {hasStyle ? (

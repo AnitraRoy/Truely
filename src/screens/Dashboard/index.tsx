@@ -30,8 +30,8 @@ function nextStep(hasStyle: boolean, counts: Record<ConversationKind, number>): 
   if (!hasStyle)
     return {
       lead: "Know what you want to say.",
-      follow: "Then practise saying it your way.",
-      body: "Start with a speaker or a talk you admire. truely. picks out the patterns you can practise, and you choose which to keep.",
+      follow: "Then practice saying it your way.",
+      body: "Start with a speaker or a talk you admire. truely. picks out the patterns you can practice, and you choose which to keep.",
       action: "Build my profile",
       to: "/profile?tab=style",
     };
@@ -91,7 +91,7 @@ export function Dashboard() {
     <AppShell art={{ plate: "bluejayVine" }}>
       <PageHeader
         title="Your next conversation, with more intention."
-        lede="A private place to understand how you communicate, practise deliberately, and bring what works into real conversations."
+        lede="A private place to understand how you communicate, practice deliberately, and bring what works into real conversations."
       />
 
       <div className="mt-10 grid items-start gap-x-10 gap-y-10 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">

@@ -29,7 +29,7 @@ import { usePracticeCues } from "../practice/usePracticeCues";
  * the session runs in a call room (MeetingStage): the coach's speaker tile is
  * the focal point, its line is captioned along the bottom, the person's camera
  * sits in a self-view corner, and Space starts and stops an answer.
- * Suggestions arrive at the top centre and never interrupt the turn.
+ * Suggestions arrive at the top center and never interrupt the turn.
  */
 type Mode = "live" | "sample";
 
@@ -183,7 +183,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
   return (
     <AppShell art={{ plate: "bluejayVine" }}>
       <PageHeader
-        step="Step 2 of 4: practise out loud"
+        step="Step 2 of 4: practice out loud"
         title="Think it through, out loud."
         lede="A low-pressure voice session to find a clearer way into what you want to say. Answer, hear a reply, try again."
       />
@@ -192,7 +192,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
         <Sheet aria-labelledby="voice-title" className="px-6 py-7 md:px-9 md:py-9">
           <SectionTitle id="voice-title">Set up your session</SectionTitle>
           <fieldset className="mt-5">
-            <legend className="text-[14px] font-medium">What would you like to practise?</legend>
+            <legend className="text-[14px] font-medium">What would you like to practice?</legend>
             <div className="mt-2 border-t border-border">
               {[...VOICE_PROMPTS, "own"].map((p) => (
                 <label key={p} className="flex min-h-11 cursor-pointer items-center gap-3 border-b border-border py-2.5 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent">
@@ -243,7 +243,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
           </p>
           {services && (
             <ServiceNotice className="mt-4" missing={[...missing]} desktop={desktop}>
-              {services.moss && !services.cartesia ? "You can still practise by typing your answers." : null}
+              {services.moss && !services.cartesia ? "You can still practice by typing your answers." : null}
             </ServiceNotice>
           )}
         </Sheet>

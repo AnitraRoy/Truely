@@ -27,14 +27,14 @@ export interface DesktopOverlayState {
   open: boolean;
   hidden: boolean;
   clickThrough: boolean;
-  /** True where the OS honours capture exclusion (Windows, macOS). */
+  /** True where the OS honors capture exclusion (Windows, macOS). */
   contentProtected: boolean;
   shortcuts: { toggleHidden: string; toggleClickThrough: string };
 }
 
 /**
- * Explicit overlay placements (electron/main.cjs `positionOverlay`): centre of
- * the screen, the four edges, and "camera" (flush with the top centre, nearest
+ * Explicit overlay placements (electron/main.cjs `positionOverlay`): center of
+ * the screen, the four edges, and "camera" (flush with the top center, nearest
  * a typical webcam). Used for visual calibration, so the person looks at the
  * camera, then up/down/left/right as the window moves.
  */
@@ -100,7 +100,7 @@ function mirrorRootAttrs(target: Document) {
 
 async function requestWindow(mode: OverlayMode, width: number, height: number): Promise<Window | null> {
   if (mode === "desktop") {
-    // The shell recognises this name and turns the window into the protected overlay.
+    // The shell recognizes this name and turns the window into the protected overlay.
     return window.open("about:blank", window.cueDesktop!.overlayName, `width=${width},height=${height}`);
   }
   const api = window.documentPictureInPicture!;

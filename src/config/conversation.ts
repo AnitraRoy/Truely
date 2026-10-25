@@ -56,7 +56,7 @@ export const FEEDBACK_CATEGORIES = Object.keys(FEEDBACK_CATEGORY_LABELS) as Feed
 /** Where the person wants to use their style. Multi-select on the profile screen. */
 export const STYLE_CONTEXTS = ["Job interviews", "Team meetings", "Presentations", "Conferences", "Client calls"] as const;
 
-/** Voice coaching: things to practise explaining. The person can also write their own. */
+/** Voice coaching: things to practice explaining. The person can also write their own. */
 export const VOICE_PROMPTS = [
   "Explain a project update to someone outside your team.",
   "Walk through a decision you made recently and why.",

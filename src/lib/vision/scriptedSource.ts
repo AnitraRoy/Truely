@@ -1,7 +1,7 @@
 /**
  * Scripted VisionSource for tests and the simulated demo. No camera involved.
  * Frames come from a deterministic scenario function, so anything produced
- * with this source is SIMULATED and must be labelled as such in the UI.
+ * with this source is SIMULATED and must be labeled as such in the UI.
  */
 import type { VisionFrame } from "@/types";
 import type { VisionSource } from "./types";

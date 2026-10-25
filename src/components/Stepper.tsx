@@ -1,6 +1,6 @@
 /**
  * Text-first progress for the setup wizard: "Step 2 of 5: Goal" plus the full
- * list for assistive tech. Position is stated in words, never colour alone.
+ * list for assistive tech. Position is stated in words, never color alone.
  * Owner: Design System team. `current` is zero-based.
  */
 export function Stepper({ steps, current }: { steps: string[]; current: number }) {

@@ -5,7 +5,7 @@
  * config/conversation.ts (QUICK_CUES).
  *
  * Only for the person's own answers (practice modes). A live conversation's
- * lines aren't labelled by speaker, so these would misfire there.
+ * lines aren't labeled by speaker, so these would misfire there.
  * They describe what was measured, never the person (CLAUDE.md §5).
  */
 import { QUICK_CUES } from "@/config/conversation";

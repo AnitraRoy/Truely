@@ -24,7 +24,7 @@ describe("Landing", () => {
   });
 
   it("uses real artwork with alt text, not coded SVG illustration", () => {
-    expect(html).toMatch(/<img[^>]+alt="Hand-coloured engraving of blue jays/);
+    expect(html).toMatch(/<img[^>]+alt="Hand-colored engraving of blue jays/);
     expect(html).not.toContain("<svg");
   });
 
@@ -58,7 +58,7 @@ describe("Overview at /home", () => {
     expect(top).toContain("Review sessions");
     const side = html.slice(html.indexOf('aria-label="Tools"'));
     expect(side).toContain("Find your style");
-    expect(side).toContain("Pick a speaker you admire and the habits to practise");
+    expect(side).toContain("Pick a speaker you admire and the habits to practice");
     expect(side).toContain("Calibrate camera");
   });
 });

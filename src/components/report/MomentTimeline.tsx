@@ -5,7 +5,7 @@ import { formatClock } from "../videoReview/time";
  * A conversation timeline: one track for the session's length, one marker per
  * timestamped moment. Single series, so one hue (forest) and no legend; what
  * each moment is about is stated in its label and the list beside it, never
- * colour (CLAUDE.md §3). Moments too close to tell apart share one marker
+ * color (CLAUDE.md §3). Moments too close to tell apart share one marker
  * (the playback bar's `clusterMarkers`), shown slightly larger with a count.
  * Markers are real buttons (28px hit area); the selected one is marked by a
  * ring and size as well as ochre. Owner: Design System team.

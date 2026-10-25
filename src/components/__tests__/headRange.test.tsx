@@ -39,7 +39,7 @@ describe("head-range calibration", () => {
   const advance = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
   const current = () => container.querySelector('[aria-current="step"]')?.textContent ?? "";
 
-  it("walks centre, up, down, left, right and then completes", () => {
+  it("walks center, up, down, left, right and then completes", () => {
     const onComplete = vi.fn();
     act(() => root.render(<Harness active onComplete={onComplete} />));
 

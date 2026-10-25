@@ -85,7 +85,7 @@ function loadServiceEnv(root = path.join(__dirname, "..")) {
 /**
  * The service calls, keyed by channel. Shared by the Electron IPC bridge
  * (registerServices) and the Vite dev-server bridge (vite.config.ts), so the
- * browser in development gets exactly the same behaviour and allow-list.
+ * browser in development gets exactly the same behavior and allow-list.
  */
 const handlers = {
   // One non-streaming chat completion through the Moss inference gateway.

@@ -43,7 +43,7 @@ describe("clusterMarkers", () => {
 });
 
 describe("MarkerLegend", () => {
-  it("labels every marker kind with text, not colour alone (CLAUDE.md §3)", () => {
+  it("labels every marker kind with text, not color alone (CLAUDE.md §3)", () => {
     const html = renderToStaticMarkup(<MarkerLegend />);
     expect(html).toContain("Cue delivered");
     expect(html).toContain("Behavioral observation");
