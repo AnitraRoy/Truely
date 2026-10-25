@@ -8,22 +8,37 @@ import type { CameraObservation, Session } from "@/types";
  * owns the camera stream and runs the MediaPipe pipeline: the screen shows the
  * preview through it and never opens the camera itself (lib/sessions/react).
  *
- * With a calibration baseline, `start()` runs a full coaching session, so real
- * cues arrive in `cue`. Without one, the camera still opens for the self-view
- * and recording, nothing is analysed, and `needsCalibration` says so. Frames
- * never leave the device; only derived cues are kept (`stop()`).
+ * With a behavioral baseline, `start()` runs a full coaching session, so real
+ * cues arrive in `cue`. Without one (the head-range setup screen doesn't make
+ * one), it first learns the baseline from the session's own frames, about 45 s
+ * (config/coaching.ts `calibrationDurationMs`), then starts analysing on its
+ * own; `note` says so meanwhile. The baseline is then kept for later sessions
+ * (on disk when the person allows saving). Frames never leave the device; only
+ * derived cues are kept (`stop()`).
  */
 export function useCameraCoaching() {
   const controller = useSessionController();
   const snap = useSession();
   const preview = useCameraPreview();
   const active = useRef(false);
+  /** Start analysing as soon as the baseline being learned is ready. */
+  const startWhenLearned = useRef(false);
 
   const start = useCallback(async (): Promise<boolean> => {
     active.current = true;
     if (controller.getSnapshot().hasBaseline) return controller.startSession();
-    return controller.startCamera();
+    if (await controller.startCalibration()) {
+      startWhenLearned.current = true;
+      return true;
+    }
+    return controller.startCamera(); // can't learn a baseline: still show and record the camera
   }, [controller]);
+
+  useEffect(() => {
+    if (snap.phase !== "calibrated" || !startWhenLearned.current || !active.current) return;
+    startWhenLearned.current = false;
+    void controller.startSession();
+  }, [snap.phase, controller]);
 
   /** The camera's stream, for the session recording. */
   const stream = useCallback(() => controller.getVisionStream(), [controller]);
@@ -49,6 +64,8 @@ export function useCameraCoaching() {
   const stop = useCallback(
     async (sessionStartedAt: number): Promise<{ observations: CameraObservation[]; sessionId?: string }> => {
       active.current = false;
+      startWhenLearned.current = false;
+      controller.cancelCalibration();
       const session: Session | null = await controller.end();
       if (!session) return { observations: [] };
       const observations = session.events
@@ -62,7 +79,9 @@ export function useCameraCoaching() {
   // Leaving the screen mid-session always releases the camera.
   useEffect(
     () => () => {
-      if (active.current) void controller.end();
+      if (!active.current) return;
+      controller.cancelCalibration();
+      void controller.end();
     },
     [controller],
   );
@@ -76,8 +95,17 @@ export function useCameraCoaching() {
     pause: () => controller.pause(),
     resume: () => controller.resume(),
     analysing: snap.phase === "live",
-    needsCalibration: !snap.hasBaseline,
-    trackingMessage: snap.phase === "live" ? snap.trackingMessage : null,
+    learning: snap.phase === "calibrating",
+    /** Quiet status for the self-view: tracking trouble, or the baseline being learned. Never a judgment. */
+    note:
+      snap.phase === "calibrating"
+        ? (snap.trackingMessage ??
+          `Learning your usual look on camera (${Math.round((snap.calibration?.fraction ?? 0) * 100)}%). Cues start after this.`)
+        : snap.phase === "live"
+          ? snap.trackingMessage
+          : snap.error?.kind === "calibration" && active.current
+            ? "Couldn't learn your usual look. Check your lighting and framing."
+            : null,
     cue: snap.activeCue,
     dismissCue: () => controller.dismissCue(),
   };
@@ -107,8 +135,7 @@ export function usePracticeCamera() {
       setVideoOn(on);
       void cam.setVideo(on);
     },
-    trackingMessage: cam.trackingMessage,
-    needsCalibration: videoOn && cam.needsCalibration,
+    trackingMessage: videoOn ? cam.note : null,
     cue: cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null,
     onDismissCue: cam.dismissCue,
     recording,

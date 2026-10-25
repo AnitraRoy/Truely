@@ -215,7 +215,9 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
                 ? state === "live"
                   ? cam.analysing
                     ? "Camera on, analysed on this device"
-                    : "Camera on, not analysed until you calibrate"
+                    : cam.learning
+                      ? "Camera on, learning your usual look"
+                      : "Camera on"
                   : "Camera starting"
                 : "Camera off"}
             </li>

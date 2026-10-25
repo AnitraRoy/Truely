@@ -66,10 +66,8 @@ export interface MeetingStageProps {
   camera: { videoRef: React.RefObject<HTMLVideoElement>; state: PreviewState };
   videoOn: boolean;
   onToggleVideo: (on: boolean) => void;
-  /** Tracking status text (e.g. face not visible). Never a judgment. */
+  /** Camera status text (face not visible, baseline being learned). Never a judgment. */
   trackingMessage?: string | null;
-  /** Camera analysis is unavailable until calibration. */
-  needsCalibration?: boolean;
   /** The current camera cue, if any. */
   cue?: { id: string; text: string } | null;
   onDismissCue?: () => void;
@@ -355,7 +353,7 @@ export function MeetingStage(props: MeetingStageProps) {
               listening={listening}
               cameraOn={props.videoOn}
               onToggleCamera={props.onToggleVideo}
-              note={props.trackingMessage ?? (props.needsCalibration ? "Calibrate your camera to get cues" : null)}
+              note={props.trackingMessage}
             />
           </div>
 
