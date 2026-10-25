@@ -18,6 +18,7 @@ import { extractJson, parseLiveSuggestion, parseReport, parseStyle, parseSuggest
 export * from "./parse";
 export * from "./pacing";
 export * from "./reference";
+export * from "./quickCues";
 
 const ETHICS =
   "Comment only on observable aspects of what was said: clarity, conciseness, structure, pacing, relevance, warmth, delivery. " +
@@ -25,6 +26,26 @@ const ETHICS =
   "Be calm, specific, brief and encouraging. Use second person.";
 
 const CATS = FEEDBACK_CATEGORIES.join(" | ");
+
+/**
+ * How live cues are written (coach, interview, live): short, sharp imperatives
+ * the person can act on mid-sentence. Still only about what was said, never
+ * about who they are.
+ */
+const CUE_ETHICS =
+  "Comment only on observable aspects of what was said: clarity, conciseness, structure, pacing, relevance, warmth, delivery. " +
+  "Never judge personality, confidence, honesty, intelligence, emotions or mental state. Never give a score or grade. Use second person.";
+
+const CUE_STYLE = [
+  'Each cue "title" is a sharp coaching cue of 2 to 5 words: a plain imperative they can act on at once.',
+  'Examples of the style: "Get back on track", "Stop rambling", "Answer the question", "Address the second part", "Give an example", "Cut filler words", "Lead with your answer", "Slow down", "Wrap it up", "Be specific", "Name the result".',
+  "Check relevance first, against the question or topic and their goals:",
+  '- drifted off topic or into detail that doesn\'t serve the question or their goals → "Get back on track" or "Answer the question";',
+  '- long-winded, repetitive or circling → "Stop rambling" or "Wrap it up";',
+  '- part of the question left unanswered → "Address [that part]", naming it in at most 3 words (e.g. "Address the timeline");',
+  "then anything else worth fixing next time. Cues are for what they say next, never a recap of what already happened.",
+  '"why" is one short sentence, at most 15 words, saying what prompted it.',
+].join("\n");
 
 /** The desired-style profile, condensed for a system prompt. */
 export function describeProfile(profile: CommunicationProfile | null, goals: string[]): string {
@@ -66,9 +87,10 @@ export async function coachTurn(input: {
     "You are Cue, a voice communication coach running a short question-and-answer practice.",
     `The person is practising this: "${input.prompt}".`,
     describeProfile(input.profile, input.goals),
-    ETHICS,
+    CUE_ETHICS,
     "After each answer: reply in at most two spoken sentences (acknowledge one thing that worked, then ask them to try again or go one step further).",
-    `Then give 1 to 3 suggestions for their NEXT answers. Each is a general habit they can carry forward (for example "Open with your conclusion"), not a correction of a detail they already said. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, general and reusable, "why": one short sentence on what in their last answer prompted it, "try": optional short example of the habit}.`,
+    `Then give 1 to 3 cues about their LAST answer, most important first, judged against what they are practising. Each: {"category": one of ${CATS}, "title": the cue, "why": string, "try": optional short example phrasing}.`,
+    CUE_STYLE,
     alreadySaid(input.previous),
     'Respond with JSON only: {"reply": string, "suggestions": [...]}',
   ]
@@ -118,16 +140,48 @@ export async function liveSuggestion(input: {
     "You are Cue, a discreet coach listening to a real conversation through one microphone, so lines are not labelled by speaker. The person glances at your suggestion while talking, so it must be very short.",
     input.context ? `The conversation: ${input.context}.` : "",
     describeProfile(input.profile, input.goals),
-    ETHICS,
-    "From the recent lines, give one general habit the person can apply from now on in this conversation (for example: open with the main point, keep each point short, give one concrete example, pause instead of filler words). It must be advice for what they say next, never a comment on something that has already passed. Early in the conversation, lean towards one of their goals. Say nothing only if there are no lines yet.",
+    CUE_ETHICS,
+    "Look for an issue in the most recent lines, judged against the conversation's purpose and their goals: drifting off topic, rambling, not answering what was asked, missing a part, a claim with no example, filler, rushing. If there is one, give the one cue that fixes it. If the recent lines are fine, say nothing.",
+    CUE_STYLE,
     alreadySaid(input.previous),
-    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line that prompted it, "category": one of ${CATS}, "title": imperative, max 7 words, general and reusable, "why": one short sentence on why it will help from here on}.`,
+    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line that prompted it, "category": one of ${CATS}, "title": the cue, "why": string}.`,
     "JSON only.",
   ]
     .filter(Boolean)
     .join("\n");
   const text = await llmReply(system, [{ role: "user", content: numbered(recent) }], { temperature: 0.3, maxTokens: 160 });
   return parseLiveSuggestion(text, recent);
+}
+
+/**
+ * One cue while the person is still answering, or null when the answer is on
+ * track. Called every few sentences of the streaming transcript, so a cue
+ * appears as soon as an issue shows up rather than after the answer ends.
+ */
+export async function midAnswerCue(input: {
+  /** The question or prompt being answered. */
+  question: string;
+  /** Their answer so far (still speaking). */
+  partial: string;
+  profile: CommunicationProfile | null;
+  goals: string[];
+  previous?: string[];
+}): Promise<ParsedSuggestion | null> {
+  const system = [
+    "You are Cue, watching someone answer out loud right now. They will glance at your cue mid-sentence.",
+    describeProfile(input.profile, input.goals),
+    CUE_ETHICS,
+    "Look for an issue in the answer so far, against the question and their goals: drifting off topic, rambling, not answering, missing a part, a claim with no example, filler, rushing. If there is one, give the one cue that fixes it now. If the answer is on track so far, say nothing.",
+    CUE_STYLE,
+    alreadySaid(input.previous),
+    `Respond with JSON only: {"cue": false} or {"cue": true, "category": one of ${CATS}, "title": the cue, "why": string}.`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const user = `Question: ${input.question}\nTheir answer so far: ${input.partial}`;
+  const json = extractJson(await llmReply(system, [{ role: "user", content: user }], { temperature: 0.2, maxTokens: 120 }));
+  if (!json || (json as { cue?: unknown }).cue === false) return null;
+  return parseSuggestions([json], 1)[0] ?? null;
 }
 
 /**
@@ -145,8 +199,9 @@ export async function answerSuggestions(input: {
   const system = [
     `You are Cue, a private coach beside a mock ${input.interview}. The interviewer can't see you. The person reads your note before their next answer.`,
     describeProfile(input.profile, input.goals),
-    ETHICS,
-    `Give 1 or 2 suggestions for their NEXT answers in this interview. Each is a general habit they can carry forward (for example "Lead with the result"), not a correction of a detail they already said. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, general and reusable, "why": one short sentence on what in this answer prompted it, "try": optional short example of the habit}.`,
+    CUE_ETHICS,
+    `Give 1 or 2 cues about this answer, most important first, judged against the question asked and their goals. Each: {"category": one of ${CATS}, "title": the cue, "why": string, "try": optional short example phrasing}.`,
+    CUE_STYLE,
     alreadySaid(input.previous),
     'Respond with JSON only: {"suggestions": [...]}',
   ]

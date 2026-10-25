@@ -163,10 +163,9 @@ export const GOAL_LABELS: Record<CoachingGoal, string> = {
  * observational — never a judgment. Tracking messages are status, not coaching.
  */
 export const CUE_LIBRARY: Record<SignalName, string> = {
-  gaze_direction: "Try bringing your gaze back toward the camera.",
-  head_orientation: "Notice your movement and find a comfortable position.",
-  movement_variability:
-    "Notice your head movement and settle into a comfortable position.",
+  gaze_direction: "Keep your eyes on the camera.",
+  head_orientation: "Face the camera.",
+  movement_variability: "Keep your head steady.",
 };
 
 /**
@@ -178,7 +177,7 @@ export const GOAL_CUE_OVERRIDES: Partial<
   Record<CoachingGoal, Partial<Record<SignalName, string>>>
 > = {
   camera_engagement: {
-    head_orientation: "Try turning back toward the camera when it feels natural.",
+    head_orientation: "Turn back to the camera.",
   },
 };
 

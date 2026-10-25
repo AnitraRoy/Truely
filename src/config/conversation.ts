@@ -88,12 +88,32 @@ export const INTERVIEW_QUESTION_COUNT = 6;
 export const LIVE_CONVERSATION = {
   /** New transcript lines required before another suggestion is considered. */
   minNewSegments: 1,
-  /** Minimum gap between two suggestions, so the person is still mostly left alone. */
-  suggestionCooldownMs: 30000,
+  /** Minimum gap between two cues. Short: a cue appears whenever an issue is found. */
+  suggestionCooldownMs: 8000,
 } as const;
 
 /** Voice coaching: suggestions shown at once (newest first). */
 export const VOICE_MAX_SUGGESTIONS = 3;
+
+/** Instant, model-free cues on the person's own answers (lib/conversation/quickCues). */
+export const QUICK_CUES = {
+  /** Faster than this (words a minute, pauses included) → "Slow down". */
+  fastWpm: 175,
+  /** Named in the cue as the pace to aim for. */
+  targetWpm: 140,
+  /** Answers shorter than this are too short to judge pace (ms). */
+  minPaceMs: 5000,
+  /** "Cut filler words" needs at least this many fillers… */
+  minFillers: 3,
+  /** …making up at least this share of the words. */
+  fillerRate: 0.05,
+  /** Longer than this (words) → "Wrap it up". */
+  longAnswerWords: 180,
+  /** While answering: ask Moss for a relevance check after this many new words… */
+  midCheckWords: 25,
+  /** …and at most this often (ms). */
+  midCheckMinMs: 6000,
+} as const;
 
 /**
  * Silence check on recorded answers and live chunks, so speech-to-text never

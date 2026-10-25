@@ -15,19 +15,18 @@ import {
   INTERVIEW_DIFFICULTIES,
   INTERVIEW_QUESTION_COUNT,
   INTERVIEW_TYPES,
-  VOICE_MAX_SUGGESTIONS,
   type InterviewDifficulty,
 } from "@/config/conversation";
 import { answerSuggestions, interviewerTurn } from "@/lib/conversation";
-import { newId } from "@/state/conversations";
 import { reportHref } from "@/state/history";
 import { useProfileStore } from "@/state/profileStore";
-import type { FeedbackEvent, TranscriptSegment } from "@/types";
+import type { TranscriptSegment } from "@/types";
 import { DEV_INTERVIEW_TURNS } from "../practice/devScript";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
 import { MeetingStage } from "../practice/MeetingStage";
 import { useTurnTaking } from "../practice/useTurnTaking";
 import { usePracticeCamera } from "../practice/useCameraCoaching";
+import { usePracticeCues } from "../practice/usePracticeCues";
 
 /**
  * 04 · Mock interviews (Stage 3: Practice). Private Field Journal.
@@ -64,11 +63,12 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
   const [ending, setEnding] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const sampleTurn = useRef(0);
-  const [suggestions, setSuggestions] = useState<FeedbackEvent[]>([]);
-  const feedback = useRef<FeedbackEvent[]>([]);
 
+  const cues = usePracticeCues({ enabled: mode === "live", profile, goals });
+  const { suggestions, setSuggestions, feedback } = cues;
   const voice = mode === "live" && Boolean(services?.cartesia);
-  const turn = useTurnTaking({ speakerLabel: "Interviewer", aiRole: "interviewer", voice });
+  const turn = useTurnTaking({ speakerLabel: "Interviewer", aiRole: "interviewer", voice, onAnswerProgress: cues.progress });
+  cues.question.current = [...turn.transcript].reverse().find((s) => s.role === "interviewer")?.text ?? "";
   const camera = usePracticeCamera();
   const running = mode != null;
   const finished = question > INTERVIEW_QUESTION_COUNT;
@@ -116,14 +116,18 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
       goals,
       previous: feedback.current.map((f) => f.title),
     });
-    if (found.length === 0) return;
-    const events: FeedbackEvent[] = found.map((s) => ({ id: newId("fb"), atMs: answer.startMs, segmentId: answer.id, ...s }));
-    feedback.current = [...feedback.current, ...events];
-    setSuggestions((prev) => [...events, ...prev].slice(0, VOICE_MAX_SUGGESTIONS));
+    cues.add(found, answer.startMs, answer.id);
+  }
+
+  /** Space / Answer: start the answer, watched for cues as it's spoken. */
+  function beginAnswer() {
+    cues.beginAnswer(turn.now());
+    turn.beginAnswer();
   }
 
   async function answered(transcript: TranscriptSegment[] | null) {
     if (!transcript || !mode) return;
+    cues.settle(transcript);
     if (mode === "live") void suggestAbout(transcript);
     const last = mode === "sample" ? sampleTurn.current >= DEV_INTERVIEW_TURNS.length - 1 : question >= INTERVIEW_QUESTION_COUNT;
     await ask(transcript, mode, last ? INTERVIEW_QUESTION_COUNT + 1 : question + 1);
@@ -270,7 +274,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
         closedHint="The interview is complete."
         endLabel={finished ? "See your review" : "Finish interview"}
         ending={ending}
-        onBegin={turn.beginAnswer}
+        onBegin={beginAnswer}
         onFinish={() => void turn.finishAnswer().then(answered)}
         onTyped={(t) => void answered(turn.typedAnswer(t))}
         onEnd={() => void finish()}

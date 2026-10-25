@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { useMicrophone, type ClipRecorder } from "@/components/useMicrophone";
 import { PRACTICE_CALL, SPEECH_CHECK } from "@/config/conversation";
-import { isSilentClip } from "@/lib/audio";
+import { isSilentClip, startPcmCapture, type PcmCapture } from "@/lib/audio";
 import { playAudio, primeAudio } from "@/components/useServiceStatus";
-import { speakStreaming, synthesizeSpeech, transcribeAudio } from "@/lib/services/voice";
+import { speakStreaming, streamLiveTranscription, synthesizeSpeech, transcribeAudio, type LiveTranscriptionHandle } from "@/lib/services/voice";
 import { newId } from "@/state/conversations";
 import type { SpeakerRole, TranscriptSegment } from "@/types";
 
@@ -32,8 +32,32 @@ export const TURN_STATUS_LABEL: Record<TurnStatus, string> = {
   ended: "Ended",
 };
 
-export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: string; aiRole: SpeakerRole; voice: boolean }) {
+interface LiveText {
+  capture: PcmCapture | null;
+  handle: LiveTranscriptionHandle | null;
+  closed: boolean;
+}
+
+export function useTurnTaking({
+  speakerLabel,
+  aiRole,
+  voice,
+  onAnswerProgress,
+}: {
+  speakerLabel: string;
+  aiRole: SpeakerRole;
+  voice: boolean;
+  /**
+   * The answer so far, while it's being spoken (Cartesia realtime STT), with ms
+   * since the answer began. Lets a screen cue as soon as an issue shows up.
+   * Best effort: if streaming can't start, answers still work as before.
+   */
+  onAnswerProgress?: (text: string, elapsedMs: number) => void;
+}) {
   const mic = useMicrophone();
+  const progressRef = useRef(onAnswerProgress);
+  progressRef.current = onAnswerProgress;
+  const live = useRef<LiveText | null>(null);
   const [status, setStatus] = useState<TurnStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -105,19 +129,59 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
     [aiRole, push, speakerLabel],
   );
 
+  /** Stream the answer to realtime STT while it's spoken, for mid-answer cues. */
+  const startLiveText = useCallback(() => {
+    const stream = mic.stream();
+    if (!stream || !progressRef.current) return;
+    const begun = Date.now();
+    const state: LiveText = { capture: null, handle: null, closed: false };
+    live.current = state;
+    let done = ""; // finished turns of this answer (the STT splits on pauses)
+    const report = (current: string) => progressRef.current?.(`${done} ${current}`.trim(), Date.now() - begun);
+    void (async () => {
+      const capture = startPcmCapture(stream, (samples) => state.handle?.push(samples));
+      state.capture = capture;
+      const res = await streamLiveTranscription({
+        sampleRate: capture.sampleRate,
+        onTurnUpdate: (text) => report(text),
+        onTurnEnd: (text) => {
+          done = `${done} ${text}`.trim();
+          report("");
+        },
+      });
+      if (state.closed || !res.ok) {
+        capture.stop();
+        if (res.ok) res.close();
+        return;
+      }
+      state.handle = res;
+    })();
+  }, [mic]);
+
+  const stopLiveText = useCallback(() => {
+    const state = live.current;
+    live.current = null;
+    if (!state) return;
+    state.closed = true;
+    state.capture?.stop();
+    state.handle?.close();
+  }, []);
+
   const beginAnswer = useCallback(() => {
     primeAudio();
     const rec = mic.record();
     if (!rec) return;
     clip.current = { rec, at: now() };
     setStatus("listening");
-  }, [mic]);
+    startLiveText();
+  }, [mic, startLiveText]);
 
   /** Stop recording and transcribe. Resolves to the full transcript, or null if nothing was heard. */
   const finishAnswer = useCallback(async (): Promise<TranscriptSegment[] | null> => {
     const current = clip.current;
     clip.current = null;
     if (!current) return null;
+    stopLiveText();
     const audio = await current.rec.stop();
     const endMs = now();
     if (isSilentClip(current.rec.speech(), SPEECH_CHECK.minVoicedMs)) {
@@ -140,7 +204,7 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
     setError(null);
     setStatus("thinking");
     return push({ id: newId("seg"), startMs: current.at, endMs, text: res.text, speaker: "You", role: "you" });
-  }, [push]);
+  }, [push, stopLiveText]);
 
   /** A typed answer, for anyone who prefers typing or when speech isn't available. */
   const typedAnswer = useCallback(
@@ -155,6 +219,7 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
 
   /** Stop everything. Resolves to the consented recording, if one was made. */
   const end = useCallback(async () => {
+    stopLiveText();
     if (clip.current) await clip.current.rec.stop();
     clip.current = null;
     const saved = await mic.stopFullRecording();
@@ -162,7 +227,7 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
     setRecording(false);
     setStatus("ended");
     return { recording: saved, startedAt: startedAt.current, endedAt: Date.now(), transcript: transcriptRef.current };
-  }, [mic]);
+  }, [mic, stopLiveText]);
 
   return {
     mic: mic.state,

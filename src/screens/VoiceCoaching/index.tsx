@@ -9,17 +9,17 @@ import { ServiceNotice } from "@/components/ServiceNotice";
 import { SectionTitle, Sheet } from "@/components/Sheet";
 import { Toggle } from "@/components/Toggle";
 import { hasDesktopBridge, useServiceStatus } from "@/components/useServiceStatus";
-import { DEFAULT_PRACTICE_GOALS, PRACTICE_CALL, VOICE_MAX_SUGGESTIONS, VOICE_PROMPTS } from "@/config/conversation";
+import { DEFAULT_PRACTICE_GOALS, PRACTICE_CALL, VOICE_PROMPTS } from "@/config/conversation";
 import { coachTurn, type TurnResult } from "@/lib/conversation";
-import { newId } from "@/state/conversations";
 import { reportHref } from "@/state/history";
 import { useProfileStore } from "@/state/profileStore";
-import type { FeedbackEvent, TranscriptSegment } from "@/types";
+import type { TranscriptSegment } from "@/types";
 import { DEV_COACH_TURNS } from "../practice/devScript";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
 import { MeetingStage } from "../practice/MeetingStage";
 import { useTurnTaking } from "../practice/useTurnTaking";
 import { usePracticeCamera } from "../practice/useCameraCoaching";
+import { usePracticeCues } from "../practice/usePracticeCues";
 
 /**
  * 03 · Voice coaching (Stage 2: Coach). Private Field Journal.
@@ -51,16 +51,17 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
   const [goals, setGoals] = useState<string[]>(goalOptions.slice(0, 2));
   const [record, setRecord] = useState(true);
   const [mode, setMode] = useState<Mode | null>(null);
-  const [suggestions, setSuggestions] = useState<FeedbackEvent[]>([]);
   const [ending, setEnding] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
-  const feedback = useRef<FeedbackEvent[]>([]);
   const sampleTurn = useRef(0);
 
+  const cues = usePracticeCues({ enabled: mode === "live", profile, goals });
+  const { suggestions, setSuggestions, feedback } = cues;
   const voice = mode === "live" && Boolean(services?.cartesia);
-  const turn = useTurnTaking({ speakerLabel: "Coach", aiRole: "coach", voice });
+  const turn = useTurnTaking({ speakerLabel: "Coach", aiRole: "coach", voice, onAnswerProgress: cues.progress });
   const camera = usePracticeCamera();
   const practicePrompt = prompt === "own" ? ownPrompt.trim() : prompt;
+  cues.question.current = [...turn.transcript].reverse().find((s) => s.role !== "you")?.text ?? practicePrompt;
   const running = mode != null && turn.status !== "ended";
   const missing = services ? (["moss", "cartesia"] as const).filter((s) => !services[s]) : [];
 
@@ -77,11 +78,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
       return;
     }
     const answer = [...transcript].reverse().find((s) => s.role === "you");
-    if (answer && res.suggestions.length > 0) {
-      const events: FeedbackEvent[] = res.suggestions.map((s) => ({ id: newId("fb"), atMs: answer.startMs, segmentId: answer.id, ...s }));
-      feedback.current = [...feedback.current, ...events];
-      setSuggestions((prev) => [...events, ...prev].slice(0, VOICE_MAX_SUGGESTIONS));
-    }
+    if (answer) cues.add(res.suggestions, answer.startMs, answer.id);
     await turn.aiSays(res.reply);
   }
 
@@ -99,7 +96,14 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
     await next([], m);
   }
 
+  /** Space / Answer: start the answer, watched for cues as it's spoken. */
+  function beginAnswer() {
+    cues.beginAnswer(turn.now());
+    turn.beginAnswer();
+  }
+
   async function answered(transcript: TranscriptSegment[] | null) {
+    if (transcript) cues.settle(transcript);
     if (transcript && mode) await next(transcript, mode);
   }
 
@@ -155,7 +159,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
         focus={goals[0]}
           now={turn.now}
           ending={ending}
-          onBegin={turn.beginAnswer}
+          onBegin={beginAnswer}
           onFinish={() => void turn.finishAnswer().then(answered)}
           onTyped={(t) => void answered(turn.typedAnswer(t))}
           onEnd={() => void endAndReview()}
