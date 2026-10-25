@@ -61,6 +61,12 @@ export interface VisionFrame {
   headPose?: { yaw: number; pitch: number; roll: number };
   /** Optional broad gaze-direction estimate, if conditions allow. */
   gaze?: { x: number; y: number };
+  /**
+   * Observations the vision layer already extracted (engine signal names, engine units).
+   * When present, `lib/sessions` uses these instead of deriving them from `headPose`.
+   * Set by `sessions/pipelineSource` — Person 2's SignalPipeline measures in its own units.
+   */
+  signals?: SignalObservation[];
 }
 
 // -----------------------------------------------------------------------------

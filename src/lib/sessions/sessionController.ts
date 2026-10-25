@@ -308,14 +308,14 @@ export function createSessionController(options: SessionControllerOptions): Sess
   }
 
   // ---- camera -----------------------------------------------------------------
-  async function startCamera(): Promise<boolean> {
-    if (cameraActive) return true;
-    try {
-      await vision.start();
-    } catch (e) {
-      fail(classifyCameraError(e));
-      return false;
-    }
+  // Start/stop can interleave (React StrictMode mounts, unmounts, mounts again).
+  // `gen` marks the newest intent; stale starters never overwrite newer state, and a
+  // stale start that finishes after the user wanted the camera OFF releases it again.
+  let gen = 0;
+  let wantCamera = false;
+  let latestStart: Promise<boolean> | null = null;
+
+  function activateCamera() {
     cameraActive = true;
     error = null;
     unsubFrame?.();
@@ -323,13 +323,52 @@ export function createSessionController(options: SessionControllerOptions): Sess
     unsubFrame = vision.onFrame(handleFrame);
     unsubError =
       vision.onError?.((e) => {
-        fail({ kind: "camera_lost", message: `The camera stopped unexpectedly. ${e.message}`.trim() });
+        // Runtime failure (camera unplugged, model crash): release everything, keep the
+        // session so the user can still end it and see what was recorded.
+        error = { kind: "camera_lost", message: `The camera stopped unexpectedly. ${e.message}`.trim() };
+        stopCamera();
       }) ?? null;
     emit();
-    return true;
+  }
+
+  function startCamera(): Promise<boolean> {
+    if (cameraActive) return Promise.resolve(true);
+    wantCamera = true;
+    const mine = ++gen;
+    const self: { promise?: Promise<boolean> } = {};
+    const attempt = (async (): Promise<boolean> => {
+      try {
+        await vision.start();
+      } catch (e) {
+        if (mine === gen) {
+          wantCamera = false;
+          fail(classifyCameraError(e));
+        }
+        return false;
+      }
+      if (mine !== gen) {
+        // Superseded while starting.
+        if (!wantCamera) {
+          try {
+            vision.stop();
+          } catch {
+            /* ignore */
+          }
+          return false;
+        }
+        return latestStart && latestStart !== self.promise ? latestStart : false;
+      }
+      activateCamera();
+      return true;
+    })();
+    self.promise = attempt;
+    latestStart = attempt;
+    return attempt;
   }
 
   function stopCamera() {
+    wantCamera = false;
+    gen += 1;
     unsubFrame?.();
     unsubError?.();
     unsubFrame = unsubError = null;

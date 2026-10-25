@@ -15,3 +15,7 @@ Turns raw video into landmark-based estimates. See PRD §9 (vision) and §7.1 (s
 
 ## Done when
 - Produces `VisionFrame`s with head pose + confidence; degrades gracefully on occlusion/lighting.
+
+## Public surface
+
+Exports include `createVisionEngine`, `createLandmarker`, `detectLandmarks`, `estimateHeadPose`, `estimateYawProxy`, `headMotionSpeed`, `LightingProbe`, `classifyLuma`, `HEAD_POSE_CONSTANTS`, `LIGHTING_CONSTANTS`, and their associated public types. See `index.ts` for the complete export list.
