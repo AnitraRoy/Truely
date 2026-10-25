@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { CheckChips, SelectField, TextArea, TextField } from "@/components/Field";
 import { SectionTitle, Sheet } from "@/components/Sheet";
@@ -16,7 +15,8 @@ import { useSessionStore } from "@/state/sessionStore";
 import type { FeedbackCategory, StyleReference, StyleTrait } from "@/types";
 
 /**
- * 02 · Communication profile (Stage 1: Learn). Private Field Journal.
+ * 02 · Communication profile (Stage 1: Learn) — the "Communication profile"
+ * tab of My profile (/profile?tab=style). Private Field Journal.
  * The person names a public reference and what they admire about it; Apify
  * reads a YouTube transcript (or they paste text), Moss restates their intent
  * and drafts observable patterns, and they choose which to keep. Without the
@@ -68,8 +68,12 @@ function TraitRow({ trait, onChange, onRemove }: { trait: StyleTrait; onChange: 
   );
 }
 
+/** Old links to /profile/style land on the tab inside My profile. */
 export function StyleProfile() {
-  const navigate = useNavigate();
+  return <Navigate to="/profile?tab=style" replace />;
+}
+
+export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
   const saved = useProfileStore((s) => s.communicationProfile);
   const setProfile = useProfileStore((s) => s.setCommunicationProfile);
   const calibrated = useSessionStore((s) => s.isCalibrated);
@@ -149,14 +153,16 @@ export function StyleProfile() {
   const kept = traits.filter((t) => t.keep).length;
 
   return (
-    <AppShell>
-      <PageHeader
-        step="Step 1 of 4: learn how you want to sound"
-        title="What does good communication look like to you?"
-        lede="Start with someone whose style you admire. Cue picks out patterns you can practise. They're goals to work toward, not a script to imitate."
-      />
+    <div>
+      <h2 className="text-balance font-display text-[clamp(24px,2.6vw,30px)] font-semibold leading-tight">
+        What does good communication look like to you?
+      </h2>
+      <p className="mt-2 max-w-[66ch] text-text-muted">
+        Start with someone whose style you admire. The patterns you keep become your voice baseline: what every practice and
+        live session coaches toward. They&apos;re goals, not a script to imitate.
+      </p>
 
-      <div className="mt-10 grid items-start gap-x-10 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+      <div className="mt-9 grid items-start gap-x-10 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
         {/* The reference form */}
         <section aria-labelledby="ref-title">
           <SectionTitle id="ref-title">A reference to learn from</SectionTitle>
@@ -280,7 +286,7 @@ export function StyleProfile() {
               Save profile
             </Button>
             {saved && (
-              <Button variant="ghost" onClick={() => navigate("/profile")}>
+              <Button variant="ghost" onClick={onReview}>
                 Review your profile
               </Button>
             )}
@@ -294,18 +300,19 @@ export function StyleProfile() {
       {/* The distinction, stated once */}
       <aside aria-labelledby="distinction-title" className="mt-14 grid gap-x-10 gap-y-3 border-t-2 border-text-primary pt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
         <h2 id="distinction-title" className="font-display text-[22px] font-semibold leading-snug">
-          Your desired style is not your natural baseline.
+          For your voice, you set the baseline.
         </h2>
         <div>
           <p className="max-w-[62ch] text-text-muted">
-            This profile describes how you want to come across. Your natural baseline is different: it&apos;s measured from your own
-            camera during a short calibration, and only if you turn it on. Cue never infers one from the other.
+            Cue doesn&apos;t record a sample of you talking to compare against. The style you choose here is the baseline for how
+            you sound. Separately, a short camera calibration measures your natural head and gaze patterns, only if you turn it
+            on. Cue never infers one from the other.
           </p>
           <Link to="/calibrate" className="mt-3 inline-block underline underline-offset-4 hover:text-accent">
-            {calibrated ? "Recalibrate your natural baseline" : "Set up camera calibration"}
+            {calibrated ? "Recalibrate your camera baseline" : "Set up camera calibration"}
           </Link>
         </div>
       </aside>
-    </AppShell>
+    </div>
   );
 }

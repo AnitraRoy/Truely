@@ -1,160 +1,255 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { useProfileStore } from "@/state/profileStore";
-import { useSessionStore } from "@/state/sessionStore";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 /**
- * The journal's application shell: one numbered sidebar for the practice
- * journey (Overview → profile → voice → interview → live → history), the
- * person's profile beneath it, and an honest status block. Owner: Design
- * System team.
+ * The journal's application shell: a top toolbar (wordmark, home icon, and the
+ * main tools in one row) plus a side toolbar that lists the same tools in
+ * journey order, each with a line saying what it's for. Owner: Design System.
  *
- * One navigation, not two: the concept's duplicate top bar is dropped. Below
- * `md` the sidebar becomes a top bar with an APG disclosure menu. Never used
- * while a live session is running (CLAUDE.md §6); the live screen renders its
- * own quiet header.
+ * One list of tools (`TOOLS`) feeds both toolbars, so a destination always has
+ * the same name. The "Cue." wordmark goes to the public landing page (`/`);
+ * the home icon goes to Home (`/home`). Below `lg` the side toolbar is hidden
+ * and the top toolbar's Menu disclosure shows the tools with their purpose
+ * lines; the home icon stays. Never used while a live session is running
+ * (CLAUDE.md §6); the live screen renders its own quiet header.
  */
-const JOURNEY = [
-  { to: "/home", label: "Overview" },
-  { to: "/profile/style", label: "Communication profile" },
-  { to: "/practice/voice", label: "Voice coaching" },
-  { to: "/practice/interview", label: "Mock interviews" },
-  { to: "/session", label: "Live coaching" },
-  { to: "/reports", label: "Session history" },
+type Match = (pathname: string, search: string) => boolean;
+interface Tool {
+  to: string;
+  label: string;
+  /** What the tool is for, in a few plain words (side toolbar and menu). */
+  purpose: string;
+  match: Match;
+  /** Also listed in the top toolbar. */
+  top?: boolean;
+}
+
+const isStyleTab = (search: string) => new URLSearchParams(search).get("tab") === "style";
+
+/** The practice journey, in order. */
+const TOOLS: Tool[] = [
+  { to: "/home", label: "Home", purpose: "Your next step and recent sessions", match: (p) => p === "/home" },
+  {
+    to: "/profile?tab=style",
+    label: "Find your style",
+    purpose: "Pick a speaker you admire and the habits to practise",
+    match: (p, q) => p === "/profile" && isStyleTab(q),
+  },
+  {
+    to: "/practice/voice",
+    label: "Practise out loud",
+    purpose: "Talk it through with a coach who suggests small fixes",
+    match: (p) => p === "/practice/voice",
+    top: true,
+  },
+  {
+    to: "/practice/interview",
+    label: "Rehearse an interview",
+    purpose: "A realistic mock interview with a live transcript",
+    match: (p) => p === "/practice/interview",
+    top: true,
+  },
+  {
+    to: "/session",
+    label: "Coach me live",
+    purpose: "Discreet notes during a real meeting or interview",
+    match: (p) => p === "/session",
+    top: true,
+  },
+  {
+    to: "/reports",
+    label: "Review sessions",
+    purpose: "Transcripts, key moments and what to try next",
+    match: (p) => p.startsWith("/reports") || p.startsWith("/report/"),
+    top: true,
+  },
 ];
 
-const linkCls = (active: boolean) =>
-  `group grid min-h-10 grid-cols-[28px_1fr] items-center rounded border-l-2 px-3 py-2 text-[14.5px] transition-colors duration-cue-fast ease-cue ${
-    active ? "border-ochre-mark bg-accent/10 font-medium text-text-primary" : "border-transparent text-text-muted hover:bg-sunken/60 hover:text-text-primary"
+/** Set-up and account tools, below the journey. */
+const SETUP: Tool[] = [
+  {
+    to: "/calibrate",
+    label: "Calibrate camera",
+    purpose: "Learn your natural head and gaze, in under a minute",
+    match: (p) => p === "/calibrate",
+  },
+  {
+    to: "/profile",
+    label: "My profile",
+    purpose: "Your style, camera baseline, settings and data",
+    match: (p, q) => p === "/profile" && !isStyleTab(q),
+  },
+];
+
+/** The top toolbar's "My profile" covers every profile tab, including Find your style. */
+const TOP: Tool[] = [{ ...SETUP[1], match: (p) => p.startsWith("/profile") }, ...TOOLS.filter((t) => t.top)];
+
+/** Functional icon (CLAUDE.md §4A.3 allows SVG for icons): an outline house. */
+function HomeIcon() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 10.5 12 4l8 6.5" />
+      <path d="M6 9.5V20h12V9.5" />
+      <path d="M10 20v-5.5h4V20" />
+    </svg>
+  );
+}
+
+function useActive() {
+  const { pathname, search } = useLocation();
+  return (t: Tool) => t.match(pathname, search);
+}
+
+const topCls = (active: boolean) =>
+  `inline-flex min-h-10 items-center whitespace-nowrap rounded px-3 text-[14.5px] transition-colors duration-cue-fast ease-cue ${
+    active ? "bg-accent/10 font-medium text-text-primary" : "text-text-muted hover:bg-sunken/70 hover:text-text-primary"
   }`;
 
-function Nav({ onNavigate }: { onNavigate?: () => void }) {
-  const { pathname } = useLocation();
-  // /report/* belongs to Session history; /profile/style is its own entry.
-  const isActive = (to: string) =>
-    to === "/reports" ? pathname.startsWith("/reports") || pathname.startsWith("/report/") : pathname === to;
-
+function HomeLink() {
+  const isActive = useActive();
+  const active = isActive(TOOLS[0]);
   return (
-    <nav aria-label="Primary">
-      <p id="nav-practice" className="px-3 text-[12.5px] text-text-muted">
+    <Link to="/home" aria-label="Home" title="Home" aria-current={active ? "page" : undefined} className={`${topCls(active)} w-10 justify-center px-0`}>
+      <HomeIcon />
+    </Link>
+  );
+}
+
+/** A tool with its purpose line: the side toolbar and the narrow-screen menu. */
+function ToolLink({ tool, number, onNavigate }: { tool: Tool; number?: number; onNavigate?: () => void }) {
+  const isActive = useActive();
+  const active = isActive(tool);
+  return (
+    <Link
+      to={tool.to}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={`grid grid-cols-[26px_1fr] gap-x-1 rounded border-l-2 px-3 py-2.5 transition-colors duration-cue-fast ease-cue ${
+        active ? "border-ochre-mark bg-accent/10" : "border-transparent hover:bg-sunken/60"
+      }`}
+    >
+      <span aria-hidden className="pt-[3px] font-mono text-[11.5px] tabular-nums text-text-muted">
+        {number != null ? String(number).padStart(2, "0") : ""}
+      </span>
+      <span>
+        <span className={`block text-[14.5px] leading-snug text-text-primary ${active ? "font-medium" : ""}`}>{tool.label}</span>
+        <span className="mt-0.5 block text-[12.5px] leading-snug text-text-muted">{tool.purpose}</span>
+      </span>
+    </Link>
+  );
+}
+
+function ToolList({ onNavigate, idBase }: { onNavigate?: () => void; idBase: string }) {
+  return (
+    <>
+      <p id={`${idBase}-journey`} className="px-3 text-[12.5px] text-text-muted">
         Your practice
       </p>
-      <ul aria-labelledby="nav-practice" className="mt-2 space-y-0.5">
-        {JOURNEY.map((item, i) => (
-          <li key={item.to}>
-            <Link to={item.to} onClick={onNavigate} aria-current={isActive(item.to) ? "page" : undefined} className={linkCls(isActive(item.to))}>
-              <span aria-hidden className="font-mono text-[11.5px] tabular-nums text-text-muted">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              {item.label}
-            </Link>
+      <ul aria-labelledby={`${idBase}-journey`} className="mt-1.5 space-y-0.5">
+        {TOOLS.map((t, i) => (
+          <li key={t.to}>
+            <ToolLink tool={t} number={i + 1} onNavigate={onNavigate} />
           </li>
         ))}
       </ul>
-      <ul className="mt-5 space-y-0.5 border-t border-border pt-5">
-        <li>
-          <NavLink to="/profile" end onClick={onNavigate} className={({ isActive: a }) => linkCls(a)}>
-            <span aria-hidden />
-            My profile
-          </NavLink>
-        </li>
+      <p id={`${idBase}-setup`} className="mt-5 border-t border-border px-3 pt-4 text-[12.5px] text-text-muted">
+        Set-up
+      </p>
+      <ul aria-labelledby={`${idBase}-setup`} className="mt-1.5 space-y-0.5">
+        {SETUP.map((t) => (
+          <li key={t.to}>
+            <ToolLink tool={t} onNavigate={onNavigate} />
+          </li>
+        ))}
       </ul>
-    </nav>
+    </>
   );
 }
-
-/** What the coach knows so far, in words. Never a score or progress bar. */
-function ProfileStatus() {
-  const profile = useProfileStore((s) => s.communicationProfile);
-  const calibrated = useSessionStore((s) => s.isCalibrated);
-  const kept = profile?.traits.filter((t) => t.keep).length ?? 0;
-  const rows = [
-    { label: "Desired style", value: kept > 0 ? `${kept} pattern${kept === 1 ? "" : "s"} chosen` : "Not set yet", done: kept > 0, to: "/profile/style" },
-    { label: "Natural baseline", value: calibrated ? "Calibrated" : "Not calibrated", done: calibrated, to: "/calibrate" },
-  ];
-  return (
-    <dl className="space-y-3 px-3">
-      {rows.map((r) => (
-        <div key={r.label}>
-          <dt className="text-[12.5px] text-text-muted">{r.label}</dt>
-          <dd className="mt-0.5 flex items-center gap-2 text-[14px]">
-            <span aria-hidden className={`h-[7px] w-[7px] rounded-pill ${r.done ? "bg-positive" : "border border-text-muted"}`} />
-            {r.done ? (
-              r.value
-            ) : (
-              <Link to={r.to} className="underline decoration-border-strong underline-offset-4 hover:text-accent hover:decoration-accent">
-                {r.value}
-              </Link>
-            )}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
-const Wordmark = () => (
-  <Link to="/home" className="font-display text-[24px] font-semibold leading-none tracking-[-0.01em] transition-colors duration-cue ease-cue hover:text-accent" aria-label="Cue overview">
-    Cue<span className="text-ochre-mark">.</span>
-  </Link>
-);
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { pathname } = useLocation();
-  useEffect(() => setMenuOpen(false), [pathname]);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const { pathname, search } = useLocation();
+  const isActive = useActive();
+  useEffect(() => setMenuOpen(false), [pathname, search]);
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[236px_minmax(0,1fr)]">
+    <div className="min-h-screen">
       <a href="#main" className="sr-only z-50 rounded bg-surface px-3 py-2 focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
         Skip to content
       </a>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden border-r border-border bg-surface md:block">
-        <div className="sticky top-0 flex h-screen flex-col overflow-y-auto px-3 pb-7 pt-7">
-          <div className="px-3">
-            <Wordmark />
-            <p className="mt-1.5 font-serif text-[14px] italic text-text-muted">Your communication journal</p>
-          </div>
-          <div className="mt-9">
-            <Nav />
-          </div>
-          <div className="mt-8 border-t border-border pt-6">
-            <ProfileStatus />
-          </div>
-          <p className="mt-auto px-3 pt-10 font-display text-[19px] leading-tight">
-            A little better,
-            <span className="block font-sans text-[13.5px] text-text-muted">one conversation at a time.</span>
-          </p>
-        </div>
-      </aside>
+      {/* Top toolbar */}
+      <header className="sticky top-0 z-40 border-b border-border bg-surface">
+        <div className="flex h-16 items-center gap-4 px-4 sm:px-8 lg:px-6">
+          <span className="flex items-baseline gap-3 lg:w-[236px]">
+            <Link
+              to="/"
+              aria-label="Cue landing page"
+              title="Cue landing page"
+              className="rounded font-display text-[24px] font-semibold leading-none tracking-[-0.01em] transition-colors duration-cue ease-cue hover:text-accent"
+            >
+              Cue<span className="text-ochre-mark">.</span>
+            </Link>
+            <span className="hidden font-serif text-[14px] italic text-text-muted 2xl:inline">Your communication journal</span>
+          </span>
 
-      {/* Narrow screens: top bar + disclosure menu */}
-      <header className="border-b border-border bg-surface px-4 py-3 md:hidden">
-        <div className="flex items-center justify-between">
-          <Wordmark />
-          <button
-            type="button"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            onClick={() => setMenuOpen((v) => !v)}
-            className="min-h-10 rounded border border-border-strong px-3 text-[14px]"
+          <nav
+            aria-label="Primary"
+            className="relative ml-auto flex items-center gap-1"
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && menuOpen) {
+                setMenuOpen(false);
+                menuButton.current?.focus();
+              }
+            }}
           >
-            {menuOpen ? "Close menu" : "Menu"}
-          </button>
-        </div>
-        <div id="mobile-nav" hidden={!menuOpen} className="pb-2 pt-5">
-          <Nav onNavigate={() => setMenuOpen(false)} />
-          <div className="mt-5 border-t border-border pt-5">
-            <ProfileStatus />
-          </div>
+            <HomeLink />
+            <ul className="hidden items-center gap-1 lg:flex">
+              {TOP.map((t) => {
+                const active = isActive(t);
+                return (
+                  <li key={t.label}>
+                    <Link to={t.to} aria-current={active ? "page" : undefined} className={topCls(active)}>
+                      {t.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              ref={menuButton}
+              type="button"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="ml-1 min-h-10 rounded border border-border-strong px-3 text-[14px] lg:hidden"
+            >
+              {menuOpen ? "Close menu" : "Menu"}
+            </button>
+            <div
+              id="mobile-nav"
+              hidden={!menuOpen}
+              className="absolute right-0 top-full mt-3 max-h-[calc(100vh-5rem)] w-[min(320px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-border bg-surface p-2 pt-3 lg:hidden"
+            >
+              <ToolList idBase="menu" onNavigate={() => setMenuOpen(false)} />
+            </div>
+          </nav>
         </div>
       </header>
 
-      <main id="main" tabIndex={-1} className="min-w-0 px-4 py-8 focus:outline-none sm:px-8 md:px-10 md:py-11 lg:px-14">
-        <div className="mx-auto max-w-[1120px]">{children}</div>
-      </main>
+      <div className="lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+        {/* Side toolbar: the same tools in journey order, each with its purpose */}
+        <aside className="hidden border-r border-border bg-surface lg:block">
+          <nav aria-label="Tools" className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto px-3 pb-8 pt-6">
+            <ToolList idBase="side" />
+          </nav>
+        </aside>
+
+        <main id="main" tabIndex={-1} className="min-w-0 px-4 py-9 focus:outline-none sm:px-8 md:py-12 lg:px-12">
+          <div className="mx-auto max-w-[1120px]">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

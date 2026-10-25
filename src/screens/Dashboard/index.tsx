@@ -33,7 +33,7 @@ function nextStep(hasStyle: boolean, counts: Record<ConversationKind, number>): 
       follow: "Then practise saying it your way.",
       body: "Start with a speaker or a talk you admire. Cue picks out the patterns you can practise, and you choose which to keep.",
       action: "Build my profile",
-      to: "/profile/style",
+      to: "/profile?tab=style",
     };
   if (counts.voice === 0)
     return {
@@ -172,7 +172,7 @@ export function Dashboard() {
               Your chosen patterns appear here once you build your communication profile.
             </p>
           )}
-          <Link to="/profile/style" className="mt-3 inline-block text-[14px] underline underline-offset-4 hover:text-accent">
+          <Link to="/profile?tab=style" className="mt-3 inline-block text-[14px] underline underline-offset-4 hover:text-accent">
             {kept.length > 0 ? "Edit your communication profile" : "Build your communication profile"}
           </Link>
         </section>

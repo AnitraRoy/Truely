@@ -1,19 +1,19 @@
 import type { RefObject } from "react";
-import { COACHING_CONFIG } from "@/config/coaching";
 import { Button } from "@/components/Button";
 import { HeadRangeSteps, type HeadRange } from "@/components/HeadRangeGuide";
+import { useProfileStore } from "@/state/profileStore";
 import { StepHeading } from "./StepHeading";
 
 /**
- * Step 5: draw the baseline (PRD §6 Screen B step 3), in two parts: head range
- * (look up, down, left, right, guided on the preview) then natural speech.
+ * Step 5: draw the camera baseline (PRD §6 Screen B step 3) from head range:
+ * look up, down, left, right, guided on the preview. The person is not asked
+ * to talk: how they want to sound is their desired style, which they set on
+ * the Communication profile, so the ready state hands off there.
  * No fabricated precision. The personalization engine will confirm at
- * COACHING_CONFIG.minCalibrationSamples; until it lands, the person confirms
- * when ready (same as /calibrate).
+ * COACHING_CONFIG.minCalibrationSamples; until it lands, finishing (or
+ * skipping) head range completes the baseline (same as /calibrate).
  */
-export type BaselinePhase = "setup" | "range" | "calibrating" | "ready";
-
-const SECONDS = Math.round(COACHING_CONFIG.calibrationDurationMs / 1000);
+export type BaselinePhase = "setup" | "range" | "ready";
 
 export function BaselineStep({
   headingRef,
@@ -22,7 +22,7 @@ export function BaselineStep({
   range,
   onBegin,
   onRangeSkip,
-  onReady,
+  onDesiredStyle,
   onStartSession,
   onDashboard,
 }: {
@@ -32,14 +32,15 @@ export function BaselineStep({
   range: HeadRange;
   onBegin: () => void;
   onRangeSkip: () => void;
-  onReady: () => void;
+  onDesiredStyle: () => void;
   onStartSession: () => void;
   onDashboard: () => void;
 }) {
+  const hasStyle = useProfileStore((s) => Boolean(s.communicationProfile?.traits.some((t) => t.keep)));
+
   if (phase === "range") {
     return (
       <div>
-        <p className="text-[14.5px] text-text-muted">Part 1 of 2</p>
         <StepHeading headingRef={headingRef} size="md">
           Look around
         </StepHeading>
@@ -53,35 +54,26 @@ export function BaselineStep({
     );
   }
 
-  if (phase === "calibrating") {
-    return (
-      <div>
-        <p className="text-[14.5px] text-text-muted">Part 2 of 2</p>
-        <StepHeading headingRef={headingRef} size="md">
-          Now just talk
-        </StepHeading>
-        <p className="mt-3 text-text-muted">
-          Keep talking as you normally would. Glancing away while you think is fine; Cue is learning what
-          your normal looks like.
-        </p>
-        <div className="mt-6">
-          <Button onClick={onReady}>My baseline is ready</Button>
-        </div>
-      </div>
-    );
-  }
-
   if (phase === "ready") {
     return (
       <div>
         <StepHeading headingRef={headingRef} size="md">
-          Your baseline is ready.
+          Your camera baseline is ready.
         </StepHeading>
         <p className="mt-3 text-text-muted">
-          Cue will use your normal patterns to personalize feedback. You can recalibrate any time.
+          Cue will compare your head and gaze to your own normal. You can recalibrate any time.
+        </p>
+        <p className="mt-3 text-text-muted">
+          {hasStyle
+            ? "For how you sound, Cue coaches toward the desired style you chose."
+            : "For how you sound, there's no recording of you to compare against. Instead, you choose a desired style: a speaker or talk you admire, and the patterns you want to practise."}
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-6">
-          <Button onClick={onStartSession}>Start session</Button>
+          {hasStyle ? (
+            <Button onClick={onStartSession}>Start session</Button>
+          ) : (
+            <Button onClick={onDesiredStyle}>Set your desired style</Button>
+          )}
           <Button variant="ghost" onClick={onDashboard}>
             Go to your journal
           </Button>
@@ -93,12 +85,11 @@ export function BaselineStep({
   return (
     <div>
       <StepHeading headingRef={headingRef} size="md">
-        Draw your baseline
+        Draw your camera baseline
       </StepHeading>
       <p className="mt-3 text-text-muted">
-        Two short parts, both on camera. First, follow the directions on your preview to look up, down,
-        left and right. Then speak naturally for about {SECONDS} seconds: introduce yourself, or describe
-        your day. You don&apos;t need to hold eye contact.
+        Follow the directions on your preview to look up, down, left and right. It takes under a minute. You
+        don&apos;t need to hold eye contact, and you won&apos;t be asked to talk.
       </p>
       <div className="mt-6">
         <Button onClick={onBegin} disabled={!cameraLive}>

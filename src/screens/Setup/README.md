@@ -14,5 +14,7 @@ Camera → Baseline.
 
 ## Done when
 - Baseline completion comes from the personalization engine (`minCalibrationSamples`)
-  instead of the manual "My baseline is ready" button.
+  instead of finishing (or skipping) the head-range steps.
+- The baseline step never asks the person to talk. The voice side of the baseline is the
+  desired style they set on `/profile/style`; the ready state links there.
 - `setupComplete` routes first-time visitors here from the landing page.

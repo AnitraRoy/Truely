@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COACHING_CONFIG, HEAD_RANGE_CALIBRATION } from "@/config/coaching";
+import { HEAD_RANGE_CALIBRATION } from "@/config/coaching";
 import { useSessionStore } from "@/state/sessionStore";
+import { useProfileStore } from "@/state/profileStore";
 import { Masthead } from "@/components/Masthead";
 import { Button } from "@/components/Button";
 import { GoalPicker } from "@/components/GoalPicker";
@@ -13,9 +14,11 @@ import { FloatingOverlay } from "@/components/FloatingOverlay";
 
 /**
  * Screen B: Goal selection + calibration (PRD §6 Screen B). Field Journal.
- * Pick one goal → enable the camera → draw a baseline in two parts: head range
- * then natural speech. The preview holds the left column throughout so the
- * directions stay in view. Honest copy only; no fabricated precision or
+ * Pick one goal → enable the camera → draw the camera baseline from head range
+ * (look up, down, left, right). There is no speech sample: how the person
+ * wants to sound is their desired style (Communication profile), which they
+ * set themselves, so the ready state hands off there. The preview holds the
+ * left column throughout so the directions stay in view. Honest copy only; no fabricated precision or
  * personality assessment (PRD §6, CLAUDE.md §5).
  *
  * Where the desktop shell can actually move a window (`supportsPositioning` —
@@ -26,12 +29,9 @@ import { FloatingOverlay } from "@/components/FloatingOverlay";
  * preview's directions (`HeadRangePrompt`) stay up the whole time regardless,
  * so nothing is lost where positioning isn't available.
  */
-type Phase = "setup" | "range" | "calibrating" | "ready";
-
-const SECONDS = Math.round(COACHING_CONFIG.calibrationDurationMs / 1000);
+type Phase = "setup" | "range" | "ready";
 
 const HEADING = "font-display text-[clamp(26px,3.4vw,34px)] font-semibold leading-tight";
-const PART = "text-[14.5px] text-text-muted";
 
 export function Calibration() {
   const navigate = useNavigate();
@@ -39,16 +39,21 @@ export function Calibration() {
   const setGoal = useSessionStore((s) => s.setGoal);
   const setStatus = useSessionStore((s) => s.setStatus);
   const setCalibrated = useSessionStore((s) => s.setCalibrated);
+  const hasStyle = useProfileStore((s) => Boolean(s.communicationProfile?.traits.some((t) => t.keep)));
   const { videoRef, state, enable, disable } = useWebcamPreview();
   const [phase, setPhase] = useState<Phase>("setup");
   const target = useFloatingOverlay({ width: 260, height: 150, title: "Cue — look here" });
 
   const live = state === "live";
-  const startSpeaking = () => {
+  // The pending CV/personalization engine confirms at the configured sample
+  // count (src/config/coaching.ts); until then, finishing head range completes it.
+  const finishBaseline = () => {
     target.close();
-    setPhase("calibrating");
+    setCalibrated(true);
+    setStatus("ready");
+    setPhase("ready");
   };
-  const range = useHeadRange({ active: phase === "range" && live, onComplete: startSpeaking });
+  const range = useHeadRange({ active: phase === "range" && live, onComplete: finishBaseline });
 
   // Move the floating target to match the current step, only where the desktop
   // shell can actually reposition a window (not Document PiP).
@@ -101,11 +106,14 @@ export function Calibration() {
               </section>
 
               <section className="mt-10 border-t border-border pt-8">
-                <h2 className={HEADING}>Draw your baseline</h2>
+                <h2 className={HEADING}>Draw your camera baseline</h2>
                 <p className="mt-3 text-text-muted">
-                  Two short parts. First, follow the directions on your preview to look up, down, left and
-                  right. Then speak naturally for about {SECONDS} seconds, so Cue can tell your normal from a
-                  real, sustained change.
+                  Follow the directions on your preview to look up, down, left and right. It takes under a
+                  minute, and lets Cue tell your normal from a real, sustained change.
+                </p>
+                <p className="mt-2 text-[14.5px] text-text-muted">
+                  You won&apos;t be asked to talk. How you want to sound comes from your desired style, which you
+                  set yourself.
                 </p>
                 <div className="mt-6">
                   <Button
@@ -128,7 +136,6 @@ export function Calibration() {
 
           {phase === "range" && (
             <section>
-              <p className={PART}>Part 1 of 2</p>
               <h2 className={HEADING}>Look around</h2>
               {target.overlayWindow && target.supportsPositioning && (
                 <p className="mt-2 italic text-text-muted">
@@ -137,44 +144,40 @@ export function Calibration() {
                 </p>
               )}
               <div className="mt-3">
-                <HeadRangeSteps range={range} onSkip={startSpeaking} />
+                <HeadRangeSteps range={range} onSkip={finishBaseline} />
               </div>
               {!live && <p className="mt-4 text-[14.5px] text-text-muted">The camera is off, so this part is on hold.</p>}
             </section>
           )}
 
-          {phase === "calibrating" && (
-            <section>
-              <p className={PART}>Part 2 of 2</p>
-              <h2 className={HEADING}>Now just talk</h2>
-              <p className="mt-3 text-text-muted">
-                Keep speaking as you naturally would. Glancing away while you think is fine; Cue is collecting
-                your baseline.
-              </p>
-              {/* The CV/personalization engine confirms at the configured sample count
-                  (src/config/coaching.ts). Pending that engine, you confirm when ready. */}
-              <div className="mt-6">
-                <Button
-                  onClick={() => {
-                    setCalibrated(true);
-                    setStatus("ready");
-                    setPhase("ready");
-                  }}
-                >
-                  My baseline is ready
-                </Button>
-              </div>
-            </section>
-          )}
-
           {phase === "ready" && (
             <section>
-              <h2 className={HEADING}>Your baseline is ready.</h2>
+              <h2 className={HEADING}>Your camera baseline is ready.</h2>
               <p className="mt-3 text-text-muted">
-                Cue will use your normal patterns to personalize feedback. You can recalibrate any time.
+                Cue will compare your head and gaze to your own normal, not a generic standard. You can recalibrate any
+                time.
               </p>
-              <div className="mt-6">
-                <Button onClick={() => navigate("/session")}>Start session</Button>
+              <p className="mt-3 text-text-muted">
+                {hasStyle
+                  ? "For how you sound, Cue coaches toward the desired style you chose."
+                  : "For how you sound, Cue coaches toward a desired style that you choose. You haven't set one yet."}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                {hasStyle ? (
+                  <>
+                    <Button onClick={() => navigate("/session")}>Start session</Button>
+                    <Button variant="ghost" onClick={() => navigate("/profile?tab=style")}>
+                      Review your desired style
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={() => navigate("/profile?tab=style")}>Set your desired style</Button>
+                    <Button variant="ghost" onClick={() => navigate("/session")}>
+                      Start a session without one
+                    </Button>
+                  </>
+                )}
               </div>
             </section>
           )}

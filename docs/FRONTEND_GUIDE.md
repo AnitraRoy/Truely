@@ -37,13 +37,13 @@ The brand stays **Cue**; the concept file's "truely" name is not used.
 
 ```
 APP SCREENS
-/home                      01 Overview            one suggested next step from real state
-/profile/style             02 Communication profile  desired style: Apify reference + Moss patterns
+/home                      01 Overview            one suggested next step from real state (home icon)
+/profile?tab=style         02 Communication profile  a tab of My profile: Apify reference + Moss patterns
 /practice/voice            03 Voice coaching      Moss coach, Cartesia speech in/out, typing always works
 /practice/interview        04 Mock interviews     Moss interviewer, Cartesia speech, live transcript
 /session                   05 Live coaching       preflight consent, then preview/transcript (CLAUDE.md §6)
 /reports                   06 Session history     all kinds, filter + search, rows open their report
-/profile                   10 Profile review      desired style beside natural baseline; + Settings, Data
+/profile                   10 My profile          tabs: Review · Communication profile · Settings · Data
 
 SESSION REPORT BOARDS (one layout: src/components/report/ReportParts.tsx)
 /report/interview/:id      07 Mock interview report  recording or timeline + synced transcript
@@ -58,8 +58,15 @@ OTHER
 Routing rules:
 
 - `/session` (once started) and `/calibrate` never show the app shell (distraction-free).
-- Every app screen uses `AppShell`: one numbered sidebar (the concept's duplicate top nav is dropped);
-  below `md` it becomes a top bar with a disclosure menu.
+- Every app screen uses `AppShell`, with two toolbars fed by one list of tools (same names in both):
+  - **Top toolbar:** the "Cue." wordmark (links to the landing page `/`), a home icon (Home, `/home`),
+    then My profile, Practise out loud, Rehearse an interview, Coach me live, Review sessions.
+  - **Side toolbar** (`lg` and up): the journey in order, each tool with a one-line purpose:
+    Home, Find your style, Practise out loud, Rehearse an interview, Coach me live, Review sessions;
+    then Set-up: Calibrate camera, My profile.
+  - Below `lg` the side toolbar is hidden and the top toolbar's Menu shows the same tools with their
+    purpose lines (Escape closes it); the home icon stays.
+- `/profile/style` redirects to `/profile?tab=style` so older links still work.
 - In dev builds, `/report/<kind>/sample` shows a labelled fictional sample of each board.
 
 ### Data model (src/types)
@@ -69,7 +76,8 @@ recording ref. Every timestamp is **ms from session start**, so the transcript, 
 markers and recording share one clock. Feedback and report moments cite a `segmentId`; anything
 that cites a line that doesn't exist is dropped (`lib/conversation/parse.ts`). Desired style
 (`CommunicationProfile`) and natural baseline (`BehavioralBaseline`) are separate types and are never
-combined.
+combined. Calibration is camera-only (head range); nobody is asked to speak for a baseline. The
+voice baseline *is* the desired style the person sets on `/profile/style`.
 
 ### Integrations (what is real, what isn't)
 

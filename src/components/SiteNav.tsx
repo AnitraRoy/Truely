@@ -6,26 +6,26 @@ import { Masthead } from "./Masthead";
  * text links in the folio slot. Never rendered on /calibrate or /session
  * (CLAUDE.md §6). Owner: Design System team.
  *
- * "Home" here is the landing page ("/"), distinct from the wordmark, which
- * always points at the signed-in Dashboard ("/home") per `Masthead`.
+ * The wordmark is the landing page ("/"), as in the app shell; "Home" is the
+ * returning person's journal ("/home"). Names match the app toolbars.
  */
 const LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/reports", label: "Reports" },
-  { to: "/profile", label: "Profile" },
+  { to: "/home", label: "Home" },
+  { to: "/reports", label: "Review sessions" },
+  { to: "/profile", label: "My profile" },
 ];
 
 export function SiteNav() {
   return (
     <Masthead
-      homeHref="/home"
+      homeHref="/"
       folio={
         <nav aria-label="Primary" className="flex items-center gap-6">
           {LINKS.map(({ to, label }) => (
             <NavLink
               key={to}
               to={to}
-              end={to === "/"}
+              end
               className={({ isActive }) =>
                 `inline-flex min-h-6 items-center border-b pb-0.5 font-serif text-[16px] italic text-text-primary transition-colors duration-cue ease-cue hover:text-accent ${
                   isActive ? "border-text-primary" : "border-transparent"

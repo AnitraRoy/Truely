@@ -25,7 +25,7 @@ export function Masthead({
   return (
     <div className="flex items-end justify-between gap-5 border-b-2 border-text-primary pb-3">
       {homeHref ? (
-        <Link to={homeHref} className={`${cls} transition-colors duration-cue ease-cue hover:text-accent`} aria-label="Cue home">
+        <Link to={homeHref} className={`${cls} transition-colors duration-cue ease-cue hover:text-accent`} aria-label={homeHref === "/" ? "Cue landing page" : "Cue home"}>
           {wordmark}
         </Link>
       ) : (

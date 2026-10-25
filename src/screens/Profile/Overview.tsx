@@ -25,7 +25,7 @@ const SIGNAL_LABELS: Record<SignalName, { name: string; detail: string }> = {
   movement_variability: { name: "Movement", detail: "How much you usually move" },
 };
 
-export function Overview({ onOpenTab }: { onOpenTab: (tab: "settings" | "data") => void }) {
+export function Overview({ onOpenTab }: { onOpenTab: (tab: "style" | "settings" | "data") => void }) {
   const navigate = useNavigate();
   const profile = useProfileStore((s) => s.communicationProfile);
   const goal = useProfileStore((s) => s.primaryGoal);
@@ -64,7 +64,7 @@ export function Overview({ onOpenTab }: { onOpenTab: (tab: "settings" | "data") 
       <div className="grid items-start gap-x-8 gap-y-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <Sheet aria-labelledby="desired-title" className="px-6 py-7 md:px-8">
           <SectionTitle id="desired-title">How you want to come across</SectionTitle>
-          <p className="mt-1 text-[14px] text-text-muted">Your desired style, from your communication profile.</p>
+          <p className="mt-1 text-[14px] text-text-muted">Your desired style: the baseline for how you sound, set by you.</p>
           {kept.length > 0 ? (
             <dl className="mt-5 border-t border-border">
               {kept.map((t) => (
@@ -78,14 +78,14 @@ export function Overview({ onOpenTab }: { onOpenTab: (tab: "settings" | "data") 
             <p className="mt-5 border-t border-border pt-4 font-serif italic text-text-muted">No patterns chosen yet.</p>
           )}
           <div className="mt-6">
-            <Button onClick={() => navigate("/profile/style")}>{kept.length > 0 ? "Edit desired style" : "Build your profile"}</Button>
+            <Button onClick={() => onOpenTab("style")}>{kept.length > 0 ? "Edit desired style" : "Build your profile"}</Button>
           </div>
         </Sheet>
 
         <Sheet aria-labelledby="baseline-title" className="px-6 py-7 md:px-8">
           <SectionTitle id="baseline-title">What calibration observes</SectionTitle>
           <p className="mt-1 text-[14px] text-text-muted">
-            Your natural baseline, measured on camera.{" "}
+            Your natural baseline, measured on camera. There is no voice sample; your voice baseline is the desired style.{" "}
             {calibratedAt ? `Last calibrated ${formatDate(calibratedAt)}.` : calibrated ? "Calibrated this visit." : ""}
           </p>
           <ul className="mt-5 border-t border-border">

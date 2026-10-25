@@ -16,7 +16,8 @@ import { BaselineStep, type BaselinePhase } from "./steps/Baseline";
 
 /**
  * First-time setup (docs/FRONTEND_GUIDE.md §3.2). Field Journal.
- * Welcome → goal → saving consent → camera → baseline. The camera is never
+ * Welcome → goal → saving consent → camera → camera baseline (head range only),
+ * then a hand-off to the desired style. The camera is never
  * requested before step 4, Back always works, and answers persist as they are
  * given, so leaving mid-way loses nothing. Honest copy only (CLAUDE.md §5).
  */
@@ -52,17 +53,17 @@ export function Setup() {
     headingRef.current?.focus();
   }, [step]);
 
-  const startSpeaking = () => setPhase("calibrating");
-  const range = useHeadRange({ active: step === BASELINE && phase === "range" && live, onComplete: startSpeaking });
-
-  const canContinue = step === 1 ? goal != null : step === CAMERA ? live : true;
-
+  // Head range is the whole camera baseline; there is no speech sample (how the
+  // person wants to sound is their desired style, set on the Communication profile).
   const finishBaseline = () => {
     setCalibrated(true);
     setStatus("ready");
     setSetupComplete(true);
     setPhase("ready");
   };
+  const range = useHeadRange({ active: step === BASELINE && phase === "range" && live, onComplete: finishBaseline });
+
+  const canContinue = step === 1 ? goal != null : step === CAMERA ? live : true;
 
   const stepBody = [
     <WelcomeStep key="welcome" headingRef={headingRef} />,
@@ -87,8 +88,8 @@ export function Setup() {
         setStatus("calibrating");
         setPhase("range");
       }}
-      onRangeSkip={startSpeaking}
-      onReady={finishBaseline}
+      onRangeSkip={finishBaseline}
+      onDesiredStyle={() => navigate("/profile?tab=style")}
       onStartSession={() => navigate("/session")}
       onDashboard={() => navigate("/home")}
     />,

@@ -43,4 +43,22 @@ describe("Overview at /home", () => {
     expect(html).not.toMatch(/\d+%|score|streak/i);
     expect(html).not.toContain("Corvus"); // the plate stays on Landing
   });
+
+  it("has a top toolbar with a named home icon, a wordmark to the landing page, and a side toolbar with purposes", () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/home"]}>
+        <Dashboard />
+      </MemoryRouter>,
+    );
+    expect(html).toMatch(/<a[^>]*aria-label="Cue landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="Cue landing page"/);
+    const top = html.slice(html.indexOf('aria-label="Primary"'), html.indexOf("</nav>"));
+    expect(top).toMatch(/aria-label="Home"/);
+    expect(top).toContain('aria-current="page"');
+    expect(top).toContain("My profile");
+    expect(top).toContain("Review sessions");
+    const side = html.slice(html.indexOf('aria-label="Tools"'));
+    expect(side).toContain("Find your style");
+    expect(side).toContain("Pick a speaker you admire and the habits to practise");
+    expect(side).toContain("Calibrate camera");
+  });
 });

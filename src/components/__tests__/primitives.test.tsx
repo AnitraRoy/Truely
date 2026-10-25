@@ -24,18 +24,19 @@ describe("SiteNav", () => {
       </MemoryRouter>,
     );
     expect(html).toContain('aria-label="Primary"');
-    expect(html).toContain("Profile");
+    expect(html).toContain("My profile");
     expect(html).toMatch(/href="\/profile"[^>]*aria-current="page"|aria-current="page"[^>]*href="\/profile"/);
   });
 
-  it("links Home to the landing page, not the signed-in dashboard", () => {
+  it("sends the wordmark to the landing page and Home to the journal", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={["/profile"]}>
         <SiteNav />
       </MemoryRouter>,
     );
-    expect(html).toMatch(/href="\/"[^>]*>Home</);
-    expect(html).not.toMatch(/href="\/"[^>]*aria-current="page"/); // not marked current on another page
+    expect(html).toMatch(/<a[^>]*aria-label="Cue landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="Cue landing page"/);
+    expect(html).toMatch(/href="\/home"[^>]*>Home</);
+    expect(html).not.toMatch(/href="\/home"[^>]*aria-current="page"/); // not marked current on another page
   });
 });
 
