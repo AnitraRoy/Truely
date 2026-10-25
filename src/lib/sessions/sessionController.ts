@@ -65,6 +65,12 @@ export interface SessionSnapshot {
   /** The cue to render now. Null when none, paused, or notifications are muted. */
   activeCue: CoachingEvent | null;
   cuesMuted: boolean;
+  /**
+   * Additional learning is on: the baseline keeps drifting toward how the
+   * person looks in stable stretches, and cue feedback adjusts cue timing.
+   * Off keeps the baseline and timing fixed (the first baseline is still learned).
+   */
+  learningEnabled: boolean;
   paused: boolean;
   elapsedMs: number;
   calibration: CalibrationProgress | null;
@@ -120,6 +126,8 @@ export interface SessionController {
   resume(): void;
   dismissCue(): void;
   setCuesMuted(muted: boolean): void;
+  /** Turn additional learning (baseline drift, feedback adaptation) on or off. */
+  setLearning(enabled: boolean): void;
   submitFeedback(eventId: string, feedback: CueFeedback, sessionId?: string): Promise<void>;
   /** Stops the camera FIRST, finalizes the session, persists if consented. */
   end(): Promise<Session | null>;
@@ -150,6 +158,7 @@ export function createSessionController(options: SessionControllerOptions): Sess
   let error: CueError | null = null;
   let consent = false;
   let adaptation: CueAdaptationState = {};
+  let learning = true;
 
   let collectors = new Map<SignalName, CalibrationCollector>();
   let calibration: CalibrationProgress | null = null;
@@ -216,6 +225,7 @@ export function createSessionController(options: SessionControllerOptions): Sess
       trackingMessage: limited ? TRACKING_LIMITED_MESSAGE : null,
       activeCue: muted ? null : active,
       cuesMuted: muted,
+      learningEnabled: learning,
       paused,
       elapsedMs,
       calibration,
@@ -290,7 +300,7 @@ export function createSessionController(options: SessionControllerOptions): Sess
     const assessments: (DeviationAssessment | null)[] = usable.length ? [] : [null];
     for (const o of usable) {
       assessments.push(personalization.assess(o));
-      personalization.updateDuringStablePeriod(o);
+      if (learning) personalization.updateDuringStablePeriod(o);
     }
 
     for (const a of assessments) {
@@ -563,13 +573,17 @@ export function createSessionController(options: SessionControllerOptions): Sess
       muted = next;
       emit();
     },
+    setLearning(enabled) {
+      learning = enabled;
+      emit();
+    },
 
     async submitFeedback(eventId, feedback, sessionId) {
       const targetId = sessionId ?? session?.id;
       if (!targetId) return;
 
       if (session && targetId === session.id && coaching) {
-        coaching.recordFeedback(eventId, feedback); // updates the running engine's adaptation too
+        coaching.recordFeedback(eventId, feedback, { adapt: learning }); // updates the running engine's adaptation too
         adaptation = coaching.getAdaptationState();
         if (phase === "ended") {
           session = { ...session, events: coaching.getEvents() };
@@ -581,7 +595,7 @@ export function createSessionController(options: SessionControllerOptions): Sess
         return;
       }
       if (storage && consent) {
-        const updated = await recordFeedbackForSavedSession(storage, targetId, eventId, feedback);
+        const updated = await recordFeedbackForSavedSession(storage, targetId, eventId, feedback, { adapt: learning });
         if (updated) adaptation = await storage.loadAdaptation();
       }
       emit();

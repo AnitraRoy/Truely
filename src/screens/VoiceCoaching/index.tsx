@@ -152,6 +152,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
           onDismissSuggestion={(id) => setSuggestions((all) => all.filter((x) => x.id !== id))}
           sample={mode === "sample"}
           {...camera.stageProps(turn.recording)}
+        focus={goals[0]}
           now={turn.now}
           ending={ending}
           onBegin={turn.beginAnswer}

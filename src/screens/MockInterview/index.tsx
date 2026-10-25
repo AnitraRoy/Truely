@@ -261,6 +261,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
         error={turn.error}
         sample={mode === "sample"}
         {...camera.stageProps(turn.recording)}
+      focus={goals[0]}
       suggestions={suggestions}
       onDismissSuggestion={(id) => setSuggestions((all) => all.filter((x) => x.id !== id))}
         now={turn.now}

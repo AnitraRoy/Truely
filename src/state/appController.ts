@@ -5,7 +5,7 @@
  * the camera or the model. Wires, in one place:
  *   camera + MediaPipe  → lib/sessions/pipelineSource (Person 2's SignalPipeline)
  *   storage             → the same instance the UI uses (state/savedData)
- *   profile settings    → consent to save, mute cues  (profileStore is the source of truth)
+ *   profile settings    → consent to save, mute cues, keep learning  (profileStore is the source of truth)
  *   goal                → sessionStore.goal
  *
  * Usage:
@@ -41,6 +41,7 @@ export function getSessionController(): SessionController {
     const p = useProfileStore.getState();
     void c.setSaveConsent(p.consentSaveMetrics);
     c.setCuesMuted(p.settings.muteCues);
+    c.setLearning(p.settings.keepLearning);
   };
   const applyGoal = () => {
     const goal = useSessionStore.getState().goal;
@@ -51,7 +52,12 @@ export function getSessionController(): SessionController {
     applyGoal();
   });
   useProfileStore.subscribe((s, prev) => {
-    if (s.consentSaveMetrics !== prev.consentSaveMetrics || s.settings.muteCues !== prev.settings.muteCues) applyProfile();
+    if (
+      s.consentSaveMetrics !== prev.consentSaveMetrics ||
+      s.settings.muteCues !== prev.settings.muteCues ||
+      s.settings.keepLearning !== prev.settings.keepLearning
+    )
+      applyProfile();
   });
   useSessionStore.subscribe((s, prev) => {
     if (s.goal !== prev.goal) applyGoal();

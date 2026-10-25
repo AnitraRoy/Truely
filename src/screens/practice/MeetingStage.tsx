@@ -5,6 +5,7 @@ import { MicProblem } from "@/components/PermissionList";
 import { SuggestionNote } from "@/components/SuggestionNote";
 import type { MicState } from "@/components/useMicrophone";
 import { CueBubble } from "@/components/CueBubble";
+import { LearningNotice } from "@/components/LearningNotice";
 import { FloatingOverlay } from "@/components/FloatingOverlay";
 import { useFloatingOverlay } from "@/components/useFloatingOverlay";
 import { OVERLAY_SIZE, SessionOverlay } from "../LiveCoaching/SessionOverlay";
@@ -66,7 +67,13 @@ export interface MeetingStageProps {
   camera: { videoRef: React.RefObject<HTMLVideoElement>; state: PreviewState };
   videoOn: boolean;
   onToggleVideo: (on: boolean) => void;
-  /** Camera status text (face not visible, baseline being learned). Never a judgment. */
+  /** The camera baseline is being learned (LearningNotice), with its 0..1 progress. */
+  learning?: boolean;
+  learnProgress?: number;
+  analysing?: boolean;
+  /** The session's focus, shown as the standing cue until the first real one arrives. */
+  focus?: string;
+  /** Camera status text (e.g. face not visible). Never a judgment. */
   trackingMessage?: string | null;
   /** The current camera cue, if any. */
   cue?: { id: string; text: string } | null;
@@ -249,15 +256,21 @@ export function MeetingStage(props: MeetingStageProps) {
   }, [canSpeak, status, onBegin, onFinish]);
 
   const caption = [...props.transcript].reverse().find((s) => s.role !== "you");
+  // Cues stay visible: the newest suggestion holds until a newer one or a
+  // dismissal, and before any arrive the session's focus stands in.
   const toast = props.suggestions?.find((s) => !hidden.has(s.id));
   const hideToast = () => toast && setHidden((h) => new Set(h).add(toast.id));
-  // Each suggestion fades on its own (keyed on its id, so re-renders don't restart the clock).
+  // Which kind arrived last, so the overlay (one cue) shows the newest.
+  const [latest, setLatest] = useState<"suggestion" | "camera">("suggestion");
   const toastId = toast?.id;
+  const cueId = props.cue?.id;
   useEffect(() => {
-    if (!toastId) return;
-    const id = window.setTimeout(() => setHidden((h) => new Set(h).add(toastId)), PRACTICE_CALL.suggestionVisibleMs);
-    return () => window.clearTimeout(id);
+    if (toastId) setLatest("suggestion");
   }, [toastId]);
+  useEffect(() => {
+    if (cueId) setLatest("camera");
+  }, [cueId]);
+  const focusCue = props.focus ? { id: "focus", text: props.focus, detail: "Your focus for this session." } : null;
 
   // The floating overlay (top centre of the screen in the desktop app; a
   // picture-in-picture window in the browser) carries the cues once open. It
@@ -269,11 +282,11 @@ export function MeetingStage(props: MeetingStageProps) {
     void openOverlay.current();
   }, []);
   const floating = overlay.overlayWindow != null;
-  const overlayCue = toast
-    ? { id: toast.id, text: toast.title, detail: toast.explanation }
-    : props.cue
-      ? { id: props.cue.id, text: props.cue.text }
-      : null;
+  const suggestionCue = toast ? { id: toast.id, text: toast.title, detail: toast.explanation } : null;
+  const cameraCue = props.cue ? { id: props.cue.id, text: props.cue.text } : null;
+  const overlayCue = (latest === "camera" ? (cameraCue ?? suggestionCue) : (suggestionCue ?? cameraCue)) ?? focusCue;
+  const dismissOverlayCue =
+    overlayCue === suggestionCue ? hideToast : overlayCue === cameraCue ? (props.onDismissCue ?? (() => undefined)) : () => undefined;
 
   const answerHint = !canSpeak
     ? null
@@ -332,7 +345,7 @@ export function MeetingStage(props: MeetingStageProps) {
 
       <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3 sm:px-4">
         <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg bg-surface">
-          {!floating && (toast || props.cue) && (
+          {!floating && (toast || props.cue || focusCue) && (
             <div className="absolute left-1/2 top-[108px] z-10 w-[min(460px,calc(100%-24px))] -translate-x-1/2 space-y-2 sm:top-4" aria-live="polite">
               {props.cue && (
                 <div className="rounded-lg">
@@ -340,6 +353,14 @@ export function MeetingStage(props: MeetingStageProps) {
                 </div>
               )}
               {toast && <SuggestionToast key={toast.id} suggestion={toast} sample={props.sample} onHide={hideToast} />}
+              {!toast && !props.cue && focusCue && <CueBubble key="focus" text={focusCue.text} detail={focusCue.detail} floating />}
+            </div>
+          )}
+
+          {props.learning !== undefined && (
+            // Bottom-left, clear of the cues (top) and the caption (centred, inset past this corner).
+            <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-176px)] sm:bottom-3 sm:top-auto sm:max-w-none">
+              <LearningNotice learning={props.learning} progress={props.learnProgress ?? 0} analysing={Boolean(props.analysing)} />
             </div>
           )}
 
@@ -538,7 +559,7 @@ export function MeetingStage(props: MeetingStageProps) {
             cue={overlayCue}
             paused={false}
             idleText={props.suggestions ? "Suggestions appear here after you answer." : "Camera cues appear here."}
-            onDismiss={toast ? hideToast : (props.onDismissCue ?? (() => undefined))}
+            onDismiss={dismissOverlayCue}
             sample={props.sample ?? false}
             draggable={overlay.mode === "desktop"}
             onDock={overlay.close}

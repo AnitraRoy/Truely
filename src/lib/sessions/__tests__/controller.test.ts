@@ -301,3 +301,44 @@ describe("privacy & data controls", () => {
 
 // keep TS happy about unused import in some configs
 export type _ = SessionController;
+
+describe("additional learning switch", () => {
+  const settled = (t: number): ScriptedSample => (t - CAL_MS > 0 ? { yaw: 9.5 + wobble(t) } : normal(t));
+
+  async function runLiveSession(learning: boolean) {
+    const t = setup({ scenario: settled });
+    await t.calibrate();
+    t.controller.setLearning(learning);
+    const before = t.controller.getSnapshot().baselines.find((b) => b.signal === "head_orientation")!;
+    await t.controller.startSession();
+    t.vision.pump(60_000);
+    await t.controller.end();
+    const after = t.controller.getSnapshot().baselines.find((b) => b.signal === "head_orientation")!;
+    return { t, before, after };
+  }
+
+  it("keeps drifting the baseline while learning is on", async () => {
+    const { before, after } = await runLiveSession(true);
+    expect(after.mean).not.toBe(before.mean);
+  });
+
+  it("leaves the baseline exactly as learned while learning is off", async () => {
+    const { t, before, after } = await runLiveSession(false);
+    expect(t.controller.getSnapshot().learningEnabled).toBe(false);
+    expect(after).toEqual(before);
+  });
+
+  it("keeps cue feedback but does not change cue timing while learning is off", async () => {
+    const t = setup({ consent: true, scenario: withDeviation(5) });
+    await t.controller.setSaveConsent(true);
+    await t.calibrate();
+    t.controller.setLearning(false);
+    await t.controller.startSession();
+    t.vision.pump(30_000);
+    const s = (await t.controller.end())!;
+    expect(s.events.length).toBeGreaterThan(0);
+    await t.controller.submitFeedback(s.events[0].id, "too_distracting");
+    expect(t.controller.getSnapshot().session!.events[0].feedback).toBe("too_distracting");
+    expect(await t.storage.loadAdaptation()).toEqual({});
+  });
+});

@@ -57,7 +57,8 @@ export interface CoachingEngine {
   pause(): void;
   resume(): void;
   /** Record the user's verdict on a past cue (PRD §7.5). */
-  recordFeedback(eventId: string, feedback: CueFeedback): void;
+  /** Store the person's answer on the cue; with `adapt: false` cue timing is left unchanged. */
+  recordFeedback(eventId: string, feedback: CueFeedback, opts?: { adapt?: boolean }): void;
   /** All cue events generated this session (snapshots; they update as feedback/response arrive). */
   getEvents(): CoachingEvent[];
   setGoal(goal: CoachingGoal): void;
@@ -240,7 +241,7 @@ export function createCoachingEngine(options: CoachingEngineOptions = {}): Coach
       const c = candidates.get(signal);
       if (
         c &&
-        now - c.startedAt >= cfg.persistenceWindowMs &&
+        now - c.startedAt >= (cfg.persistenceWindowMsBySignal[signal] ?? cfg.persistenceWindowMs) &&
         c.relevant / c.total >= cfg.minRelevantFraction
       ) {
         return [signal, c];
@@ -336,13 +337,15 @@ export function createCoachingEngine(options: CoachingEngineOptions = {}): Coach
       state = restingState(currentTime());
     },
 
-    recordFeedback(eventId, feedback) {
+    recordFeedback(eventId, feedback, opts = {}) {
       const ev = events.find((e) => e.id === eventId);
       if (!ev) return;
-      const counts = (adaptation[ev.signal] ??= emptyCounts());
-      if (ev.feedback) adjustCount(counts, ev.feedback, -1); // user changed their answer
+      if (opts.adapt !== false) {
+        const counts = (adaptation[ev.signal] ??= emptyCounts());
+        if (ev.feedback) adjustCount(counts, ev.feedback, -1); // user changed their answer
+        adjustCount(counts, feedback, 1);
+      }
       ev.feedback = feedback;
-      adjustCount(counts, feedback, 1);
       notify(ev);
     },
 

@@ -17,6 +17,7 @@ import { WebcamFrame } from "@/components/WebcamFrame";
 import { DEFAULT_PRACTICE_GOALS } from "@/config/conversation";
 import { reportHref } from "@/state/history";
 import { OVERLAY_SIZE, SessionOverlay } from "./SessionOverlay";
+import { LearningNotice } from "@/components/LearningNotice";
 import { useLiveConversation } from "./useLiveConversation";
 import { Preflight, type LiveChoices } from "./Preflight";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
@@ -110,7 +111,9 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
   const cameraCue = cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null;
 
   // One cue at a time: a conversation suggestion wins over a camera cue.
-  const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title, detail: convo.suggestion.explanation } : cameraCue;
+  const focusCue = goals[0] ? { id: "focus", text: goals[0], detail: "Your focus for this session." } : null;
+  const overlayCue =
+    (convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title, detail: convo.suggestion.explanation } : cameraCue) ?? focusCue;
   const dismissOverlay = convo.suggestion ? convo.dismissSuggestion : cam.dismissCue;
 
   // Back out to the choices without saving a report. The camera, microphone and
@@ -228,6 +231,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
               </li>
             )}
           </ul>
+          {camera && <LearningNotice className="mt-4" learning={cam.learning} progress={cam.learnProgress} analysing={cam.analysing} />}
           {convo.problem && <p className="mt-3 text-[13.5px] text-warning">{convo.problem}</p>}
           {(convo.micState === "denied" || convo.micState === "unavailable") && (
             <div className="mt-3">
@@ -236,7 +240,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
           )}
 
           {/* the cue, as a margin note; it moves to the overlay while floating */}
-          {!floating && (convo.suggestion || cameraCue) && (
+          {!floating && (convo.suggestion || cameraCue || focusCue) && (
             <div className="mt-6" role="status" aria-live="polite">
               {convo.suggestion ? (
                 <SuggestionNote
@@ -248,7 +252,8 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
                   onDismiss={convo.dismissSuggestion}
                 />
               ) : (
-                cameraCue && <CueBubble key={cameraCue.id} text={cameraCue.text} onDismiss={cam.dismissCue} />
+                (cameraCue && <CueBubble key={cameraCue.id} text={cameraCue.text} onDismiss={cam.dismissCue} />) ||
+                (focusCue && <CueBubble key="focus" text={focusCue.text} detail={focusCue.detail} />)
               )}
             </div>
           )}

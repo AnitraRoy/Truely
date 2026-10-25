@@ -68,7 +68,7 @@ export async function coachTurn(input: {
     describeProfile(input.profile, input.goals),
     ETHICS,
     "After each answer: reply in at most two spoken sentences (acknowledge one thing that worked, then ask them to try again or go one step further).",
-    `Then give 1 to 3 suggestions about their LAST answer only, each about something specific in it. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, "why": one sentence quoting or pointing at what they said, "try": optional short example phrasing built from their own content}.`,
+    `Then give 1 to 3 suggestions for their NEXT answers. Each is a general habit they can carry forward (for example "Open with your conclusion"), not a correction of a detail they already said. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, general and reusable, "why": one short sentence on what in their last answer prompted it, "try": optional short example of the habit}.`,
     alreadySaid(input.previous),
     'Respond with JSON only: {"reply": string, "suggestions": [...]}',
   ]
@@ -119,9 +119,9 @@ export async function liveSuggestion(input: {
     input.context ? `The conversation: ${input.context}.` : "",
     describeProfile(input.profile, input.goals),
     ETHICS,
-    "Look at the most recent lines. If one of them is something the person could say better next (vague, rambling, buried main point, hedged, filler-heavy, missing a concrete detail), suggest one concrete change they can make in their very next sentence. If the recent lines give no such chance, say nothing.",
+    "From the recent lines, give one general habit the person can apply from now on in this conversation (for example: open with the main point, keep each point short, give one concrete example, pause instead of filler words). It must be advice for what they say next, never a comment on something that has already passed. Early in the conversation, lean towards one of their goals. Say nothing only if there are no lines yet.",
     alreadySaid(input.previous),
-    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line it is based on, "category": one of ${CATS}, "title": imperative, max 7 words, specific to that line, "why": one short sentence pointing at what was said}.`,
+    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line that prompted it, "category": one of ${CATS}, "title": imperative, max 7 words, general and reusable, "why": one short sentence on why it will help from here on}.`,
     "JSON only.",
   ]
     .filter(Boolean)
@@ -146,7 +146,7 @@ export async function answerSuggestions(input: {
     `You are Cue, a private coach beside a mock ${input.interview}. The interviewer can't see you. The person reads your note before their next answer.`,
     describeProfile(input.profile, input.goals),
     ETHICS,
-    `Give 1 or 2 suggestions about how they answered THIS question, each about something specific in the answer. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, "why": one sentence quoting or pointing at what they said, "try": optional short example phrasing built from their own content}.`,
+    `Give 1 or 2 suggestions for their NEXT answers in this interview. Each is a general habit they can carry forward (for example "Lead with the result"), not a correction of a detail they already said. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, general and reusable, "why": one short sentence on what in this answer prompted it, "try": optional short example of the habit}.`,
     alreadySaid(input.previous),
     'Respond with JSON only: {"suggestions": [...]}',
   ]

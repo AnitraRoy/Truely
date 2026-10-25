@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCameraPreview, useSession, useSessionController } from "@/lib/sessions/react";
-import type { CameraObservation, Session } from "@/types";
+import { GOAL_SIGNALS } from "@/config/coaching";
+import type { SessionSnapshot } from "@/lib/sessions";
+import type { CameraObservation, CoachingEvent, Session, SignalName } from "@/types";
+
+/** The signals the camera pipeline actually measures (lib/sessions/pipelineSource). */
+const MEASURED: SignalName[] = ["head_orientation", "movement_variability"];
+
+/** A goal signal the pipeline measures has no baseline yet (e.g. motion, under an older goal rule). */
+const missingBaseline = (s: Pick<SessionSnapshot, "goal" | "baselines">) =>
+  GOAL_SIGNALS[s.goal].some((sig) => MEASURED.includes(sig) && !s.baselines.some((b) => b.signal === sig));
 
 /**
  * Camera analysis for any session mode (voice practice, mock interview, live).
@@ -26,12 +35,25 @@ export function useCameraCoaching() {
 
   const start = useCallback(async (): Promise<boolean> => {
     active.current = true;
-    if (controller.getSnapshot().hasBaseline) return controller.startSession();
+    const snap0 = controller.getSnapshot();
+    // With additional learning off, a baseline that exists is used as it is, even without motion.
+    if (!missingBaseline(snap0) || (!snap0.learningEnabled && snap0.hasBaseline)) return controller.startSession();
     if (await controller.startCalibration()) {
       startWhenLearned.current = true;
       return true;
     }
     return controller.startCamera(); // can't learn a baseline: still show and record the camera
+  }, [controller]);
+
+  // The latest camera cue stays shown until a newer one replaces it or the
+  // person dismisses it; the engine's own cue times out after a few seconds.
+  const [shownCue, setShownCue] = useState<CoachingEvent | null>(null);
+  useEffect(() => {
+    if (snap.activeCue) setShownCue((c) => (c?.id === snap.activeCue!.id ? c : snap.activeCue));
+  }, [snap.activeCue]);
+  const dismissCue = useCallback(() => {
+    controller.dismissCue();
+    setShownCue(null);
   }, [controller]);
 
   useEffect(() => {
@@ -96,18 +118,17 @@ export function useCameraCoaching() {
     resume: () => controller.resume(),
     analysing: snap.phase === "live",
     learning: snap.phase === "calibrating",
-    /** Quiet status for the self-view: tracking trouble, or the baseline being learned. Never a judgment. */
+    /** 0..1 progress of the baseline being learned. */
+    learnProgress: snap.calibration?.fraction ?? 0,
+    /** Quiet status for the self-view: tracking trouble. Never a judgment. */
     note:
-      snap.phase === "calibrating"
-        ? (snap.trackingMessage ??
-          `Learning your usual look on camera (${Math.round((snap.calibration?.fraction ?? 0) * 100)}%). Cues start after this.`)
-        : snap.phase === "live"
-          ? snap.trackingMessage
-          : snap.error?.kind === "calibration" && active.current
-            ? "Couldn't learn your usual look. Check your lighting and framing."
-            : null,
-    cue: snap.activeCue,
-    dismissCue: () => controller.dismissCue(),
+      snap.phase === "calibrating" || snap.phase === "live"
+        ? snap.trackingMessage
+        : snap.error?.kind === "calibration" && active.current
+          ? "Couldn't learn your usual head position. Check your lighting and framing."
+          : null,
+    cue: shownCue,
+    dismissCue,
   };
 }
 
@@ -136,6 +157,9 @@ export function usePracticeCamera() {
       void cam.setVideo(on);
     },
     trackingMessage: videoOn ? cam.note : null,
+    learning: videoOn && cam.learning,
+    learnProgress: cam.learnProgress,
+    analysing: cam.analysing,
     cue: cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null,
     onDismissCue: cam.dismissCue,
     recording,

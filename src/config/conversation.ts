@@ -87,11 +87,9 @@ export const INTERVIEW_QUESTION_COUNT = 6;
 /** Live conversation transcript + suggestions. */
 export const LIVE_CONVERSATION = {
   /** New transcript lines required before another suggestion is considered. */
-  minNewSegments: 2,
+  minNewSegments: 1,
   /** Minimum gap between two suggestions, so the person is still mostly left alone. */
-  suggestionCooldownMs: 45000,
-  /** How long a suggestion stays before it fades on its own. */
-  suggestionVisibleMs: 14000,
+  suggestionCooldownMs: 30000,
 } as const;
 
 /** Voice coaching: suggestions shown at once (newest first). */
@@ -110,8 +108,6 @@ export const SPEECH_CHECK = {
 
 /** Practice call room (MeetingStage). */
 export const PRACTICE_CALL = {
-  /** How long a suggestion stays at the top of the call before it fades; it stays in Notes. */
-  suggestionVisibleMs: 16000,
   /** The key that starts and stops an answer, as `KeyboardEvent.code`, and its label. */
   answerKey: "Space",
   answerKeyLabel: "Space",

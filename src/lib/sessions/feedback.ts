@@ -42,12 +42,14 @@ export async function recordFeedbackForSavedSession(
   sessionId: string,
   eventId: string,
   feedback: CueFeedback,
+  /** `adapt: false` keeps the answer but leaves cue timing (adaptation) unchanged. */
+  opts: { adapt?: boolean } = {},
 ): Promise<Session | null> {
   const session = await storage.getSession(sessionId);
   if (!session) return null;
   const result = applyFeedbackToSession(session, await storage.loadAdaptation(), eventId, feedback);
   if (!result) return null;
   await storage.saveSession(result.session);
-  await storage.saveAdaptation(result.adaptation);
+  if (opts.adapt !== false) await storage.saveAdaptation(result.adaptation);
   return result.session;
 }

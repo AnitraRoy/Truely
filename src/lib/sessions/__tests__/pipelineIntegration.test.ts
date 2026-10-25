@@ -82,7 +82,7 @@ describe("pipeline-shaped data → coaching decisions", () => {
     expect(snap.hasBaseline).toBe(true);
     const yaw = snap.baselines.find((b) => b.signal === "head_orientation")!;
     expect(yaw.mean).toBeCloseTo(0.02, 1);
-    expect(snap.baselines.some((b) => b.signal === "movement_variability")).toBe(false); // goal is general_awareness → only needs head_orientation
+    expect(snap.baselines.some((b) => b.signal === "movement_variability")).toBe(true); // head movement is learned under every goal
   });
 
   it("a sustained head turn produces exactly one cue with the pipeline overrides", async () => {

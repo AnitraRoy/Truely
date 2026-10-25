@@ -17,7 +17,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const DEFAULT_ACTORS = ["codepoetry/youtube-transcript-ai-scraper"];
+// The Stage 1 actors in src/config/conversation.ts: captions, YouTube search, one web page.
+const DEFAULT_ACTORS = ["codepoetry/youtube-transcript-ai-scraper", "streamers/youtube-scraper", "apify/website-content-crawler"];
 const CARTESIA_TOKEN_TTL_S = 600;
 
 /** Minimal .env.local parser so we need no extra dependency. Real env vars win. */

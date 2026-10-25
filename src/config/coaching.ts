@@ -15,6 +15,12 @@ export interface CoachingConfig {
   // ---- Detection ------------------------------------------------------------
   /** How long a deviation must persist before it becomes a cue (ms). */
   persistenceWindowMs: number;
+  /**
+   * Per-signal override of `persistenceWindowMs`. Head movement is measured
+   * over a sliding window, so a one-second turn reads as ~2 s of motion; it
+   * needs a longer hold to stay a "momentary blip" (PRD §8).
+   */
+  persistenceWindowMsBySignal: Partial<Record<SignalName, number>>;
   /** Minimum tracking confidence to make any coaching decision (0..1). */
   minTrackingConfidence: number;
   /** Deviation size, in baseline std-devs, to count as "relevant". */
@@ -82,6 +88,7 @@ export interface CoachingConfig {
 
 export const COACHING_CONFIG: Readonly<CoachingConfig> = {
   persistenceWindowMs: 2500,
+  persistenceWindowMsBySignal: { movement_variability: 4000 },
   minTrackingConfidence: 0.6,
   deviationZThreshold: 2.0,
   minRelevantFraction: 0.8,
@@ -106,7 +113,8 @@ export const COACHING_CONFIG: Readonly<CoachingConfig> = {
   responseChangeMinZ: 0.5,
 
   minCalibrationSamples: 150,
-  calibrationDurationMs: 45000,
+  // Short enough to learn inside a session's first minute (useCameraCoaching).
+  calibrationDurationMs: 20000,
   baselineTimeConstantMs: 120000,
   baselineStableZ: 1.5,
   baselineUpdateHoldMs: 10000,
@@ -132,11 +140,15 @@ export function resolveCoachingConfig(
   };
 }
 
-/** Which signals each goal prioritizes, in priority order (PRD §6 Screen B). */
+/**
+ * Which signals each goal prioritizes, in priority order (PRD §6 Screen B).
+ * Head movement is watched under every goal: it is the clearest on-camera
+ * habit the pipeline measures, and leaving it out meant motion never cued.
+ */
 export const GOAL_SIGNALS: Record<CoachingGoal, SignalName[]> = {
-  camera_engagement: ["gaze_direction", "head_orientation"],
+  camera_engagement: ["gaze_direction", "head_orientation", "movement_variability"],
   head_movement: ["movement_variability", "head_orientation"],
-  general_awareness: ["head_orientation"],
+  general_awareness: ["head_orientation", "movement_variability"],
 };
 
 /** Human-readable goal labels for the UI. */

@@ -9,6 +9,9 @@ import { Pill } from "./Pill";
  */
 const GOALS = Object.keys(GOAL_LABELS) as CoachingGoal[];
 
+/** "a", "a and b", "a, b and c". */
+const listOf = (items: string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`);
+
 export function GoalPicker({
   value,
   onChange,
@@ -43,7 +46,7 @@ export function GoalPicker({
               <span className="font-display text-[20px]">{GOAL_LABELS[g]}</span>
               <br />
               <span className="text-[14.5px] text-text-muted">
-                Prioritizes {GOAL_SIGNALS[g].map((s) => s.replace(/_/g, " ")).join(" and ")}
+                Prioritizes {listOf(GOAL_SIGNALS[g].map((s) => s.replace(/_/g, " ")))}
               </span>
             </span>
             {selected && <Pill tone="positive">selected</Pill>}

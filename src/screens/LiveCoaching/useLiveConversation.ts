@@ -137,12 +137,7 @@ export function useLiveConversation({
     };
   }, [enabled, paused, micState, micStream, considerSuggestion, publish]);
 
-  // A suggestion fades on its own; it never waits for attention.
-  useEffect(() => {
-    if (!suggestion) return;
-    const id = window.setTimeout(() => setSuggestion(null), LIVE_CONVERSATION.suggestionVisibleMs);
-    return () => window.clearTimeout(id);
-  }, [suggestion]);
+  // A suggestion stays until a newer one replaces it or the person dismisses it.
 
   const stop = useCallback(async () => {
     const recording = await mic.stopFullRecording();

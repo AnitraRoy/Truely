@@ -155,6 +155,21 @@ describe("rules", () => {
     expect(r.cueTimes).toHaveLength(0);
   });
 
+  it("coaches sustained head movement under every goal, but not a short burst", () => {
+    const motion: DeviationAssessment = {
+      signal: "movement_variability", deviationMagnitude: 5, isRelevantDeviation: true, confidence: 0.9,
+    };
+    const feed = (goal: CoachingGoal, ms: number) => {
+      const c = createCoachingEngine({ goal });
+      for (let t = 0; t < ms; t += DT) c.tick({ assessment: motion, trackingConfidence: 0.9, now: t });
+      return c.getEvents();
+    };
+    for (const goal of ["general_awareness", "camera_engagement", "head_movement"] as CoachingGoal[]) {
+      expect(feed(goal, 3000)).toHaveLength(0);
+      expect(feed(goal, 6000)).toHaveLength(1);
+    }
+  });
+
   it("only coaches signals relevant to the selected goal (PRD §8 rule 6)", () => {
     const gaze: DeviationAssessment = {
       signal: "gaze_direction", deviationMagnitude: 5, isRelevantDeviation: true, confidence: 0.9,

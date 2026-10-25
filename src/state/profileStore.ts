@@ -15,6 +15,8 @@ import type { ThemePreference } from "@/styles/theme";
 
 export interface ProfileSettings {
   muteCues: boolean;
+  /** Keep adjusting the camera baseline and cue timing from sessions after the first baseline. */
+  keepLearning: boolean;
   cueFrequency: "standard" | "fewer";
   showSignalViz: boolean;
   theme: ThemePreference;
@@ -39,6 +41,7 @@ interface ProfileState {
 
 export const DEFAULT_SETTINGS: ProfileSettings = {
   muteCues: false,
+  keepLearning: true,
   cueFrequency: "standard",
   showSignalViz: false,
   theme: "light",
