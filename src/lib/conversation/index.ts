@@ -9,12 +9,15 @@
  * said, never about the person's traits, confidence, honesty or feelings; no
  * scores; feedback must quote the transcript it is based on.
  */
-import { llmReply, runApifyActor, type ChatMessage } from "@/lib/services";
-import { APIFY_REFERENCE_ACTOR, FEEDBACK_CATEGORIES, INTERVIEW_QUESTION_COUNT, REFERENCE_MAX_CHARS } from "@/config/conversation";
-import type { CommunicationProfile, ConversationKind, ConversationReport, TranscriptSegment } from "@/types";
+import { llmReply, type ChatMessage } from "@/lib/services";
+import { FEEDBACK_CATEGORIES, INTERVIEW_QUESTION_COUNT, REFERENCE_MAX_CHARS } from "@/config/conversation";
+import type { CommunicationProfile, ConversationKind, ConversationReport, SpeechMetrics, TranscriptSegment } from "@/types";
+import { describeSpeechMetrics } from "./pacing";
 import { parseLiveSuggestion, parseReport, parseStyle, parseTurn, str, type ParsedSuggestion } from "./parse";
 
 export * from "./parse";
+export * from "./pacing";
+export * from "./reference";
 
 const ETHICS =
   "Comment only on observable aspects of what was said: clarity, conciseness, structure, pacing, relevance, warmth, delivery. " +
@@ -147,48 +150,24 @@ export async function buildConversationReport(input: {
 // Desired style (Stage 1): read a public reference, then extract patterns
 // -----------------------------------------------------------------------------
 
-export function isYouTubeUrl(url: string): boolean {
-  try {
-    const u = new URL(url);
-    return /(^|\.)youtube\.com$|(^|\.)youtu\.be$/.test(u.hostname);
-  } catch {
-    return false;
-  }
-}
-
-export type ReferenceResult =
-  | { ok: true; title?: string; text: string }
-  | { ok: false; reason: "unsupported_url" | "no_transcript" | "service"; error?: string };
-
-/** Fetch a public YouTube transcript through the allow-listed Apify actor. */
-export async function fetchReference(url: string): Promise<ReferenceResult> {
-  if (!isYouTubeUrl(url)) return { ok: false, reason: "unsupported_url" };
-  const res = await runApifyActor({
-    actorId: APIFY_REFERENCE_ACTOR,
-    input: { startUrls: [{ url }], languages: ["en"], subType: "both", outputFormats: ["llm"], enableAiFallback: false },
-    limit: 1,
-  });
-  if (!res.ok) return { ok: false, reason: "service", error: res.error };
-  const item = (res.items[0] ?? {}) as { transcript_llm?: unknown; transcript_text?: unknown; metadata?: { title?: unknown }; error?: unknown };
-  const text = str(item.transcript_llm ?? item.transcript_text, REFERENCE_MAX_CHARS);
-  if (!text) return { ok: false, reason: "no_transcript", error: str(item.error, 200) || undefined };
-  return { ok: true, title: str(item.metadata?.title, 140) || undefined, text };
-}
-
 /** Understand the request (NLP) and extract observable patterns from the reference text. */
-export async function extractStyle(input: { admire: string; contexts: string[]; referenceText?: string }) {
+export async function extractStyle(input: { admire: string; contexts: string[]; referenceText?: string; speech?: SpeechMetrics }) {
   const system = [
     "You help someone describe the communication style they want to work toward.",
     "First restate, in one sentence starting with a verb, what they want to improve (\"intent\").",
     input.referenceText
       ? "Then identify 3 to 5 observable communication patterns in the reference material that match what they admire: sentence structure, vocabulary, answer organisation, pacing cues, presentation style."
       : "No reference material was supplied, so derive 3 to 5 practisable patterns from their own description.",
+    input.speech ? "Pacing numbers are provided below as measured facts. If you include a pacing pattern, base it on those numbers, not on a guess from the text." : "",
     "Patterns are practice goals, not rules to imitate. Describe language, never the speaker's personality.",
     `Respond with JSON only: {"intent": string, "traits": [{"category": one of ${CATS}, "name": 1-3 words, "description": one practical sentence, "evidence": optional short quote from the reference}]}`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
   const user = [
     `What I admire: ${input.admire || "(not given)"}`,
     input.contexts.length ? `Where I'll use it: ${input.contexts.join(", ")}` : "",
+    input.speech ? describeSpeechMetrics(input.speech) : "",
     input.referenceText ? `Reference material:\n${input.referenceText.slice(0, REFERENCE_MAX_CHARS)}` : "",
   ]
     .filter(Boolean)

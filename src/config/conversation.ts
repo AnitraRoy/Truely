@@ -18,8 +18,23 @@ export const CARTESIA = {
   sampleRate: 24000,
 } as const;
 
-/** Apify actor used to read a public reference (must be on the main-process allow-list). */
+/**
+ * Apify actors Stage 1 uses. Each must also be in DEFAULT_ACTORS in
+ * electron/services.cjs (the main-process allow-list), or the call is refused.
+ */
+/** Reads a public YouTube video's captions, with timing. */
 export const APIFY_REFERENCE_ACTOR = "codepoetry/youtube-transcript-ai-scraper";
+/** Searches YouTube for candidate talks/interviews (metadata only, no transcripts). */
+export const APIFY_SEARCH_ACTOR = "streamers/youtube-scraper";
+/** Reads one public web page (an article, a transcript page) as clean text. */
+export const APIFY_ARTICLE_ACTOR = "apify/website-content-crawler";
+
+/** Candidate videos shown after a search. */
+export const REFERENCE_SEARCH_LIMIT = 5;
+/** Search results shorter than this are skipped: too little speech to learn a style from. */
+export const REFERENCE_MIN_VIDEO_SECONDS = 120;
+/** A gap between caption lines at least this long counts as a pause. */
+export const PACING_PAUSE_SECONDS = 1;
 
 /** Only this much reference text is sent to the model for style analysis. */
 export const REFERENCE_MAX_CHARS = 9000;

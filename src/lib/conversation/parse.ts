@@ -101,6 +101,15 @@ export function parseReport(text: string | null, transcript: TranscriptSegment[]
   };
 }
 
+/** Stage 1 search plan: what to type into the search, and what the person wants to improve. */
+export function parseSearchPlan(text: string | null): { query: string; intent: string } | null {
+  const json = obj(extractJson(text));
+  // Quotes/operators in a model-written query would change what the search means.
+  const query = str(json.query, 100).replace(/["“”]/g, "");
+  if (!query) return null;
+  return { query, intent: str(json.intent, 240) };
+}
+
 export function parseStyle(text: string | null): { intent: string; traits: Omit<StyleTrait, "id" | "keep">[] } | null {
   const json = obj(extractJson(text));
   const traits = arr(json.traits)

@@ -32,6 +32,8 @@ export interface ApifyRunRequest {
   actorId: string;
   input?: Record<string, unknown>;
   limit?: number;
+  /** How long the main process waits for the run (seconds). Clamped to 15-120; default 90. */
+  waitSecs?: number;
 }
 
 export interface ApifyRunResult {
