@@ -6,6 +6,8 @@ import { Button } from "@/components/Button";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { HeadRangePrompt, useHeadRange } from "@/components/HeadRangeGuide";
+import { useHeadPose } from "@/components/useHeadPose";
+import { BackButton } from "@/components/BackButton";
 import { useProfileStore } from "@/state/profileStore";
 import { useSessionStore } from "@/state/sessionStore";
 import { WelcomeStep } from "./steps/Welcome";
@@ -61,7 +63,10 @@ export function Setup() {
     setSetupComplete(true);
     setPhase("ready");
   };
-  const range = useHeadRange({ active: step === BASELINE && phase === "range" && live, onComplete: finishBaseline });
+  const rangeActive = step === BASELINE && phase === "range" && live;
+  // Each position only counts once the person's head has actually moved that way.
+  const tracker = useHeadPose(camera.videoRef, rangeActive);
+  const range = useHeadRange({ active: rangeActive, onComplete: finishBaseline, tracker });
 
   const canContinue = step === 1 ? goal != null : step === CAMERA ? live : true;
 
@@ -89,6 +94,11 @@ export function Setup() {
         setPhase("range");
       }}
       onRangeSkip={finishBaseline}
+      onBack={() => {
+        range.restart();
+        setStatus("ready");
+        setPhase("setup");
+      }}
       onDesiredStyle={() => navigate("/profile?tab=style")}
       onStartSession={() => navigate("/session")}
       onDashboard={() => navigate("/home")}
@@ -129,10 +139,12 @@ export function Setup() {
                   Continue
                 </Button>
               )}
-              {step > 0 && (
+              {step > 0 ? (
                 <Button variant="ghost" onClick={() => setStep(step - 1)}>
                   Back
                 </Button>
+              ) : (
+                <BackButton fallback="/" />
               )}
               {!canContinue && (
                 <p className="w-full text-[14.5px] text-text-muted">

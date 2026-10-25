@@ -25,6 +25,7 @@ export function BaselineStep({
   onDesiredStyle,
   onStartSession,
   onDashboard,
+  onBack,
 }: {
   headingRef: RefObject<HTMLHeadingElement>;
   phase: BaselinePhase;
@@ -35,6 +36,8 @@ export function BaselineStep({
   onDesiredStyle: () => void;
   onStartSession: () => void;
   onDashboard: () => void;
+  /** Step back to the start of the baseline (restarts the head-range part). */
+  onBack?: () => void;
 }) {
   const hasStyle = useProfileStore((s) => Boolean(s.communicationProfile?.traits.some((t) => t.keep)));
 
@@ -47,6 +50,13 @@ export function BaselineStep({
         <div className="mt-3">
           <HeadRangeSteps range={range} onSkip={onRangeSkip} />
         </div>
+        {onBack && (
+          <div className="mt-6 border-t border-border pt-5">
+            <Button variant="ghost" onClick={onBack}>
+              Back
+            </Button>
+          </div>
+        )}
         {!cameraLive && (
           <p className="mt-4 text-[14.5px] text-text-muted">The camera is off, so this part is on hold.</p>
         )}
@@ -77,6 +87,11 @@ export function BaselineStep({
           <Button variant="ghost" onClick={onDashboard}>
             Go to your journal
           </Button>
+          {onBack && (
+            <Button variant="ghost" onClick={onBack}>
+              Back
+            </Button>
+          )}
         </div>
       </div>
     );

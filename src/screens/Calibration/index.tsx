@@ -8,6 +8,8 @@ import { Button } from "@/components/Button";
 import { GoalPicker } from "@/components/GoalPicker";
 import { HeadRangeFloatingTarget, HeadRangePrompt, HeadRangeSteps, useHeadRange } from "@/components/HeadRangeGuide";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
+import { useHeadPose } from "@/components/useHeadPose";
+import { BackButton } from "@/components/BackButton";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { useFloatingOverlay } from "@/components/useFloatingOverlay";
 import { FloatingOverlay } from "@/components/FloatingOverlay";
@@ -53,7 +55,18 @@ export function Calibration() {
     setStatus("ready");
     setPhase("ready");
   };
-  const range = useHeadRange({ active: phase === "range" && live, onComplete: finishBaseline });
+  const rangeActive = phase === "range" && live;
+  // Each position only counts once the person's head has actually moved that way.
+  const tracker = useHeadPose(videoRef, rangeActive);
+  const range = useHeadRange({ active: rangeActive, onComplete: finishBaseline, tracker });
+
+  // Back from the head-range or ready parts returns to the start of the baseline.
+  const backToStart = () => {
+    target.close();
+    range.restart();
+    setStatus("ready");
+    setPhase("setup");
+  };
 
   // Move the floating target to match the current step, only where the desktop
   // shell can actually reposition a window (not Document PiP).
@@ -65,6 +78,10 @@ export function Calibration() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
       <Masthead size="sm" folio="Set-up: baseline" />
+
+      <div className="mt-6">
+        {phase === "setup" ? <BackButton fallback="/home" /> : <BackButton fallback="/home" onBack={backToStart} />}
+      </div>
 
       <div className="mt-10 grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-8 md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]">
         <div className="md:sticky md:top-8">

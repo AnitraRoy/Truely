@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -32,6 +33,12 @@ import { useTurnTaking } from "../practice/useTurnTaking";
 type Mode = "live" | "sample";
 
 export function VoiceCoaching() {
+  // Bumping the key remounts the screen, which resets it to its setup form.
+  const [run, setRun] = useState(0);
+  return <VoiceCoachingSession key={run} onReset={() => setRun((r) => r + 1)} />;
+}
+
+function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
   const navigate = useNavigate();
   const profile = useProfileStore((s) => s.communicationProfile);
   const services = useServiceStatus();
@@ -45,6 +52,7 @@ export function VoiceCoaching() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [suggestions, setSuggestions] = useState<FeedbackEvent[]>([]);
   const [ending, setEnding] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const feedback = useRef<FeedbackEvent[]>([]);
   const sampleTurn = useRef(0);
 
@@ -113,8 +121,25 @@ export function VoiceCoaching() {
     navigate(reportHref("voice", id));
   }
 
+  // Leaving a running session: release the microphone, drop the unsaved attempt, show the setup form again.
+  async function backToSetup() {
+    setConfirmLeave(false);
+    await turn.end();
+    onReset();
+  }
+
   return (
-    <AppShell>
+    <AppShell back={running ? { onBack: () => setConfirmLeave(true), label: "Back to setup" } : undefined}>
+      <ConfirmDialog
+        open={confirmLeave}
+        title="Go back to setup?"
+        confirmLabel="Leave without saving"
+        onConfirm={() => void backToSetup()}
+        onCancel={() => setConfirmLeave(false)}
+      >
+        This stops the voice session and releases your microphone. No report is saved. To keep one, cancel and end the
+        session instead.
+      </ConfirmDialog>
       <PageHeader
         step="Step 2 of 4: practise out loud"
         title="Think it through, out loud."

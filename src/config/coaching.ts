@@ -181,6 +181,37 @@ export type HeadDirection = "center" | "up" | "down" | "left" | "right";
  */
 export const HEAD_RANGE_CALIBRATION = {
   holdMs: 3500,
+  /**
+   * Movement detection (UI side): a position only counts while the person's head
+   * is actually in it. Values are in the head-pose proxy's own unitless scale
+   * (`estimateHeadPose`: nose offset / face width for yaw, nose position between
+   * forehead and chin for pitch), measured as a change from the person's own
+   * centre pose, so they are personal rather than absolute angles.
+   * UNTUNED: first estimates, roughly 12-15 degrees. Check on a real camera with
+   * `?headdebug=1` on the calibration page, which prints the live readings.
+   */
+  detect: {
+    /** How far the head must move from centre to count as "left"/"right". */
+    yawDelta: 0.07,
+    /** How far the head must move from centre to count as "up"/"down". */
+    pitchDelta: 0.05,
+    /** +1: turning to the person's left raises the raw yaw proxy. Flip if `?headdebug=1` shows the opposite. */
+    yawLeftSign: 1,
+    /** -1: tilting up lowers the raw pitch proxy. Flip if `?headdebug=1` shows the opposite. */
+    pitchUpSign: -1,
+    /** Used for the up/down/left/right checks only if the person skips the centre position. */
+    fallbackNeutral: { yaw: 0, pitch: 0.55 },
+    /** How long a position may drop out before the hold restarts (ms). */
+    graceMs: 700,
+    /** After this long without the movement, offer a hint and the skip (ms). */
+    hintAfterMs: 8000,
+    /** Give up loading face tracking and fall back to the timer (ms). */
+    loadTimeoutMs: 15000,
+    /** How often the preview is sampled (ms). */
+    pollMs: 100,
+    /** Most recent centre samples used to find the person's centre pose. */
+    neutralMaxSamples: 40,
+  },
   steps: [
     { direction: "center", label: "Centre", prompt: "Look at the screen", instruction: "Look at the screen as you normally would" },
     { direction: "up", label: "Up", prompt: "Tilt your head up", instruction: "Tilt your head up a little" },

@@ -5,6 +5,8 @@ import { useProfileStore } from "@/state/profileStore";
 import { Button } from "@/components/Button";
 import { FloatingOverlay } from "@/components/FloatingOverlay";
 import { StatusChip } from "@/components/StatusChip";
+import { BackButton } from "@/components/BackButton";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useFloatingOverlay } from "@/components/useFloatingOverlay";
 import { CueBubble } from "@/components/CueBubble";
 import { LiveTranscript } from "@/components/LiveTranscript";
@@ -46,10 +48,10 @@ function fmt(ms: number): string {
 
 export function LiveCoaching() {
   const [choices, setChoices] = useState<LiveChoices | null>(null);
-  return choices ? <LiveSession choices={choices} /> : <Preflight onStart={setChoices} />;
+  return choices ? <LiveSession choices={choices} onBack={() => setChoices(null)} /> : <Preflight onStart={setChoices} />;
 }
 
-function LiveSession({ choices }: { choices: LiveChoices }) {
+function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => void }) {
   const navigate = useNavigate();
   const status = useSessionStore((s) => s.status);
   const setStatus = useSessionStore((s) => s.setStatus);
@@ -66,6 +68,7 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
   const paused = status === "paused";
   const [elapsed, setElapsed] = useState(0);
   const [ending, setEnding] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const startRef = useRef<number | null>(null);
   // While floating, this tab is usually hidden and its timers get throttled;
   // the overlay window stays visible, so timers run on its clock instead.
@@ -100,6 +103,18 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
   // One cue at a time: a conversation suggestion wins over a behavioral sample.
   const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title } : samples.cue;
   const dismissOverlay = convo.suggestion ? convo.dismissSuggestion : samples.dismiss;
+
+  // Back out to the choices without saving a report. The camera, microphone and
+  // floating window are all released first, same as ending the session.
+  async function leave() {
+    setEnding(true);
+    setConfirmLeave(false);
+    overlay.close();
+    disable();
+    await convo.stop();
+    setStatus("ready");
+    onBack();
+  }
 
   async function end() {
     setEnding(true);
@@ -138,9 +153,12 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-3">
-        <span className="font-display text-[20px] font-semibold">
+        <span className="flex items-center gap-4 font-display text-[20px] font-semibold">
+          <BackButton fallback="/home" label="Back to choices" onBack={() => setConfirmLeave(true)} />
+          <span>
           Cue<span className="text-ochre-mark">.</span>
           {choices.title && <span className="ml-3 font-sans text-[14.5px] font-normal text-text-muted">{choices.title}</span>}
+          </span>
         </span>
         <div className="flex items-center gap-4">
           <span className="font-mono text-[12.5px] tabular-nums text-text-muted" aria-label={`Elapsed ${fmt(elapsed)}`}>
@@ -274,6 +292,16 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
           />
         </FloatingOverlay>
       )}
+    <ConfirmDialog
+        open={confirmLeave}
+        title="Go back to your choices?"
+        confirmLabel="Leave without saving"
+        onConfirm={() => void leave()}
+        onCancel={() => setConfirmLeave(false)}
+      >
+        This stops the session and releases your camera and microphone. No report is saved. To keep a report, cancel
+        and use End session instead.
+      </ConfirmDialog>
     </main>
   );
 }
