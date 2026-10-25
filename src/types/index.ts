@@ -322,13 +322,30 @@ export interface StyleTrait {
   keep: boolean;
 }
 
+/**
+ * Pacing measured from caption timing (approximate: captions are not audio).
+ * Numbers only; the reference's text is never stored.
+ */
+export interface SpeechMetrics {
+  wordsPerMinute: number;
+  /** Gaps of a second or longer between caption lines, per minute of speech. */
+  pausesPerMinute: number;
+  longestPauseSec: number;
+  /** Minutes of captioned speech the numbers are based on. */
+  minutesMeasured: number;
+}
+
 /** Where a desired style came from. Public material or text the person pasted. */
 export interface StyleReference {
-  source: "youtube" | "pasted";
+  source: "youtube" | "article" | "pasted";
   url?: string;
   title?: string;
   /** Character count of the material analysed (never the full text). */
   analysedChars?: number;
+  /** What the person searched for to find this reference, when they searched. */
+  query?: string;
+  /** Pacing from caption timing. Only for video references with timed captions. */
+  speech?: SpeechMetrics;
 }
 
 /**

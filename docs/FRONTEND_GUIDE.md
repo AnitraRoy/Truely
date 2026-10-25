@@ -84,7 +84,7 @@ voice baseline *is* the desired style the person sets on `/profile/style`.
 - **Moss** is used as an LLM (chat completions via the desktop bridge), not as a voice API.
 - **Cartesia** does batch speech-to-text per answer / per ~9 s live chunk and text-to-speech for
   coach and interviewer lines, using a short-lived token. Streaming STT is not wired yet.
-- **Apify** reads YouTube captions through the allow-listed actor. Other references are pasted text.
+- **Apify** (Stage 1) searches YouTube (`streamers/youtube-scraper`), reads captions with timing (`codepoetry/youtube-transcript-ai-scraper`) and reads one public web page (`apify/website-content-crawler`), all through the allow-listed bridge. Pasted text still works.
 - All three only work in the desktop app with keys in `.env.local`; screens show `ServiceNotice`
   otherwise. Live suggestions and the live transcript use one microphone, so speakers aren't labelled.
 

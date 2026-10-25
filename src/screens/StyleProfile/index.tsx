@@ -1,32 +1,37 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/Button";
+import { ChoiceGroup } from "@/components/ChoiceGroup";
 import { CheckChips, SelectField, TextArea, TextField } from "@/components/Field";
 import { SectionTitle, Sheet } from "@/components/Sheet";
 import { ServiceNotice } from "@/components/ServiceNotice";
 import { Toggle } from "@/components/Toggle";
 import { hasDesktopBridge, useServiceStatus } from "@/components/useServiceStatus";
 import { FEEDBACK_CATEGORIES, FEEDBACK_CATEGORY_LABELS, STYLE_CONTEXTS } from "@/config/conversation";
-import { extractStyle, fetchReference, isYouTubeUrl } from "@/lib/conversation";
+import { extractStyle, fetchReference, isArticleUrl, isYouTubeUrl, planReferenceSearch, searchReferences, type ReferenceCandidate } from "@/lib/conversation";
 import type { ServiceName } from "@/lib/services";
 import { newId } from "@/state/conversations";
 import { useProfileStore } from "@/state/profileStore";
 import { useSessionStore } from "@/state/sessionStore";
-import type { FeedbackCategory, StyleReference, StyleTrait } from "@/types";
+import type { FeedbackCategory, SpeechMetrics, StyleReference, StyleTrait } from "@/types";
+import { ReferenceSearch } from "./ReferenceSearch";
 
 /**
  * 02 · Communication profile (Stage 1: Learn) — the "Communication profile"
  * tab of My profile (/profile?tab=style). Private Field Journal.
- * The person names a public reference and what they admire about it; Apify
- * reads a YouTube transcript (or they paste text), Moss restates their intent
- * and drafts observable patterns, and they choose which to keep. Without the
- * providers, they write patterns themselves — the profile still works.
+ * The person says who or what they want to sound like; Moss turns that into a
+ * search, Apify finds talks and interviews (or reads a link they give), the
+ * person picks one, Apify reads its captions or page, and Moss restates their
+ * intent and drafts observable patterns for them to keep. They can also paste
+ * text. Without the providers, they write patterns themselves — the profile
+ * still works.
  *
  * Focal point: the draft patterns once they exist (the decision), the
  * reference form before that. This is the DESIRED style only; the natural
  * baseline comes from webcam calibration and is kept separate (§ note below).
  */
-type Phase = { kind: "idle" } | { kind: "reading" } | { kind: "analysing" } | { kind: "error"; message: string };
+type Mode = "search" | "link" | "paste";
+type Phase = { kind: "idle" } | { kind: "searching" } | { kind: "reading" } | { kind: "analysing" } | { kind: "error"; message: string };
 
 const LABEL_FOR = Object.fromEntries(FEEDBACK_CATEGORIES.map((c) => [FEEDBACK_CATEGORY_LABELS[c], c])) as Record<string, FeedbackCategory>;
 
@@ -80,9 +85,14 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
   const services = useServiceStatus();
   const desktop = hasDesktopBridge();
 
+  const [mode, setMode] = useState<Mode>(saved?.reference?.source === "pasted" ? "paste" : saved?.reference?.url ? "link" : "search");
   const [url, setUrl] = useState(saved?.reference?.url ?? "");
-  const [pasteMode, setPasteMode] = useState(saved?.reference?.source === "pasted");
   const [pasted, setPasted] = useState("");
+  // "Find one": the request, what Cue searched for, the results, and the one the person picked.
+  const [request, setRequest] = useState(saved?.reference?.query ?? "");
+  const [searchedQuery, setSearchedQuery] = useState("");
+  const [candidates, setCandidates] = useState<ReferenceCandidate[]>([]);
+  const [picked, setPicked] = useState("");
   const [admire, setAdmire] = useState(saved?.admire ?? "");
   const [contexts, setContexts] = useState<string[]>(saved?.contexts ?? []);
   const [intent, setIntent] = useState(saved?.intent ?? "");
@@ -94,39 +104,79 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
   const [draftDesc, setDraftDesc] = useState("");
   const [draftCat, setDraftCat] = useState(FEEDBACK_CATEGORY_LABELS.clarity);
 
-  const busy = phase.kind === "reading" || phase.kind === "analysing";
-  const urlError = !pasteMode && url.trim() && !isYouTubeUrl(url.trim()) ? "Cue can read YouTube talks and interviews for now. For an article, paste its text instead." : null;
-  const needed: ServiceName[] = pasteMode ? ["moss"] : ["moss", "apify"];
+  const busy = phase.kind === "searching" || phase.kind === "reading" || phase.kind === "analysing";
+  // The link to read: the video picked from search results, or the one typed in.
+  const refUrl = mode === "search" ? picked : mode === "link" ? url.trim() : "";
+  const urlError = mode === "link" && refUrl && !isYouTubeUrl(refUrl) && !isArticleUrl(refUrl) ? "That doesn't look like a web link. Paste the full address, starting with https://." : null;
+  const needed: ServiceName[] = mode === "paste" ? ["moss"] : ["moss", "apify"];
   const missing = services ? needed.filter((s) => !services[s]) : [];
-  const canAnalyse = !busy && services?.moss && (admire.trim().length > 0 || url.trim() || pasted.trim()) && !urlError && (pasteMode || !url.trim() || services.apify);
+  const canSearch = !busy && Boolean(services?.apify) && request.trim().length > 0;
+  const canAnalyse = !busy && services?.moss && (admire.trim().length > 0 || refUrl || (mode === "paste" && pasted.trim())) && !urlError && (!refUrl || services.apify);
+
+  async function find() {
+    setSavedNote("");
+    setCandidates([]);
+    setPicked("");
+    setPhase({ kind: "searching" });
+    const plan = await planReferenceSearch(request);
+    const res = await searchReferences(plan.query);
+    if (!res.ok) {
+      setPhase({
+        kind: "error",
+        message:
+          res.reason === "no_results"
+            ? "No talks with captions turned up for that. Try a name plus \"talk\" or \"interview\", or paste a link."
+            : res.reason === "empty_query"
+              ? "Say who or what you want to sound like first."
+              : "Cue couldn't reach Apify just now. Try again, or paste a link or text instead.",
+      });
+      return;
+    }
+    setSearchedQuery(plan.query);
+    setCandidates(res.candidates);
+    // The request doubles as the first draft of "what do you admire".
+    if (!admire.trim()) setAdmire(request.trim());
+    setPhase({ kind: "idle" });
+  }
 
   async function analyse() {
     setSavedNote("");
     let referenceText: string | undefined;
     let ref: StyleReference | undefined;
-    if (pasteMode && pasted.trim()) {
+    let speech: SpeechMetrics | undefined;
+    if (mode === "paste" && pasted.trim()) {
       referenceText = pasted.trim();
       ref = { source: "pasted", analysedChars: referenceText.length };
-    } else if (url.trim()) {
+    } else if (refUrl) {
       setPhase({ kind: "reading" });
-      const res = await fetchReference(url.trim());
+      const res = await fetchReference(refUrl);
       if (!res.ok) {
         setPhase({
           kind: "error",
           message:
             res.reason === "no_transcript"
               ? "That video has no captions Cue can read. Try another video, or paste a transcript instead."
-              : res.reason === "unsupported_url"
-                ? "Cue can read YouTube links for now. Paste the text for anything else."
-                : "Cue couldn't reach Apify just now. Try again, or paste the text instead.",
+              : res.reason === "no_text"
+                ? "That page has too little readable text, or it blocks automated reading. Try another link, or paste the text instead."
+                : res.reason === "unsupported_url"
+                  ? "Cue can read YouTube links and public web pages. Paste the text for anything else."
+                  : "Cue couldn't reach Apify just now. Try again, or paste the text instead.",
         });
         return;
       }
       referenceText = res.text;
-      ref = { source: "youtube", url: url.trim(), title: res.title, analysedChars: res.text.length };
+      speech = res.speech;
+      ref = {
+        source: res.kind,
+        url: refUrl,
+        title: res.title,
+        analysedChars: res.text.length,
+        ...(mode === "search" && searchedQuery ? { query: searchedQuery } : {}),
+        ...(res.speech ? { speech: res.speech } : {}),
+      };
     }
     setPhase({ kind: "analysing" });
-    const style = await extractStyle({ admire, contexts, referenceText });
+    const style = await extractStyle({ admire, contexts, referenceText, speech });
     if (!style) {
       setPhase({ kind: "error", message: "Cue couldn't draft patterns this time. Try again, or write your own below." });
       return;
@@ -180,7 +230,51 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
               if (canAnalyse) void analyse();
             }}
           >
-            {pasteMode ? (
+            <div>
+              <p id="ref-mode-label" className="text-[14px] font-medium">
+                How do you want to give Cue a reference?
+              </p>
+              <div className="mt-2">
+                <ChoiceGroup<Mode>
+                  name="reference-mode"
+                  labelledBy="ref-mode-label"
+                  value={mode}
+                  onChange={setMode}
+                  options={[
+                    { value: "search", label: "Find one" },
+                    { value: "link", label: "I have a link" },
+                    { value: "paste", label: "Paste text" },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {mode === "search" && (
+              <ReferenceSearch
+                request={request}
+                onRequest={setRequest}
+                onSearch={() => void find()}
+                searching={phase.kind === "searching"}
+                canSearch={canSearch}
+                searchedQuery={searchedQuery}
+                candidates={candidates}
+                picked={picked}
+                onPick={setPicked}
+              />
+            )}
+            {mode === "link" && (
+              <TextField
+                label="Link to a talk, interview or article"
+                help="A public YouTube video with captions, or a public web page."
+                type="url"
+                inputMode="url"
+                placeholder="https://…"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                error={urlError}
+              />
+            )}
+            {mode === "paste" && (
               <TextArea
                 label="Reference text"
                 help="Paste a transcript or article you have the right to use. Only the first few pages are analysed."
@@ -188,21 +282,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
                 onChange={(e) => setPasted(e.target.value)}
                 rows={6}
               />
-            ) : (
-              <TextField
-                label="Public YouTube link"
-                help="A talk or interview with captions."
-                type="url"
-                inputMode="url"
-                placeholder="https://www.youtube.com/watch?v=…"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                error={urlError}
-              />
             )}
-            <button type="button" onClick={() => setPasteMode((v) => !v)} className="-mt-3 min-h-6 text-[13.5px] underline underline-offset-4 hover:text-accent">
-              {pasteMode ? "Use a YouTube link instead" : "Paste text instead"}
-            </button>
 
             <TextArea
               label="What do you admire?"
@@ -224,8 +304,9 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
               </p>
             </div>
             <p className="text-[13.5px] text-text-muted">
-              Public material only. The link goes to Apify to read its captions, and the text plus your note go to Moss to draft
-              patterns. Nothing is published, and only the patterns you keep are saved, on this device.
+              Public material only. When you search, your words go to Moss to make a YouTube search, and Apify runs it. The link you
+              pick goes to Apify to read its captions or page, and the text plus your note go to Moss to draft patterns. Nothing is
+              published, and only the patterns you keep are saved, on this device.
             </p>
             {phase.kind === "error" && (
               <p role="alert" className="text-[14.5px] text-warning">
