@@ -77,6 +77,9 @@ export interface MeetingStageProps {
   onFinish: () => void;
   onTyped: (text: string) => void;
   onEnd: () => void;
+  /** Abandon the call instead of finishing it (the screen confirms first). Omit to hide the control. */
+  onLeave?: () => void;
+  leaveLabel?: string;
 }
 
 function isTextEntry(target: EventTarget | null): boolean {
@@ -280,6 +283,15 @@ export function MeetingStage(props: MeetingStageProps) {
         <span className="font-display text-[17px] font-semibold leading-none">
           Cue<span className="text-ochre-mark">.</span>
         </span>
+        {props.onLeave && (
+          <button
+            type="button"
+            onClick={props.onLeave}
+            className="min-h-8 shrink-0 text-[13px] text-text-muted underline underline-offset-2 hover:text-text-primary"
+          >
+            {props.leaveLabel ?? "Leave"}
+          </button>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-[14.5px] font-medium">
             {props.title}

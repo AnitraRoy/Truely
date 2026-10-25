@@ -8,6 +8,8 @@ import { Button } from "@/components/Button";
 import { GoalPicker } from "@/components/GoalPicker";
 import { HeadRangeFloatingTarget, HeadRangePrompt, HeadRangeSteps, useHeadRange } from "@/components/HeadRangeGuide";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
+import { useHeadPose } from "@/components/useHeadPose";
+import { BackButton } from "@/components/BackButton";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { useFloatingOverlay } from "@/components/useFloatingOverlay";
 import { FloatingOverlay } from "@/components/FloatingOverlay";
@@ -26,8 +28,9 @@ import { FloatingOverlay } from "@/components/FloatingOverlay";
  * floats a small target to the centre of the screen, then each edge, so the
  * person looks straight ahead and then up/down/left/right at a real
  * on-screen point rather than an arrow drawn over their own preview. The
- * preview's directions (`HeadRangePrompt`) stay up the whole time regardless,
- * so nothing is lost where positioning isn't available.
+ * direction (`HeadRangePrompt`) is also shown in a banner above the preview the
+ * whole time, so nothing is lost where positioning isn't available. It is never
+ * drawn over the preview, so it can't cover the person's face.
  */
 type Phase = "setup" | "range" | "ready";
 
@@ -53,7 +56,18 @@ export function Calibration() {
     setStatus("ready");
     setPhase("ready");
   };
-  const range = useHeadRange({ active: phase === "range" && live, onComplete: finishBaseline });
+  const rangeActive = phase === "range" && live;
+  // Each position only counts once the person's head has actually moved that way.
+  const tracker = useHeadPose(videoRef, rangeActive);
+  const range = useHeadRange({ active: rangeActive, onComplete: finishBaseline, tracker });
+
+  // Back from the head-range or ready parts returns to the start of the baseline.
+  const backToStart = () => {
+    target.close();
+    range.restart();
+    setStatus("ready");
+    setPhase("setup");
+  };
 
   // Move the floating target to match the current step, only where the desktop
   // shell can actually reposition a window (not Document PiP).
@@ -66,13 +80,15 @@ export function Calibration() {
     <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
       <Masthead size="sm" folio="Set-up: baseline" />
 
+      <div className="mt-6">
+        {phase === "setup" ? <BackButton fallback="/home" /> : <BackButton fallback="/home" onBack={backToStart} />}
+      </div>
+
       <div className="mt-10 grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-8 md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]">
         <div className="md:sticky md:top-8">
-          <WebcamFrame
-            videoRef={videoRef}
-            state={state}
-            overlay={phase === "range" ? <HeadRangePrompt range={range} /> : undefined}
-          />
+          {/* The direction sits above the preview, never over the person's face. */}
+          {phase === "range" && <HeadRangePrompt range={range} />}
+          <WebcamFrame videoRef={videoRef} state={state} />
           <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
             <p className="flex items-center gap-2 text-[14.5px] text-text-muted">
               <span aria-hidden className={`h-[7px] w-[7px] rounded-pill ${live ? "bg-positive" : "bg-text-muted"}`} />
@@ -108,7 +124,7 @@ export function Calibration() {
               <section className="mt-10 border-t border-border pt-8">
                 <h2 className={HEADING}>Draw your camera baseline</h2>
                 <p className="mt-3 text-text-muted">
-                  Follow the directions on your preview to look up, down, left and right. It takes under a
+                  Follow the directions above your preview to look up, down, left and right. It takes under a
                   minute, and lets Cue tell your normal from a real, sustained change.
                 </p>
                 <p className="mt-2 text-[14.5px] text-text-muted">

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -38,6 +39,12 @@ import { usePracticeCamera } from "../practice/useCameraCoaching";
 type Mode = "live" | "sample";
 
 export function MockInterview() {
+  // Bumping the key remounts the screen, which resets it to its setup form.
+  const [run, setRun] = useState(0);
+  return <MockInterviewSession key={run} onReset={() => setRun((r) => r + 1)} />;
+}
+
+function MockInterviewSession({ onReset }: { onReset: () => void }) {
   const navigate = useNavigate();
   const profile = useProfileStore((s) => s.communicationProfile);
   const services = useServiceStatus();
@@ -52,6 +59,7 @@ export function MockInterview() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [question, setQuestion] = useState(0);
   const [ending, setEnding] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const sampleTurn = useRef(0);
 
   const voice = mode === "live" && Boolean(services?.cartesia);
@@ -119,6 +127,13 @@ export function MockInterview() {
       cameraObservations: cam.observations,
     });
     navigate(reportHref("interview", id));
+  }
+
+  // Leaving a running interview: release the microphone, drop the unsaved attempt, show the setup form again.
+  async function backToSetup() {
+    setConfirmLeave(false);
+    await turn.end();
+    onReset();
   }
 
   if (!running) {
@@ -208,28 +223,42 @@ export function MockInterview() {
   }
 
   return (
-    <MeetingStage
-      title={`Mock interview: ${type}`}
-      topic={role || "General role"}
-      aiName="Interviewer"
-      status={turn.status}
-      transcript={turn.transcript}
-      aiLevel={turn.aiLevel}
-      voice={voice}
-      mic={turn.mic}
-      error={turn.error}
-      sample={mode === "sample"}
-      {...camera.stageProps(turn.recording)}
-      now={turn.now}
-      progress={finished ? "Interview complete" : `Question ${Math.min(question, INTERVIEW_QUESTION_COUNT)} of ${INTERVIEW_QUESTION_COUNT}`}
-      closed={finished}
-      closedHint="The interview is complete."
-      endLabel={finished ? "See your review" : "Finish interview"}
-      ending={ending}
-      onBegin={turn.beginAnswer}
-      onFinish={() => void turn.finishAnswer().then(answered)}
-      onTyped={(t) => void answered(turn.typedAnswer(t))}
-      onEnd={() => void finish()}
-    />
+    <>
+      <MeetingStage
+        title={`Mock interview: ${type}`}
+        topic={role || "General role"}
+        aiName="Interviewer"
+        status={turn.status}
+        transcript={turn.transcript}
+        aiLevel={turn.aiLevel}
+        voice={voice}
+        mic={turn.mic}
+        error={turn.error}
+        sample={mode === "sample"}
+        {...camera.stageProps(turn.recording)}
+        now={turn.now}
+        progress={finished ? "Interview complete" : `Question ${Math.min(question, INTERVIEW_QUESTION_COUNT)} of ${INTERVIEW_QUESTION_COUNT}`}
+        closed={finished}
+        closedHint="The interview is complete."
+        endLabel={finished ? "See your review" : "Finish interview"}
+        ending={ending}
+        onBegin={turn.beginAnswer}
+        onFinish={() => void turn.finishAnswer().then(answered)}
+        onTyped={(t) => void answered(turn.typedAnswer(t))}
+        onEnd={() => void finish()}
+        onLeave={() => setConfirmLeave(true)}
+        leaveLabel="Back to setup"
+      />
+      <ConfirmDialog
+        open={confirmLeave}
+        title="Go back to setup?"
+        confirmLabel="Leave without saving"
+        onConfirm={() => void backToSetup()}
+        onCancel={() => setConfirmLeave(false)}
+      >
+        This stops the interview and releases your microphone. No report is saved. To keep one, cancel and finish the
+        interview instead.
+      </ConfirmDialog>
+    </>
   );
 }

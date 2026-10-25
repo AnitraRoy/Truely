@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { BackButton, backFallback } from "./BackButton";
 
 /**
  * The journal's application shell: a top toolbar (wordmark, home icon, and the
@@ -166,7 +167,14 @@ function ToolList({ onNavigate, idBase }: { onNavigate?: () => void; idBase: str
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  back,
+}: {
+  children: ReactNode;
+  /** Step back within the page (e.g. leave a running session for its setup form) instead of leaving the page. */
+  back?: { onBack: () => void; label?: string };
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname, search } = useLocation();
@@ -247,7 +255,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </aside>
 
         <main id="main" tabIndex={-1} className="min-w-0 px-4 py-9 focus:outline-none sm:px-8 md:py-12 lg:px-12">
-          <div className="mx-auto max-w-[1120px]">{children}</div>
+          <div className="mx-auto max-w-[1120px]">
+            <div className="mb-6">
+              <BackButton fallback={backFallback(pathname)} onBack={back?.onBack} label={back?.label} />
+            </div>
+            {children}
+          </div>
         </main>
       </div>
     </div>

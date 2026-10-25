@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/Button";
@@ -33,6 +34,12 @@ import { usePracticeCamera } from "../practice/useCameraCoaching";
 type Mode = "live" | "sample";
 
 export function VoiceCoaching() {
+  // Bumping the key remounts the screen, which resets it to its setup form.
+  const [run, setRun] = useState(0);
+  return <VoiceCoachingSession key={run} onReset={() => setRun((r) => r + 1)} />;
+}
+
+function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
   const navigate = useNavigate();
   const profile = useProfileStore((s) => s.communicationProfile);
   const services = useServiceStatus();
@@ -46,6 +53,7 @@ export function VoiceCoaching() {
   const [mode, setMode] = useState<Mode | null>(null);
   const [suggestions, setSuggestions] = useState<FeedbackEvent[]>([]);
   const [ending, setEnding] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const feedback = useRef<FeedbackEvent[]>([]);
   const sampleTurn = useRef(0);
 
@@ -120,29 +128,50 @@ export function VoiceCoaching() {
     navigate(reportHref("voice", id));
   }
 
+  // Leaving a running session: release the microphone, drop the unsaved attempt, show the setup form again.
+  async function backToSetup() {
+    setConfirmLeave(false);
+    await turn.end();
+    onReset();
+  }
+
   if (running || ending) {
     return (
-      <MeetingStage
-        title="Voice practice"
-        topic={mode === "sample" ? VOICE_PROMPTS[0] : practicePrompt}
-        aiName="Coach"
-        status={turn.status}
-        transcript={turn.transcript}
-        aiLevel={turn.aiLevel}
-        voice={voice}
-        mic={turn.mic}
-        error={turn.error}
-        suggestions={suggestions}
-        onDismissSuggestion={(id) => setSuggestions((all) => all.filter((x) => x.id !== id))}
-        sample={mode === "sample"}
-        {...camera.stageProps(turn.recording)}
-        now={turn.now}
-        ending={ending}
-        onBegin={turn.beginAnswer}
-        onFinish={() => void turn.finishAnswer().then(answered)}
-        onTyped={(t) => void answered(turn.typedAnswer(t))}
-        onEnd={() => void endAndReview()}
-      />
+      <>
+        <MeetingStage
+          title="Voice practice"
+          topic={mode === "sample" ? VOICE_PROMPTS[0] : practicePrompt}
+          aiName="Coach"
+          status={turn.status}
+          transcript={turn.transcript}
+          aiLevel={turn.aiLevel}
+          voice={voice}
+          mic={turn.mic}
+          error={turn.error}
+          suggestions={suggestions}
+          onDismissSuggestion={(id) => setSuggestions((all) => all.filter((x) => x.id !== id))}
+          sample={mode === "sample"}
+          {...camera.stageProps(turn.recording)}
+          now={turn.now}
+          ending={ending}
+          onBegin={turn.beginAnswer}
+          onFinish={() => void turn.finishAnswer().then(answered)}
+          onTyped={(t) => void answered(turn.typedAnswer(t))}
+          onEnd={() => void endAndReview()}
+          onLeave={() => setConfirmLeave(true)}
+          leaveLabel="Back to setup"
+        />
+        <ConfirmDialog
+          open={confirmLeave}
+          title="Go back to setup?"
+          confirmLabel="Leave without saving"
+          onConfirm={() => void backToSetup()}
+          onCancel={() => setConfirmLeave(false)}
+        >
+          This stops the voice session and releases your microphone. No report is saved. To keep one, cancel and end the
+          session instead.
+        </ConfirmDialog>
+      </>
     );
   }
 
