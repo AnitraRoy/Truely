@@ -4,7 +4,7 @@
  * Why here: Moss, Apify and Cartesia use secret keys. Nothing in the renderer
  * bundle may contain them, so the renderer asks the main process, which holds
  * the keys, calls the service, and returns plain data. Keys are read from
- * `.env.local` (gitignored) and never sent over IPC.
+ * `.env.local` or `.env` (both gitignored) and never sent over IPC.
  *
  *   MOSS_PROJECT_ID / MOSS_PROJECT_KEY   Moss inference + retrieval
  *   CARTESIA_API_KEY                     minted into short-lived renderer tokens
@@ -70,29 +70,27 @@ function allowedActors() {
 }
 
 /**
- * @param {{ isTrustedSender: (event: Electron.IpcMainInvokeEvent) => boolean, envFile?: string }} options
+ * Load keys once. `.env.local` wins over `.env`; real environment variables win
+ * over both. Both files are gitignored.
  */
-function registerServices({ isTrustedSender, envFile }) {
-  const { ipcMain } = require("electron"); // lazy: scripts/smoke-services.mjs imports this file under plain Node
-  loadEnvFile(envFile ?? path.join(__dirname, "..", ".env.local"));
+let envLoaded = false;
+function loadServiceEnv(root = path.join(__dirname, "..")) {
+  if (envLoaded) return;
+  envLoaded = true;
+  loadEnvFile(path.join(root, ".env.local"));
+  loadEnvFile(path.join(root, ".env"));
+}
 
-  /** Wrap a handler: only Cue's own pages may call it, and failures become { ok: false }. */
-  const handle = (channel, fn) =>
-    ipcMain.handle(channel, async (event, arg) => {
-      if (!isTrustedSender(event)) return { ok: false, error: "untrusted_sender" };
-      try {
-        return { ok: true, ...(await fn(arg)) };
-      } catch (err) {
-        return { ok: false, error: safeMessage(err) };
-      }
-    });
-
-  ipcMain.handle("cue:svc:status", (event) => (isTrustedSender(event) ? status() : { moss: false, cartesia: false, apify: false }));
-
+/**
+ * The service calls, keyed by channel. Shared by the Electron IPC bridge
+ * (registerServices) and the Vite dev-server bridge (vite.config.ts), so the
+ * browser in development gets exactly the same behaviour and allow-list.
+ */
+const handlers = {
   // One non-streaming chat completion through the Moss inference gateway.
   // indexes defaults to [] (no retrieval): an interviewer persona must not be
   // polluted with search hits. Pass indexes to ground an answer instead.
-  handle("cue:llm:chat", async (req) => {
+  "cue:llm:chat": async (req) => {
     if (!status().moss) throw new Error("Moss credentials are not configured (.env.local).");
     if (!req || !Array.isArray(req.messages) || req.messages.length === 0) throw new Error("messages required");
     const client = await getMoss();
@@ -108,11 +106,11 @@ function registerServices({ isTrustedSender, envFile }) {
       { timeout: 30000 },
     );
     return { text: completion.choices?.[0]?.message?.content ?? "" };
-  });
+  },
 
   // Short-lived, scoped Cartesia token. The renderer opens STT/TTS sockets with
   // it directly, so audio never passes through the main process.
-  handle("cue:cartesia:token", async () => {
+  "cue:cartesia:token": async () => {
     if (!status().cartesia) throw new Error("Cartesia API key is not configured (.env.local).");
     const { default: Cartesia } = await import("@cartesia/cartesia-js");
     const client = new Cartesia({ apiKey: process.env.CARTESIA_API_KEY });
@@ -121,10 +119,10 @@ function registerServices({ isTrustedSender, envFile }) {
       grants: { stt: true, tts: true },
     });
     return { token, expiresInSeconds: CARTESIA_TOKEN_TTL_S };
-  });
+  },
 
   // Run an allow-listed Apify actor and return its dataset items.
-  handle("cue:apify:run", async (req) => {
+  "cue:apify:run": async (req) => {
     if (!status().apify) throw new Error("Apify token is not configured (.env.local).");
     if (!req || typeof req.actorId !== "string") throw new Error("actorId required");
     if (!allowedActors().includes(req.actorId)) throw new Error(`Actor not allow-listed: ${req.actorId}`);
@@ -133,7 +131,33 @@ function registerServices({ isTrustedSender, envFile }) {
     const run = await client.actor(req.actorId).call(req.input ?? {}, { waitSecs: 90 });
     const { items } = await client.dataset(run.defaultDatasetId).listItems({ limit: Math.min(Number(req.limit) || 20, 100) });
     return { items, runStatus: run.status };
-  });
+  },
+};
+
+/** Run one handler; failures become { ok: false } with key-shaped text stripped. */
+async function callService(channel, arg) {
+  if (channel === "cue:svc:status") return status();
+  const fn = handlers[channel];
+  if (!fn) return { ok: false, error: "unknown_service" };
+  try {
+    return { ok: true, ...(await fn(arg)) };
+  } catch (err) {
+    return { ok: false, error: safeMessage(err) };
+  }
 }
 
-module.exports = { registerServices, loadEnvFile, safeMessage };
+/**
+ * @param {{ isTrustedSender: (event: Electron.IpcMainInvokeEvent) => boolean }} options
+ */
+function registerServices({ isTrustedSender }) {
+  const { ipcMain } = require("electron"); // lazy: scripts/smoke-services.mjs imports this file under plain Node
+  loadServiceEnv();
+
+  ipcMain.handle("cue:svc:status", (event) => (isTrustedSender(event) ? status() : { moss: false, cartesia: false, apify: false }));
+  // Only Cue's own pages may call a service.
+  for (const channel of Object.keys(handlers)) {
+    ipcMain.handle(channel, (event, arg) => (isTrustedSender(event) ? callService(channel, arg) : { ok: false, error: "untrusted_sender" }));
+  }
+}
+
+module.exports = { registerServices, callService, loadServiceEnv, loadEnvFile, safeMessage };

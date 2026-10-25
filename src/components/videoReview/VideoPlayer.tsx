@@ -71,7 +71,7 @@ export function VideoPlayer({
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-10 text-center">
             <p className="font-serif italic text-text-muted">
-              No video was recorded for this session. Cue doesn&apos;t capture video or audio while coaching.
+              No recording was saved for this session.
             </p>
             <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-text-muted">
               Playback below is a development preview of event and transcript syncing.

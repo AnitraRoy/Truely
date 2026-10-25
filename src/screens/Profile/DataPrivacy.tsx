@@ -63,9 +63,9 @@ export function DataPrivacy() {
     <div>
       <h2 className="font-display text-[22px]">What Cue keeps</h2>
       <Ledger className="mt-3">
-        <LedgerRow label="Never">Camera video, images, or frames. They&apos;re read on this device and discarded.</LedgerRow>
-        <LedgerRow label="If you allow">Session summaries, transcripts and coaching notes, on this device.</LedgerRow>
-        <LedgerRow label="Only if you ask">An audio recording of a session, turned on before that session starts.</LedgerRow>
+        <LedgerRow label="By default">A video and audio recording of each session, with its transcript and notes, on this device for playback. Turn recording off before any session to skip it.</LedgerRow>
+        <LedgerRow label="If you allow">Summaries and notes of sessions you didn&apos;t record, on this device.</LedgerRow>
+        <LedgerRow label="Never">Camera frames on their own. They&apos;re analysed on this device and discarded; only the recording keeps video.</LedgerRow>
         <LedgerRow label="Always">Your communication profile, goal and settings, so Cue remembers them.</LedgerRow>
       </Ledger>
 

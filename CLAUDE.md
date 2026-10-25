@@ -157,9 +157,15 @@ not as a tidy arrangement of defaults. Spend boldness deliberately, in the place
   streaks, or historical charts to "look complete." Empty states stay honestly empty.
 - **No overall quality score.** The post-session report shows observations and counts,
   never a graded verdict, and never claims a cue *caused* a change.
-- **Private by default.** The camera-active state is always unmistakable; a stop/end
-  control is always obvious. The webcam preview is the person's own — framed as a mirror,
-  not a subject under inspection.
+- **Private by default, recorded by default.** Nothing leaves the device except what a
+  feature names (speech to Cartesia, text to Moss). The camera-active state is always
+  unmistakable; a stop/end control is always obvious. The webcam preview is the person's
+  own — framed as a mirror, not a subject under inspection.
+- **Recording is on by default, never hidden.** Every mode records video and audio (as
+  available) for playback in the report, kept on this device only, never uploaded. The
+  setup screen shows the switch already on with a one-tap off, and a "Recording" indicator
+  is visible for as long as it runs. Live sessions with other people also require the
+  person to confirm everyone agreed to be recorded.
 - **Nonjudgmental language.** Supportive, calm, second person. Errors explain what to do
   next; they do not scold.
 

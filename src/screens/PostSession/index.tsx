@@ -178,7 +178,7 @@ export function PostSession() {
           </>
         ) : (
           <EmptyState
-            title="Video isn't recorded"
+            title="No recording for this session"
             action={
               import.meta.env.DEV ? (
                 <Button variant="ghost" onClick={() => setShowVideoFixture(true)}>
@@ -187,8 +187,8 @@ export function PostSession() {
               ) : undefined
             }
           >
-            Camera signals are measured on this device and video is never recorded, so there&apos;s nothing to play back.
-            This report is built entirely from those on-device measurements, below.
+            Recording was off for this session, so there&apos;s nothing to play back. This report is built entirely from the
+            camera measurements taken on this device, below.
           </EmptyState>
         )}
       </div>

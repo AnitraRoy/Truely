@@ -3,4 +3,6 @@ export type { AudioStatus, AudioSourceOptions } from "./audioSource";
 export type { MicErrorCode } from "./micController";
 export { AUDIO_CONSTANTS } from "./levelMeter";
 export { AudioCalibrator, CALIBRATION_CONSTANTS } from "./calibration";
-export type { AudioCalibration, CalibrationResult, CalibrationFailureReason } from "./calibration";
+export type { AudioCalibration, CalibrationResult, CalibrationFailureReason } from "./calibration";export { LevelMeter } from "./levelMeter";
+export { SpeechTally, isSilentClip } from "./speechTally";
+export type { SpeechSummary } from "./speechTally";

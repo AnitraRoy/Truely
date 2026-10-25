@@ -11,15 +11,14 @@ import { LiveTranscript } from "@/components/LiveTranscript";
 import { SuggestionNote } from "@/components/SuggestionNote";
 import { MicProblem } from "@/components/PermissionList";
 import { useServiceStatus } from "@/components/useServiceStatus";
-import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { DEFAULT_PRACTICE_GOALS } from "@/config/conversation";
 import { reportHref } from "@/state/history";
 import { SessionOverlay } from "./SessionOverlay";
-import { useSampleCues } from "./useSampleCues";
 import { useLiveConversation } from "./useLiveConversation";
 import { Preflight, type LiveChoices } from "./Preflight";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
+import { useCameraCoaching } from "../practice/useCameraCoaching";
 
 /**
  * 05 · Live coaching (PRD §6 Screen C) — the most important screen.
@@ -30,8 +29,10 @@ import { finishConversation, goalsFrom } from "../practice/finishSession";
  * CLAUDE.md §6: with the camera on, the preview is the focal point; cues and
  * suggestions are discreet margin notes that fade on their own; status stays
  * secondary. With the camera off, the transcript takes the focal position.
- * Behavioral cues are labelled samples until the coaching engine is wired in
- * (useSampleCues); conversation suggestions come from Moss and cite a line.
+ * Behavioral cues come from the on-device camera analysis (useCameraCoaching,
+ * when calibrated); conversation suggestions come from Moss and cite a line.
+ * The session is recorded (video and audio, on this device) unless the person
+ * turned recording off in the preflight.
  *
  * "Float cues over" moves cues into a small always-on-top window
  * (<SessionOverlay>), kept out of screen shares in the desktop shell.
@@ -56,7 +57,8 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
   const profile = useProfileStore((s) => s.communicationProfile);
   const services = useServiceStatus();
   const goals = useMemo(() => goalsFrom(profile, DEFAULT_PRACTICE_GOALS), [profile]);
-  const { videoRef, state, enable, disable } = useWebcamPreview();
+  const cam = useCameraCoaching();
+  const { videoRef, state } = cam;
   const overlay = useFloatingOverlay({ title: "Cue", ...OVERLAY_SIZE });
   const desktop = overlay.desktop;
   const floating = overlay.overlayWindow != null;
@@ -70,13 +72,15 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
   // While floating, this tab is usually hidden and its timers get throttled;
   // the overlay window stays visible, so timers run on its clock instead.
   const clock = overlay.overlayWindow ?? window;
-  const samples = useSampleCues({ active: camera && live && !paused, clock });
   const convo = useLiveConversation({ enabled: choices.microphone, paused, suggest: Boolean(services?.moss), profile, goals });
 
   // The person chose these in the preflight; the browser asks for permission now.
+  // Camera first, so the recording can include it.
   useEffect(() => {
-    if (camera) void enable();
-    void convo.start({ record: choices.record });
+    void (async () => {
+      const video = camera && (await cam.start()) ? cam.stream() : null;
+      await convo.start({ record: choices.record, video });
+    })();
     // Run once on mount: the choices are fixed for the session.
   }, []);
 
@@ -95,19 +99,24 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
     return () => clock.clearInterval(id);
   }, [live, paused, clock]);
 
-  const togglePause = () => setStatus(paused ? "observing" : "paused");
+  const togglePause = () => {
+    if (paused) cam.resume();
+    else cam.pause();
+    setStatus(paused ? "observing" : "paused");
+  };
+  const cameraCue = cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null;
 
-  // One cue at a time: a conversation suggestion wins over a behavioral sample.
-  const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title } : samples.cue;
-  const dismissOverlay = convo.suggestion ? convo.dismissSuggestion : samples.dismiss;
+  // One cue at a time: a conversation suggestion wins over a camera cue.
+  const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title } : cameraCue;
+  const dismissOverlay = convo.suggestion ? convo.dismissSuggestion : cam.dismissCue;
 
   async function end() {
     setEnding(true);
     overlay.close();
-    disable();
-    const done = await convo.stop();
+    const done = await convo.stop(); // the recording first, while the camera still runs
+    const camRes = await cam.stop(done.startedAt);
     setStatus("ended");
-    if (!choices.microphone || done.transcript.length === 0) {
+    if (!done.recording && (!choices.microphone || done.transcript.length === 0)) {
       navigate("/report/local");
       return;
     }
@@ -121,6 +130,8 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
       startedAt: done.startedAt,
       endedAt: done.endedAt,
       recording: done.recording,
+      behavioralSessionId: camRes.sessionId,
+      cameraObservations: camRes.observations,
     });
     navigate(reportHref("live", id));
   }
@@ -182,12 +193,18 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
             </li>
             <li className="flex items-center gap-2">
               <span aria-hidden className={`h-[7px] w-[7px] rounded-pill ${camera && state === "live" ? "bg-positive" : "border border-text-muted"}`} />
-              {camera ? (state === "live" ? "Camera on, frames stay on this device" : "Camera starting") : "Camera off"}
+              {camera
+                ? state === "live"
+                  ? cam.analysing
+                    ? "Camera on, analysed on this device"
+                    : "Camera on, not analysed until you calibrate"
+                  : "Camera starting"
+                : "Camera off"}
             </li>
             {choices.record && (
               <li className="flex items-center gap-2">
                 <span aria-hidden className="h-[7px] w-[7px] rounded-pill bg-ochre-mark" />
-                Recording audio on this device
+                {camera && state === "live" ? "Recording video and audio on this device" : "Recording audio on this device"}
               </li>
             )}
           </ul>
@@ -199,7 +216,7 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
           )}
 
           {/* the cue, as a margin note; it moves to the overlay while floating */}
-          {!floating && (convo.suggestion || samples.cue) && (
+          {!floating && (convo.suggestion || cameraCue) && (
             <div className="mt-6" role="status" aria-live="polite">
               {convo.suggestion ? (
                 <SuggestionNote
@@ -211,7 +228,7 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
                   onDismiss={convo.dismissSuggestion}
                 />
               ) : (
-                samples.cue && <CueBubble key={samples.cue.id} text={samples.cue.text} label="sample" onDismiss={samples.dismiss} />
+                cameraCue && <CueBubble key={cameraCue.id} text={cameraCue.text} onDismiss={cam.dismissCue} />
               )}
             </div>
           )}
@@ -268,7 +285,7 @@ function LiveSession({ choices }: { choices: LiveChoices }) {
             cue={overlayCue}
             paused={paused}
             onDismiss={dismissOverlay}
-            sample={!convo.suggestion}
+            sample={false}
             draggable={overlay.mode === "desktop"}
             onDock={overlay.mode === "desktop" ? overlay.close : undefined}
           />

@@ -124,7 +124,7 @@ function Board({ session, recordingUrl }: { session: ConversationSession; record
     { label: "Length", value: formatDuration(durationMs) },
     session.kind === "live" ? { label: "Transcript lines", value: session.transcript.length } : { label: "Your answers", value: yourTurns },
     { label: "Suggestions given", value: session.kind === "interview" ? "None during" : session.feedback.length },
-    { label: "Recording", value: session.recording ? "On this device" : "Not recorded" },
+    { label: "Recording", value: session.recording ? (session.recording.hasVideo ? "Video, on this device" : "Audio, on this device") : "Not recorded" },
   ];
 
   const again = { voice: "/practice/voice", interview: "/practice/interview", live: "/session" }[session.kind];

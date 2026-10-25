@@ -14,6 +14,7 @@
  */
 import { CARTESIA } from "@/config/conversation";
 import { getCartesiaToken } from "./index";
+import { pcmPlayer } from "./playback";
 import type { ServiceResult } from "./types";
 
 type CartesiaClient = InstanceType<(typeof import("@cartesia/cartesia-js"))["default"]>;
@@ -72,6 +73,54 @@ export async function synthesizeSpeech(text: string): Promise<ServiceResult<{ au
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "tts_failed" };
   }
+}
+
+function decodeF32(base64: string): Float32Array<ArrayBuffer> {
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Float32Array(bytes.buffer, 0, Math.floor(bytes.length / 4));
+}
+
+/**
+ * Speak a line as it is generated (Cartesia SSE), so the voice starts within
+ * about a second instead of after the whole clip is ready. `onStart` fires as
+ * the first audio is scheduled, which is when a screen should show the line.
+ * Resolves once playback ends. Fails without sound if nothing could be
+ * played (no primed audio, or the stream failed before its first chunk), so
+ * the caller can fall back to `synthesizeSpeech`.
+ */
+export async function speakStreaming(
+  text: string,
+  opts: { onStart?: () => void; onLevel?: (level: number) => void } = {},
+): Promise<ServiceResult<{ started: true }>> {
+  const player = pcmPlayer(CARTESIA.sampleRate, opts.onLevel);
+  if (!player) return { ok: false, error: "audio_not_primed" };
+  const c = await client();
+  if (!c.ok) return c;
+  let started = false;
+  try {
+    const stream = await c.client.tts.generateSSE({
+      model_id: CARTESIA.ttsModel,
+      transcript: text,
+      voice: CARTESIA.voiceId,
+      output_format: { container: "raw", encoding: "pcm_f32le", sample_rate: CARTESIA.sampleRate },
+    });
+    for await (const event of stream) {
+      if (event.type === "error") throw new Error("tts_stream_error");
+      if (event.type !== "chunk") continue;
+      player.push(decodeF32(event.data));
+      if (!started) {
+        started = true;
+        opts.onStart?.();
+      }
+    }
+  } catch (err) {
+    // Mid-sentence failure: let what was already spoken finish rather than retry the line.
+    if (!started) return { ok: false, error: err instanceof Error ? err.message : "tts_failed" };
+  }
+  await player.finish();
+  return started ? { ok: true, started: true } : { ok: false, error: "tts_empty" };
 }
 
 /** Test hook. */

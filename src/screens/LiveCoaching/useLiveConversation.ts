@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMicrophone } from "@/components/useMicrophone";
-import { LIVE_CONVERSATION } from "@/config/conversation";
+import { LIVE_CONVERSATION, SPEECH_CHECK } from "@/config/conversation";
+import { isSilentClip } from "@/lib/audio";
 import { liveSuggestion } from "@/lib/conversation";
 import { transcribeAudio } from "@/lib/services/voice";
 import { newId } from "@/state/conversations";
@@ -41,11 +42,11 @@ export function useLiveConversation({
   const lastSuggestionAt = useRef(-Infinity);
 
   const start = useCallback(
-    async (opts: { record: boolean }) => {
+    async (opts: { record: boolean; video?: MediaStream | null }) => {
       startedAt.current = Date.now();
-      if (!enabled) return true;
-      const ok = await mic.enable();
-      if (ok && opts.record) mic.startFullRecording();
+      const ok = enabled ? await mic.enable() : true;
+      // With the microphone off, the recording is the camera alone.
+      if (ok && opts.record) mic.startFullRecording(opts.video);
       return ok;
     },
     [enabled, mic],
@@ -82,6 +83,7 @@ export function useLiveConversation({
         const audio = await clip.stop();
         const endMs = Date.now() - startedAt.current;
         loop(); // start listening again right away, then transcribe what we have
+        if (isSilentClip(clip.speech(), SPEECH_CHECK.minVoicedMs)) return; // nobody spoke: nothing to transcribe
         setTranscribing(true);
         const res = await transcribeAudio(audio);
         setTranscribing(false);

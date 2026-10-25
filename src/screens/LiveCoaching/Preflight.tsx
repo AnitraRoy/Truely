@@ -29,15 +29,12 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
 
   const [title, setTitle] = useState("");
   const [microphone, setMicrophone] = useState(false);
-  const [camera, setCamera] = useState(calibrated);
-  const [record, setRecord] = useState(false);
+  const [camera, setCamera] = useState(true);
+  const [record, setRecord] = useState(true);
   const [agreed, setAgreed] = useState(false);
 
   // Default the microphone on only where it can actually work.
   useEffect(() => setMicrophone(canListen), [canListen]);
-  useEffect(() => {
-    if (!microphone) setRecord(false);
-  }, [microphone]);
 
   const blocked = (!microphone && !camera) || (record && !agreed);
 
@@ -77,7 +74,9 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
                 {
                   key: "camera",
                   label: "Camera signals",
-                  help: "Compares your head and gaze to your calibrated baseline. Frames are read on this device and never saved or uploaded.",
+                  help: calibrated
+                    ? "Compares your head and gaze to your calibrated baseline, on this device, for discreet cues and your report. Frames are never uploaded."
+                    : "Shows your camera and includes it in the recording. Calibrate first to also get cues from your head and gaze.",
                   checked: camera,
                   onChange: setCamera,
                   aside: calibrated ? undefined : (
@@ -89,10 +88,10 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
                 {
                   key: "record",
                   label: "Save a recording",
-                  help: "Off by default. Audio only, kept on this device so you can revisit moments in the report.",
+                  help: "On by default. Video and audio (whichever is on), kept on this device so you can play moments back in the report.",
                   checked: record,
                   onChange: setRecord,
-                  disabled: !microphone,
+                  disabled: !microphone && !camera,
                 },
               ]}
             />
@@ -106,7 +105,7 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
           )}
 
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-6">
-            <Button onClick={() => onStart({ title: title.trim(), microphone, camera: camera && calibrated, record })} disabled={blocked}>
+            <Button onClick={() => onStart({ title: title.trim(), microphone, camera, record: record && (microphone || camera) })} disabled={blocked}>
               Start live coaching
             </Button>
             <p className="text-[13.5px] text-text-muted" aria-live="polite">

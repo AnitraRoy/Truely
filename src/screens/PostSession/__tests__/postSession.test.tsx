@@ -95,7 +95,7 @@ describe("PostSession", () => {
     const hide = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Hide preview")!;
     await act(async () => hide.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
-    expect(container.textContent).toContain("Video isn't recorded");
+    expect(container.textContent).toContain("No recording for this session");
     expect(container.textContent).not.toContain("Development fixture — sample video");
   });
 

@@ -129,7 +129,7 @@ export function Overview({ onOpenTab }: { onOpenTab: (tab: "style" | "settings" 
               )}
             </li>
           </ul>
-          <p className="mt-4 text-[13.5px] text-text-muted">Only measured when you turn the camera on. Video is never saved or uploaded.</p>
+          <p className="mt-4 text-[13.5px] text-text-muted">Only measured when the camera is on, on this device. Session recordings stay on this device and are never uploaded.</p>
           <div className="mt-5">
             <Button variant="secondary" onClick={() => navigate("/calibrate")}>
               {calibrated ? "Recalibrate" : "Calibrate"}

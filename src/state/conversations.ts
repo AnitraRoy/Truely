@@ -2,11 +2,12 @@
  * Conversation sessions (voice coaching, mock interviews, live transcripts)
  * and their optional recordings. Owner: App-shell / State team.
  *
- * Same consent rule as behavioral sessions (PRD §4.4): with saving on, sessions
- * go to IndexedDB on this device; with it off, they live in memory until the
- * tab closes, so the end-of-session report still works. Recordings are only
- * ever stored when the person turned recording on for that session, and they
- * never leave the device. Nothing here is uploaded.
+ * With saving on, sessions go to IndexedDB on this device; with it off, they
+ * live in memory until the tab closes, so the end-of-session report still
+ * works. A session with a recording is always kept on disk, with its
+ * recording: recording is on by default, shown while it runs, and turned off
+ * per session, so leaving it on is the choice to keep it for playback
+ * (CLAUDE.md §5). Nothing here is uploaded or leaves the device.
  *
  * Kept apart from `lib/storage` (the behavioral engine's store) so that module's
  * contract is unchanged.
@@ -45,7 +46,7 @@ export async function saveConversation(session: ConversationSession, recording?:
   memorySessions.set(session.id, session);
   if (recording && session.recording) memoryBlobs.set(session.recording.blobKey, recording);
   const s = store();
-  if (saving() && s) {
+  if ((saving() || session.recording) && s) {
     try {
       await set(SESSION_PREFIX + session.id, session, s);
       if (recording && session.recording) await set(BLOB_PREFIX + session.recording.blobKey, recording, s);

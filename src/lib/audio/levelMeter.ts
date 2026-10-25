@@ -48,6 +48,11 @@ export class LevelMeter {
     return this.ctx.resume();
   }
 
+  /** True while the audio context runs, i.e. read() reflects the microphone. */
+  get running(): boolean {
+    return this.ctx.state === "running";
+  }
+
   read(): LevelSample {
     this.analyser.getFloatTimeDomainData(this.buf);
     let sum = 0;

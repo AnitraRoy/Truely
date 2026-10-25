@@ -64,9 +64,14 @@
  * Designed, not inverted: the journal at night — ink-green paper, bone text,
  * forest and ochre lifted for contrast (text tokens ≥ 6.6:1 on bg and surface).
  * Applied via <html data-theme="dark">, or data-theme="system" to follow the OS.
- * Keep the two blocks below identical. See src/styles/theme.ts.
+ * Keep the three blocks below identical. See src/styles/theme.ts.
+ *
+ * `data-surface="stage"` scopes the same night palette to one region in either
+ * theme: the practice call room (src/screens/practice/MeetingStage), which
+ * reads as a video call, where a dark room keeps faces and captions forward.
  */
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-surface="stage"] {
   --cue-bg: 26 28 25;
   --cue-surface: 34 37 33;
   --cue-sunken: 20 22 19;

@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { useMicrophone, type ClipRecorder } from "@/components/useMicrophone";
-import { playAudio } from "@/components/useServiceStatus";
-import { synthesizeSpeech, transcribeAudio } from "@/lib/services/voice";
+import { PRACTICE_CALL, SPEECH_CHECK } from "@/config/conversation";
+import { isSilentClip } from "@/lib/audio";
+import { playAudio, primeAudio } from "@/components/useServiceStatus";
+import { speakStreaming, synthesizeSpeech, transcribeAudio } from "@/lib/services/voice";
 import { newId } from "@/state/conversations";
 import type { SpeakerRole, TranscriptSegment } from "@/types";
 
@@ -13,6 +15,10 @@ import type { SpeakerRole, TranscriptSegment } from "@/types";
  *
  * Timestamps are ms from `start()`, shared by the transcript, feedback and the
  * optional recording (one clock).
+ *
+ * Whether speech is on is fixed when the session starts (`start({ voice })`)
+ * and held in a ref: screens call `start` in the same tick as the state change
+ * that turns voice on, before a re-render could hand them a fresh closure.
  */
 export type TurnStatus = "idle" | "your-turn" | "listening" | "transcribing" | "thinking" | "speaking" | "ended";
 
@@ -31,9 +37,13 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
   const [status, setStatus] = useState<TurnStatus>("idle");
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
   const startedAt = useRef(0);
   const clip = useRef<{ rec: ClipRecorder; at: number } | null>(null);
   const transcriptRef = useRef<TranscriptSegment[]>([]);
+  const voiceRef = useRef(voice);
+  /** Loudness of the AI's voice while it speaks (0..1), for the speaker tile. */
+  const aiLevel = useRef(0);
 
   const now = () => Date.now() - startedAt.current;
 
@@ -45,13 +55,16 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
 
   /** Begin the session clock (and the microphone, when speaking). */
   const start = useCallback(
-    async (opts: { record?: boolean } = {}) => {
+    async (opts: { record?: boolean; voice?: boolean; video?: MediaStream | null } = {}) => {
       setError(null);
-      if (voice) {
+      voiceRef.current = opts.voice ?? voice;
+      if (voiceRef.current) {
+        primeAudio();
         const ok = await mic.enable();
         if (!ok) return false;
-        if (opts.record) mic.startFullRecording();
       }
+      // Audio from the microphone (when speaking) and video from the camera (when on).
+      setRecording(opts.record ? mic.startFullRecording(opts.video) : false);
       startedAt.current = Date.now();
       transcriptRef.current = [];
       setTranscript([]);
@@ -60,23 +73,40 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
     [mic, voice],
   );
 
-  /** Add the AI's line to the transcript, and speak it when voice is on. */
+  /**
+   * Add the AI's line to the transcript and, when voice is on, speak it. The
+   * line appears (as a caption) the moment its voice starts: streamed speech
+   * shows it on the first audio chunk; the whole-clip fallback once the clip is
+   * ready. Without voice it appears at once.
+   */
   const aiSays = useCallback(
     async (text: string) => {
-      const at = now();
-      const words = text.split(/\s+/).length;
-      push({ id: newId("seg"), startMs: at, endMs: at + words * 380, text, speaker: speakerLabel, role: aiRole });
-      if (voice) {
-        setStatus("speaking");
-        const audio = await synthesizeSpeech(text);
-        if (audio.ok) await playAudio(audio.audio);
+      let shown = false;
+      const show = () => {
+        if (shown) return;
+        shown = true;
+        const at = now();
+        const words = text.split(/\s+/).length;
+        push({ id: newId("seg"), startMs: at, endMs: at + words * 380, text, speaker: speakerLabel, role: aiRole });
+        if (voiceRef.current) setStatus("speaking");
+      };
+      if (voiceRef.current) {
+        const onLevel = (level: number) => (aiLevel.current = level);
+        const streamed = await speakStreaming(text, { onStart: show, onLevel });
+        if (!streamed.ok && !shown) {
+          const audio = await synthesizeSpeech(text);
+          show();
+          if (audio.ok) await playAudio(audio.audio, onLevel);
+        }
       }
+      show();
       setStatus("your-turn");
     },
-    [aiRole, push, speakerLabel, voice],
+    [aiRole, push, speakerLabel],
   );
 
   const beginAnswer = useCallback(() => {
+    primeAudio();
     const rec = mic.record();
     if (!rec) return;
     clip.current = { rec, at: now() };
@@ -90,6 +120,11 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
     if (!current) return null;
     const audio = await current.rec.stop();
     const endMs = now();
+    if (isSilentClip(current.rec.speech(), SPEECH_CHECK.minVoicedMs)) {
+      setError(`Cue didn't hear anything in that answer, so it wasn't sent. Press ${PRACTICE_CALL.answerKeyLabel} and try again.`);
+      setStatus("your-turn");
+      return null;
+    }
     setStatus("transcribing");
     const res = await transcribeAudio(audio);
     if (!res.ok) {
@@ -122,14 +157,18 @@ export function useTurnTaking({ speakerLabel, aiRole, voice }: { speakerLabel: s
   const end = useCallback(async () => {
     if (clip.current) await clip.current.rec.stop();
     clip.current = null;
-    const recording = await mic.stopFullRecording();
+    const saved = await mic.stopFullRecording();
     mic.disable();
+    setRecording(false);
     setStatus("ended");
-    return { recording, startedAt: startedAt.current, endedAt: Date.now(), transcript: transcriptRef.current };
+    return { recording: saved, startedAt: startedAt.current, endedAt: Date.now(), transcript: transcriptRef.current };
   }, [mic]);
 
   return {
     mic: mic.state,
+    /** The session recording is running. */
+    recording,
+    aiLevel,
     status,
     setStatus,
     transcript,

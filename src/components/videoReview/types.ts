@@ -2,11 +2,10 @@
  * Video review — shared types (video player + synced transcript).
  * Owner: Design System team.
  *
- * Cue does not record video, audio, or speech during a session (see
- * `src/lib/storage` — sessions persist only derived metrics, "never
- * frames/video"). These types describe a *future* capability the UI is built
- * to support, and the *development fixture* used to design and test it in
- * the meantime (see `fixtures.ts`). Nothing here is wired to real recordings.
+ * Plays a session's recording (video and audio, or audio only), kept on this
+ * device by state/conversations, with markers for suggestions, camera cues
+ * and report moments. The behavioral report (PostSession) still shows the
+ * development fixture (see `fixtures.ts`), which is never a real recording.
  */
 
 import type { TranscriptSegment } from "@/types";

@@ -1,4 +1,4 @@
-// Smoke-tests Moss, Cartesia and Apify with the keys in .env.local.
+// Smoke-tests Moss, Cartesia and Apify with the keys in .env.local (or .env).
 //   node scripts/smoke-services.mjs [moss|cartesia|apify]   (default: all)
 // Uses the same SDK calls as electron/services.cjs, so a pass here means the
 // desktop bridge will work. Costs: a few cents of credits at most.
@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { loadEnvFile, safeMessage } = require("../electron/services.cjs");
-if (!loadEnvFile(path.join(root, ".env.local"))) console.log("note: no .env.local found, using process env only");
+const local = loadEnvFile(path.join(root, ".env.local"));
+if (!loadEnvFile(path.join(root, ".env")) && !local) console.log("note: no .env.local or .env found, using process env only");
 
 const only = process.argv[2];
 const results = [];

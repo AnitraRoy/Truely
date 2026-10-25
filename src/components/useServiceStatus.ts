@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getServiceStatus, type ServiceStatus } from "@/lib/services";
+import { getServiceStatus, serviceBridge, type ServiceStatus } from "@/lib/services";
 
 /**
  * Which providers are configured, for showing honest "needs X" states.
- * `null` while checking. All false outside the desktop app. Owner: Design System.
+ * `null` while checking. All false without a bridge. Owner: Design System.
  */
 export function useServiceStatus(): ServiceStatus | null {
   const [status, setStatus] = useState<ServiceStatus | null>(null);
@@ -17,22 +17,10 @@ export function useServiceStatus(): ServiceStatus | null {
   return status;
 }
 
-/** True when running inside the Cue desktop shell (the service bridge exists). */
+/** True when a service bridge exists: the Cue desktop shell, or the Vite dev server in development. */
 export function hasDesktopBridge(): boolean {
-  return Boolean((globalThis as { cueDesktop?: { services?: unknown } }).cueDesktop?.services);
+  return serviceBridge() !== null;
 }
 
-/** Play a short audio blob; resolves when it ends (or fails). */
-export function playAudio(blob: Blob): Promise<void> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    const done = () => {
-      URL.revokeObjectURL(url);
-      resolve();
-    };
-    audio.onended = done;
-    audio.onerror = done;
-    audio.play().catch(done);
-  });
-}
+/** Playback lives in lib/services/playback; re-exported for existing screen imports. */
+export { playAudio, primeAudio } from "@/lib/services/playback";

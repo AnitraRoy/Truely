@@ -272,6 +272,16 @@ export interface ConversationReport {
 }
 
 /** A local recording, saved only with explicit consent. The blob lives in storage. */
+/** A camera cue kept with a conversation session. Derived data only, never frames. */
+export interface CameraObservation {
+  id: string;
+  /** ms from the conversation session's start. */
+  atMs: number;
+  signal: SignalName;
+  /** The cue as it was shown (config/coaching.ts copy). */
+  text: string;
+}
+
 export interface RecordingRef {
   blobKey: string;
   mimeType: string;
@@ -295,6 +305,8 @@ export interface ConversationSession {
   recording?: RecordingRef;
   /** The behavioral (webcam) session recorded alongside, if signals were on. */
   behavioralSessionId?: string;
+  /** Camera cues from that session, on this session's clock, for the report. */
+  cameraObservations?: CameraObservation[];
   /** Development sample, never real data. Always labelled in the UI. */
   sample?: boolean;
 }

@@ -4,7 +4,6 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { ChoiceGroup } from "@/components/ChoiceGroup";
 import { CheckChips, SelectField, TextField } from "@/components/Field";
-import { LiveTranscript } from "@/components/LiveTranscript";
 import { ServiceNotice } from "@/components/ServiceNotice";
 import { SettingRow } from "@/components/SettingRow";
 import { SectionTitle, Sheet } from "@/components/Sheet";
@@ -23,16 +22,18 @@ import { useProfileStore } from "@/state/profileStore";
 import type { TranscriptSegment } from "@/types";
 import { DEV_INTERVIEW_TURNS } from "../practice/devScript";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
-import { TurnControls, TurnStatusLine } from "../practice/TurnControls";
+import { MeetingStage } from "../practice/MeetingStage";
 import { useTurnTaking } from "../practice/useTurnTaking";
+import { usePracticeCamera } from "../practice/useCameraCoaching";
 
 /**
  * 04 · Mock interviews (Stage 3: Practice). Private Field Journal.
- * Configure a scenario, then a two-way spoken interview: Moss plays the
- * interviewer, Cartesia speaks its questions and transcribes the answers, and
- * the transcript unfolds beside the question. The interviewer never coaches
- * mid-interview; feedback comes in the report afterwards.
- * Focal point (running): the current question.
+ * Configure a scenario, then a two-way spoken interview in the call room
+ * (MeetingStage): Moss plays the interviewer, Cartesia speaks its questions
+ * (captioned as they are spoken) and transcribes the answers, and Space starts
+ * and stops each answer. The interviewer never coaches mid-interview, so the
+ * room shows no suggestions; feedback comes in the report afterwards.
+ * Focal point (running): the interviewer's speaker tile.
  */
 type Mode = "live" | "sample";
 
@@ -47,7 +48,7 @@ export function MockInterview() {
   const [role, setRole] = useState("");
   const [difficulty, setDifficulty] = useState<InterviewDifficulty>("realistic");
   const [goals, setGoals] = useState<string[]>(goalOptions.slice(0, 2));
-  const [record, setRecord] = useState(false);
+  const [record, setRecord] = useState(true);
   const [mode, setMode] = useState<Mode | null>(null);
   const [question, setQuestion] = useState(0);
   const [ending, setEnding] = useState(false);
@@ -55,9 +56,8 @@ export function MockInterview() {
 
   const voice = mode === "live" && Boolean(services?.cartesia);
   const turn = useTurnTaking({ speakerLabel: "Interviewer", aiRole: "interviewer", voice });
+  const camera = usePracticeCamera();
   const running = mode != null;
-  const latest = [...turn.transcript].reverse().find((s) => s.role === "interviewer");
-  const recording = record && voice;
   const finished = question > INTERVIEW_QUESTION_COUNT;
   const missing = services ? (["moss", "cartesia"] as const).filter((s) => !services[s]) : [];
   const difficultyLabel = INTERVIEW_DIFFICULTIES.find((d) => d.value === difficulty)!.label;
@@ -78,8 +78,11 @@ export function MockInterview() {
 
   async function begin(m: Mode) {
     setMode(m);
-    const ok = await turn.start({ record: record && m === "live" });
+    // Camera first, so the recording can include it.
+    const video = await camera.open();
+    const ok = await turn.start({ record, voice: m === "live" && Boolean(services?.cartesia), video });
     if (!ok) {
+      await camera.close(Date.now());
       setMode(null);
       return;
     }
@@ -96,6 +99,7 @@ export function MockInterview() {
   async function finish() {
     setEnding(true);
     const done = await turn.end();
+    const cam = await camera.close(done.startedAt);
     if (mode === "sample") {
       navigate(reportHref("interview", "sample"));
       return;
@@ -111,6 +115,8 @@ export function MockInterview() {
       startedAt: done.startedAt,
       endedAt: done.endedAt,
       recording: done.recording,
+      behavioralSessionId: cam.sessionId,
+      cameraObservations: cam.observations,
     });
     navigate(reportHref("interview", id));
   }
@@ -157,8 +163,8 @@ export function MockInterview() {
               </div>
               <CheckChips legend="Practice goals" help="Used in your report afterwards, not during the interview." options={goalOptions} value={goals} onChange={setGoals} />
               <div className="border-t border-border">
-                <SettingRow label="Record this interview" helpId="interview-rec-help" help="Off by default. Audio only, kept on this device, so you can replay moments in the report.">
-                  <Toggle checked={record} onChange={setRecord} label="Record this interview" describedBy="interview-rec-help" disabled={!services?.cartesia} />
+                <SettingRow label="Record this interview" helpId="interview-rec-help" help="On by default. Video and audio, kept on this device, so you can replay moments in the report. Turn off to skip it this time.">
+                  <Toggle checked={record} onChange={setRecord} label="Record this interview" describedBy="interview-rec-help" />
                 </SettingRow>
               </div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -184,9 +190,10 @@ export function MockInterview() {
             <ul className="mt-3 border-t border-border">
               {[
                 ["Length", `About ${INTERVIEW_QUESTION_COUNT} questions, 15 to 20 minutes`],
-                ["During", "The interviewer speaks; you answer out loud or by typing. A live transcript follows along."],
+                ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type."],
                 ["After", "A review with selected moments from your answers and a next step to practise."],
-                ["Privacy", "Your speech goes to Cartesia and the transcript to Moss, only during the interview."],
+                ["Camera", "Once calibrated, Cue watches head and gaze on this device and marks those moments in your review."],
+                ["Privacy", "Your speech goes to Cartesia and the transcript to Moss, only during the interview. The recording and camera stay on this device."],
               ].map(([k, v]) => (
                 <li key={k} className="border-b border-border py-3">
                   <p className="text-[13px] text-text-muted">{k}</p>
@@ -201,74 +208,28 @@ export function MockInterview() {
   }
 
   return (
-    <AppShell>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-border pb-4">
-        <div>
-          <p className="text-[14px] font-medium">
-            Mock interview{mode === "sample" && <span className="ml-2 font-normal text-ochre">sample interviewer</span>}
-          </p>
-          <p className="text-[14px] text-text-muted">
-            {type}
-            {role ? `, ${role}` : ""}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          {recording && (
-            <p className="flex items-center gap-2 text-[14px]">
-              <span aria-hidden className="h-2 w-2 rounded-pill bg-ochre-mark" />
-              Recording audio on this device
-            </p>
-          )}
-          <TurnStatusLine status={turn.status} />
-        </div>
-      </div>
-
-      <div className="mt-8 grid items-start gap-x-10 gap-y-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
-        <section aria-labelledby="question-title">
-          <p className="font-mono text-[12.5px] text-text-muted">
-            {finished ? "Interview complete" : `Question ${Math.min(question, INTERVIEW_QUESTION_COUNT)} of ${INTERVIEW_QUESTION_COUNT}`}
-          </p>
-          <h1 id="question-title" className="mt-3 max-w-[30ch] text-balance font-display text-[clamp(26px,3vw,36px)] font-semibold leading-[1.15] tracking-[-0.01em]">
-            {latest ? latest.text : <span className="font-serif font-normal italic text-text-muted">The interviewer is getting ready…</span>}
-          </h1>
-
-          <div className="mt-9">
-            {ending ? (
-              <p className="font-serif italic text-text-muted" aria-live="polite">
-                Writing your review…
-              </p>
-            ) : finished ? (
-              <Button onClick={() => void finish()}>See your review</Button>
-            ) : (
-              <TurnControls
-                status={turn.status}
-                voice={voice}
-                mic={turn.mic}
-                error={turn.error}
-                onBegin={turn.beginAnswer}
-                onFinish={() => void turn.finishAnswer().then(answered)}
-                onTyped={(t) => void answered(turn.typedAnswer(t))}
-              />
-            )}
-          </div>
-
-          {!finished && !ending && (
-            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-5">
-              <Button variant="secondary" onClick={() => void finish()} disabled={turn.status === "listening"}>
-                Finish interview
-              </Button>
-              <p className="text-[13.5px] text-text-muted">Finishing early still gives you a review of what you answered.</p>
-            </div>
-          )}
-        </section>
-
-        <Sheet aria-labelledby="transcript-title" className="px-5 py-6">
-          <h2 id="transcript-title" className="text-[14px] font-medium">
-            Live transcript
-          </h2>
-          <LiveTranscript className="mt-4" segments={turn.transcript} label="Live transcript" maxHeight="max-h-[520px]" />
-        </Sheet>
-      </div>
-    </AppShell>
+    <MeetingStage
+      title={`Mock interview: ${type}`}
+      topic={role || "General role"}
+      aiName="Interviewer"
+      status={turn.status}
+      transcript={turn.transcript}
+      aiLevel={turn.aiLevel}
+      voice={voice}
+      mic={turn.mic}
+      error={turn.error}
+      sample={mode === "sample"}
+      {...camera.stageProps(turn.recording)}
+      now={turn.now}
+      progress={finished ? "Interview complete" : `Question ${Math.min(question, INTERVIEW_QUESTION_COUNT)} of ${INTERVIEW_QUESTION_COUNT}`}
+      closed={finished}
+      closedHint="The interview is complete."
+      endLabel={finished ? "See your review" : "Finish interview"}
+      ending={ending}
+      onBegin={turn.beginAnswer}
+      onFinish={() => void turn.finishAnswer().then(answered)}
+      onTyped={(t) => void answered(turn.typedAnswer(t))}
+      onEnd={() => void finish()}
+    />
   );
 }

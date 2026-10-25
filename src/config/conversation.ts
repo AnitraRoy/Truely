@@ -82,6 +82,26 @@ export const LIVE_CONVERSATION = {
 /** Voice coaching: suggestions shown at once (newest first). */
 export const VOICE_MAX_SUGGESTIONS = 3;
 
+/**
+ * Silence check on recorded answers and live chunks, so speech-to-text never
+ * receives a clip with no one talking (it tends to invent words from silence).
+ */
+export const SPEECH_CHECK = {
+  /** How often the microphone level is sampled while a clip records. */
+  tickMs: 100,
+  /** Less voiced time than this and the clip is treated as silent. */
+  minVoicedMs: 600,
+} as const;
+
+/** Practice call room (MeetingStage). */
+export const PRACTICE_CALL = {
+  /** How long a suggestion stays at the top of the call before it fades; it stays in Notes. */
+  suggestionVisibleMs: 16000,
+  /** The key that starts and stops an answer, as `KeyboardEvent.code`, and its label. */
+  answerKey: "Space",
+  answerKeyLabel: "Space",
+} as const;
+
 /** Plain-language reasons a provider isn't available, keyed by the service error. */
 export const SERVICE_UNAVAILABLE_COPY: Record<string, string> = {
   desktop_only: "This needs the Cue desktop app, where your service keys stay private.",

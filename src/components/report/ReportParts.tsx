@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { FEEDBACK_CATEGORY_LABELS } from "@/config/conversation";
+import { SIGNAL_LABELS } from "@/lib/reports";
 import type { ConversationSession, FeedbackEvent, ReportMoment, TranscriptSegment } from "@/types";
 import { SectionTitle, Sheet } from "../Sheet";
 import { TranscriptPanel } from "../videoReview/TranscriptPanel";
@@ -44,11 +45,11 @@ export function ReportFacts({ facts }: { facts: { label: string; value: ReactNod
   );
 }
 
-/** One timestamped note per moment and suggestion, merged in time order. */
+/** One timestamped note per moment, suggestion and camera cue, merged in time order. */
 export interface EvidenceNote {
   id: string;
-  /** A moment the report calls out, or a suggestion given during the session. */
-  source: "moment" | "feedback";
+  /** A moment the report calls out, a suggestion given during the session, or a camera cue. */
+  source: "moment" | "feedback" | "camera";
   atMs: number;
   segmentId: string;
   label: string;
@@ -77,7 +78,20 @@ export function evidenceNotes(session: ConversationSession): EvidenceNote[] {
       note: f.explanation,
       suggestion: f.suggestion,
     }));
-  return [...fromMoments, ...fromFeedback].sort((a, b) => a.atMs - b.atMs);
+  // Camera cues point at whatever was being said when they appeared, if anything.
+  const lineAt = (atMs: number) => [...session.transcript].reverse().find((t) => t.startMs <= atMs)?.id ?? "";
+  const fromCamera = (session.cameraObservations ?? []).map((o) => {
+    const signal = SIGNAL_LABELS[o.signal];
+    return {
+      id: `camera-${o.id}`,
+      source: "camera" as const,
+      atMs: o.atMs,
+      segmentId: lineAt(o.atMs),
+      label: `Camera: ${signal.charAt(0).toUpperCase()}${signal.slice(1)}`,
+      note: o.text,
+    };
+  });
+  return [...fromMoments, ...fromFeedback, ...fromCamera].sort((a, b) => a.atMs - b.atMs);
 }
 
 /**
@@ -105,10 +119,10 @@ export function EvidenceReview({
   if (recordingUrl) {
     const markers: ReviewMarker[] = notes.map((n) => ({
       id: n.id,
-      kind: n.source === "feedback" ? "cue" : "highlight",
+      kind: n.source === "feedback" ? "cue" : n.source === "camera" ? "observation" : "highlight",
       atMs: n.atMs,
       label: n.label,
-      transcriptSegmentId: n.segmentId,
+      transcriptSegmentId: n.segmentId || undefined,
     }));
     return (
       <div>

@@ -1,11 +1,12 @@
 import { buildConversationReport } from "@/lib/conversation";
 import { newId, saveConversation } from "@/state/conversations";
-import type { CommunicationProfile, ConversationKind, ConversationSession, FeedbackEvent, TranscriptSegment } from "@/types";
+import type { SessionRecording } from "@/components/sessionRecorder";
+import type { CameraObservation, CommunicationProfile, ConversationKind, ConversationSession, FeedbackEvent, TranscriptSegment } from "@/types";
 
 /**
  * End of a practice or live session: write the reflection from the
  * transcript (when there's anything to reflect on), then save the session
- * under the person's saving consent. The report may be absent — the report
+ * (state/conversations decides where: a recorded session is kept on disk). The report may be absent — the report
  * board then shows the transcript and notes alone, never invented findings.
  */
 export async function finishConversation(input: {
@@ -18,8 +19,9 @@ export async function finishConversation(input: {
   feedback: FeedbackEvent[];
   startedAt: number;
   endedAt: number;
-  recording?: { blob: Blob; durationMs: number } | null;
+  recording?: SessionRecording | null;
   behavioralSessionId?: string;
+  cameraObservations?: CameraObservation[];
 }): Promise<string> {
   const report = await buildConversationReport({ kind: input.kind, profile: input.profile, goals: input.goals, transcript: input.transcript });
   const id = newId(input.kind);
@@ -35,8 +37,9 @@ export async function finishConversation(input: {
     transcript: input.transcript,
     feedback: input.feedback,
     ...(report ? { report } : {}),
-    ...(rec ? { recording: { blobKey: id, mimeType: rec.blob.type, hasVideo: false, durationMs: rec.durationMs } } : {}),
+    ...(rec ? { recording: { blobKey: id, mimeType: rec.blob.type, hasVideo: rec.hasVideo, durationMs: rec.durationMs } } : {}),
     ...(input.behavioralSessionId ? { behavioralSessionId: input.behavioralSessionId } : {}),
+    ...(input.cameraObservations?.length ? { cameraObservations: input.cameraObservations } : {}),
   };
   await saveConversation(session, rec?.blob);
   return id;

@@ -22,8 +22,9 @@ export function WelcomeStep({ headingRef }: { headingRef: RefObject<HTMLHeadingE
 
         <Ledger className="mt-8">
           <LedgerRow label="Processed">Everything runs in this browser, on this device.</LedgerRow>
+          <LedgerRow label="Recorded">Each session&apos;s video and audio, kept on this device so you can play it back. On by default; turn it off before any session.</LedgerRow>
           <LedgerRow label="Saved">Only if you allow it: session counts, cue timings, and your feedback.</LedgerRow>
-          <LedgerRow label="Never saved">Video, images, or anything that could show your face.</LedgerRow>
+          <LedgerRow label="Never uploaded">Your recordings and camera frames. They stay on this device.</LedgerRow>
         </Ledger>
 
         <PrivacyNote className="mt-6" />

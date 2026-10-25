@@ -120,8 +120,9 @@ place that asks for permissions in sequence; `/calibrate` stays for recalibratio
 1. **Welcome + privacy:** what is processed locally, what is saved, what is never saved.
 2. **Goal:** one primary goal (`camera_engagement`, `head_movement`, `general_awareness`), with the
    existing "looking at the camera isn't the goal" note.
-3. **Consent to save metrics:** explicit opt-in toggle, *off by default*; explain that raw video is never
-   stored (PRD §4.4). Declining is a fully supported path (sessions then live only in memory).
+3. **Consent to save metrics:** explicit opt-in toggle, *off by default* (PRD §4.4). Declining is a fully
+   supported path. Session recordings are separate: on by default per session, always indicated, kept on this
+   device, and a recorded session is kept on disk with its recording so it can be played back.
 4. **Camera:** permission through a user click; preview via `WebcamFrame`; denied and no-device states
    with next-step instructions and a retry button (PRD §6 Screen B).
 5. **Baseline:** hand off to the existing calibration phase (30–60 s). On completion, route to `/home`
