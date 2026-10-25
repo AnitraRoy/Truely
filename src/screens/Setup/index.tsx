@@ -122,12 +122,11 @@ export function Setup() {
           usesCamera ? "md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]" : ""
         }`}
       >
-        <WebcamFrame
-          videoRef={camera.videoRef}
-          state={camera.state}
-          className={usesCamera ? "" : "hidden"}
-          overlay={step === BASELINE && phase === "range" ? <HeadRangePrompt range={range} /> : undefined}
-        />
+        <div className={usesCamera ? "" : "hidden"}>
+          {/* The direction sits above the preview, never over the person's face. */}
+          {step === BASELINE && phase === "range" && <HeadRangePrompt range={range} />}
+          <WebcamFrame videoRef={camera.videoRef} state={camera.state} />
+        </div>
 
         <section className={usesCamera || step === 0 ? "" : "max-w-3xl"}>
           {stepBody}

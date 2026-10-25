@@ -103,7 +103,7 @@ export function BaselineStep({
         Draw your camera baseline
       </StepHeading>
       <p className="mt-3 text-text-muted">
-        Follow the directions on your preview to look up, down, left and right. It takes under a minute. You
+        Follow the directions above your preview to look up, down, left and right. It takes under a minute. You
         don&apos;t need to hold eye contact, and you won&apos;t be asked to talk.
       </p>
       <div className="mt-6">

@@ -11,8 +11,9 @@ import type { HeadRangeTracker } from "./useHeadPose";
  *
  * Three pieces, so both calibration flows (Setup and /calibrate) share them:
  *  - useHeadRange: drives the sequence (pause, resume, restart, skip a position).
- *  - HeadRangePrompt: the on-screen direction, placed over the camera preview
- *    (WebcamFrame `overlay`) at the edge the person should move toward.
+ *  - HeadRangePrompt: the current direction as a banner in the page, directly
+ *    above the camera preview. It is never drawn over the preview, so it can't
+ *    cover the person's face.
  *  - HeadRangeSteps: the text-side checklist and controls.
  *
  * Gated mode: when a `tracker` (useHeadPose) is passed and ready, a position's
@@ -21,7 +22,8 @@ import type { HeadRangeTracker } from "./useHeadPose";
  * can't load, it falls back to the original timer and says so. The person can
  * always skip one position or the whole part, so nothing can trap them.
  *
- * The preview is mirrored, so "your left" is the left edge of the preview.
+ * The preview is mirrored, so "your left" is the left side of the preview and
+ * the arrow points that way.
  * What was held is returned to `onComplete` but not stored yet.
  * TODO(cv-team): feed `HeadRangeResult.held` into the personalization baseline.
  */
@@ -222,15 +224,6 @@ export function useHeadRange({
   };
 }
 
-/** Where the prompt sits on the preview: at the edge the person moves toward. */
-const PLACEMENT: Record<HeadDirection, string> = {
-  center: "bottom-4 left-1/2 -translate-x-1/2 max-w-[calc(100%-2rem)]",
-  up: "top-4 left-1/2 -translate-x-1/2 max-w-[calc(100%-2rem)]",
-  down: "bottom-4 left-1/2 -translate-x-1/2 max-w-[calc(100%-2rem)]",
-  left: "left-4 top-1/2 -translate-y-1/2 max-w-[38%]",
-  right: "right-4 top-1/2 -translate-y-1/2 max-w-[38%]",
-};
-
 /** Arrow rotation per direction; the centre position shows a still mark instead. */
 const ROTATE: Record<Exclude<HeadDirection, "center">, string> = {
   up: "-rotate-90",
@@ -265,21 +258,21 @@ function DirectionMark({ direction }: { direction: HeadDirection }) {
 }
 
 /**
- * The direction drawn over the preview. A solid paper label (no blur), small
- * enough to leave the person's face clear, with a hold bar that fills while
- * they hold the position.
+ * The current direction as a banner above the preview (not over it): the arrow,
+ * what to do, and a hold bar that fills while the position is held. Place it
+ * directly above <WebcamFrame>, in the same column.
  */
 export function HeadRangePrompt({ range }: { range: HeadRange }) {
   const step = STEPS[range.index];
   return (
     <div
-      className={`absolute ${PLACEMENT[step.direction]} w-max rounded border ${
+      className={`mb-3 rounded border ${
         range.mode === "gated" && range.detected && !range.paused ? "border-accent" : "border-border"
-      } bg-bg/95 px-4 py-3 text-text-primary`}
+      } bg-surface px-4 py-3 text-text-primary`}
     >
       <div className="flex items-center gap-3">
         <DirectionMark direction={step.direction} />
-        <p className="font-display text-[clamp(17px,2.2vw,22px)] font-semibold leading-tight">
+        <p className="font-display text-[clamp(18px,2.4vw,24px)] font-semibold leading-tight">
           {range.paused ? "Paused" : step.prompt}
         </p>
       </div>
@@ -340,7 +333,7 @@ export function HeadRangeSteps({ range, onSkip }: { range: HeadRange; onSkip: ()
   return (
     <div>
       <p className="text-text-muted">
-        Follow the directions on your preview and hold each position for a moment. Move only as far as is
+        Follow the directions above your preview and hold each position for a moment. Move only as far as is
         comfortable; small movements are enough.
         {range.mode === "gated" && " Cue waits until it sees each movement before moving on."}
       </p>
