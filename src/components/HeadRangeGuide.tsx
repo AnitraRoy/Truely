@@ -335,7 +335,7 @@ export function HeadRangeSteps({ range, onSkip }: { range: HeadRange; onSkip: ()
       <p className="text-text-muted">
         Follow the directions above your preview and hold each position for a moment. Move only as far as is
         comfortable; small movements are enough.
-        {range.mode === "gated" && " Cue waits until it sees each movement before moving on."}
+        {range.mode === "gated" && " truely. waits until it sees each movement before moving on."}
       </p>
 
       {/* Announce each new position and what it is waiting for, for screen-reader users. */}

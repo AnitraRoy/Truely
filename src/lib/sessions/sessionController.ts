@@ -520,7 +520,7 @@ export function createSessionController(options: SessionControllerOptions): Sess
     async startSession() {
       if (phase === "live") return false;
       if (!hasBaseline()) {
-        fail({ kind: "no_baseline", message: "Cue needs a quick baseline first. Start calibration to continue." });
+        fail({ kind: "no_baseline", message: "truely. needs a quick baseline first. Start calibration to continue." });
         return false;
       }
       if (!(await startCamera())) return false;

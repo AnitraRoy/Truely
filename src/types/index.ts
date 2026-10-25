@@ -1,5 +1,5 @@
 /**
- * Cue — Shared type contract
+ * truely. — Shared type contract
  * =============================================================================
  * THIS FILE IS THE INTEGRATION BOUNDARY BETWEEN TEAMS.
  *

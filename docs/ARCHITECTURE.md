@@ -1,6 +1,6 @@
 # Architecture
 
-Cue is a client-only app. One per-frame pipeline drives everything; each stage is an
+truely. is a client-only app. One per-frame pipeline drives everything; each stage is an
 independent module behind a type in `src/types`, so any stage can be replaced without
 rewriting the others (PRD §9).
 

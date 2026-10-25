@@ -1,5 +1,5 @@
 /**
- * Contracts for the third-party services Cue can use (Moss, Cartesia, Apify).
+ * Contracts for the third-party services truely. can use (Moss, Cartesia, Apify).
  * The renderer never holds their keys: calls go through the desktop shell
  * (electron/services.cjs). Outside the desktop app every call resolves to
  * { ok: false, error: "desktop_only" } so screens can show a labelled fallback.

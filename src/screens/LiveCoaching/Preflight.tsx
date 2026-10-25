@@ -43,7 +43,7 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
       <PageHeader
         step="Step 4 of 4: in the moment"
         title="Stay present in the conversation."
-        lede="Live coaching is discreet: a small note now and then, never a script. Choose what Cue can use for this session."
+        lede="Live coaching is discreet: a small note now and then, never a script. Choose what truely. can use for this session."
       />
 
       <div className="mt-10 grid items-start gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,1fr)]">
@@ -63,10 +63,10 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
                   key: "mic",
                   label: "Microphone",
                   help: canListen
-                    ? "Transcribes the conversation with Cartesia so Cue can offer an occasional suggestion (written by Moss). Audio isn't kept unless you record."
+                    ? "Transcribes the conversation with Cartesia so truely. can offer an occasional suggestion (written by Moss). Audio isn't kept unless you record."
                     : desktop
                       ? "Live transcription needs Cartesia, which isn't set up yet."
-                      : "Live transcription needs the Cue desktop app.",
+                      : "Live transcription needs the truely. desktop app.",
                   checked: microphone,
                   onChange: setMicrophone,
                   disabled: !canListen,
@@ -125,7 +125,7 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
               ["During", "Your preview or the transcript, and a small note in the margin only when it's useful. Notes fade on their own."],
               ["Control", "Pause stops all listening and measuring. End stops everything at once."],
               ["Afterwards", "A summary, the moments worth revisiting with timestamps, and the transcript if the microphone was on."],
-              ["Be considerate", "Use live assistance only where it's allowed, and let others know if Cue is listening."],
+              ["Be considerate", "Use live assistance only where it's allowed, and let others know if truely. is listening."],
             ].map(([k, v]) => (
               <li key={k} className="border-b border-border py-3">
                 <p className="text-[13px] text-text-muted">{k}</p>

@@ -33,7 +33,7 @@ import { usePracticeCues } from "../practice/usePracticeCues";
  * Configure a scenario, then a two-way spoken interview in the call room
  * (MeetingStage): Moss plays the interviewer, Cartesia speaks its questions
  * (captioned as they are spoken) and transcribes the answers, and Space starts
- * and stops each answer. The interviewer never coaches; after each answer Cue
+ * and stops each answer. The interviewer never coaches; after each answer truely.
  * itself adds up to two private suggestions about it (answerSuggestions),
  * shown in the overlay and kept for the report.
  * Focal point (running): the interviewer's speaker tile.
@@ -103,7 +103,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
     await ask([], m, 1);
   }
 
-  /** Cue's private notes on the answer just given. Runs beside the next question, never delays it. */
+  /** truely.'s private notes on the answer just given. Runs beside the next question, never delays it. */
   async function suggestAbout(transcript: TranscriptSegment[]) {
     const answer = transcript[transcript.length - 1];
     const asked = [...transcript].reverse().find((s) => s.role === "interviewer");
@@ -234,9 +234,9 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
             <ul className="mt-3 border-t border-border">
               {[
                 ["Length", `About ${INTERVIEW_QUESTION_COUNT} questions, 15 to 20 minutes`],
-                ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type. After each answer, Cue adds a private note at the top of your screen."],
+                ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type. After each answer, truely. adds a private note at the top of your screen."],
                 ["After", "A review with selected moments from your answers and a next step to practise."],
-                ["Camera", "Once calibrated, Cue watches head and gaze on this device and marks those moments in your review."],
+                ["Camera", "Once calibrated, truely. watches head and gaze on this device and marks those moments in your review."],
                 ["Privacy", "Your speech goes to Cartesia and the transcript to Moss, only during the interview. The recording and camera stay on this device."],
               ].map(([k, v]) => (
                 <li key={k} className="border-b border-border py-3">

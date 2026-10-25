@@ -43,7 +43,7 @@ const YOUTUBE_POLL_MS = 200;
  * Drives a real `<video>` element (`mode: "file"`) or the YouTube IFrame API
  * (`mode: "youtube"`, used only for the development placeholder — see
  * `fixtures.ts`); otherwise runs its own clock so the rest of the UI
- * (markers, transcript sync) still works before Cue records any video.
+ * (markers, transcript sync) still works before truely. records any video.
  */
 export function useVideoReviewPlayer({
   mode,

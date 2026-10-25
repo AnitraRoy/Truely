@@ -2,7 +2,7 @@
 
 **Owner:** UI / App-shell · **Depends on:** `state/profileStore`, shared components, `assets/bluejay_final.jpg`
 
-Hero, privacy note, how a session works, what Cue won't do, who it's for, closing call to action
+Hero, privacy note, how a session works, what truely. won't do, who it's for, closing call to action
 (`docs/FRONTEND_GUIDE.md` §3.1).
 
 ## Rules

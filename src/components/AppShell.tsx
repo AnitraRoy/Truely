@@ -10,7 +10,7 @@ import { PLATES, type PlateName } from "@/assets/art";
  * journey order, each with a line saying what it's for. Owner: Design System.
  *
  * One list of tools (`TOOLS`) feeds both toolbars, so a destination always has
- * the same name. The "Cue." wordmark goes to the public landing page (`/`);
+ * the same name. The "truely." wordmark goes to the public landing page (`/`);
  * the home icon goes to Home (`/home`). Below `lg` the side toolbar is hidden
  * and the top toolbar's Menu disclosure shows the tools with their purpose
  * lines; the home icon stays. Never used while a live session is running
@@ -206,11 +206,11 @@ export function AppShell({
           <span className="flex items-baseline gap-3 lg:w-[236px]">
             <Link
               to="/"
-              aria-label="Cue landing page"
-              title="Cue landing page"
+              aria-label="truely. landing page"
+              title="truely. landing page"
               className="rounded font-display text-[24px] font-semibold leading-none tracking-[-0.01em] transition-colors duration-cue ease-cue hover:text-accent"
             >
-              Cue<span className="text-ochre-mark">.</span>
+              truely<span className="text-ochre-mark">.</span>
             </Link>
             <span className="hidden font-serif text-[14px] italic text-text-muted 2xl:inline">Your communication journal</span>
           </span>

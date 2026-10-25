@@ -71,11 +71,11 @@ export function BaselineStep({
           Your camera baseline is ready.
         </StepHeading>
         <p className="mt-3 text-text-muted">
-          Cue will compare your head and gaze to your own normal. You can recalibrate any time.
+          truely. will compare your head and gaze to your own normal. You can recalibrate any time.
         </p>
         <p className="mt-3 text-text-muted">
           {hasStyle
-            ? "For how you sound, Cue coaches toward the desired style you chose."
+            ? "For how you sound, truely. coaches toward the desired style you chose."
             : "For how you sound, there's no recording of you to compare against. Instead, you choose a desired style: a speaker or talk you admire, and the patterns you want to practise."}
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-6">

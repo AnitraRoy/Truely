@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * A small status box shown while Cue learns the person's usual head position
+ * A small status box shown while truely. learns the person's usual head position
  * and movement from the camera (the behavioral baseline), with its progress,
  * then briefly "Camera cues are on" once analysis starts. Owner: Design System.
  *

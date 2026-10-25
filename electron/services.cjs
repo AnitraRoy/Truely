@@ -155,7 +155,7 @@ function registerServices({ isTrustedSender }) {
   loadServiceEnv();
 
   ipcMain.handle("cue:svc:status", (event) => (isTrustedSender(event) ? status() : { moss: false, cartesia: false, apify: false }));
-  // Only Cue's own pages may call a service.
+  // Only truely.'s own pages may call a service.
   for (const channel of Object.keys(handlers)) {
     ipcMain.handle(channel, (event, arg) => (isTrustedSender(event) ? callService(channel, arg) : { ok: false, error: "untrusted_sender" }));
   }

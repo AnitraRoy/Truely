@@ -33,8 +33,8 @@ describe("SessionOverlay", () => {
 
   it("offers a dock control only when given one (desktop shell)", () => {
     const html = renderToStaticMarkup(<SessionOverlay cue={null} paused={false} onDismiss={noop} draggable onDock={noop} />);
-    expect(html).toContain('aria-label="Show cues in the Cue window instead"');
-    expect(renderToStaticMarkup(<SessionOverlay cue={null} paused={false} onDismiss={noop} />)).not.toContain("Cue window");
+    expect(html).toContain('aria-label="Show cues in the truely. window instead"');
+    expect(renderToStaticMarkup(<SessionOverlay cue={null} paused={false} onDismiss={noop} />)).not.toContain("truely. window");
   });
 });
 

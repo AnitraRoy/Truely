@@ -17,7 +17,7 @@ describe("Landing", () => {
     expect(html).toContain('href="#how"');
   });
 
-  it("states privacy and what Cue won't do, with no fabricated proof", () => {
+  it("states privacy and what truely. won't do, with no fabricated proof", () => {
     expect(html).toContain("never uploaded");
     expect(html).toContain("Give you a score");
     expect(html).not.toMatch(/\d+%|testimonial|trusted by/i);
@@ -50,7 +50,7 @@ describe("Overview at /home", () => {
         <Dashboard />
       </MemoryRouter>,
     );
-    expect(html).toMatch(/<a[^>]*aria-label="Cue landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="Cue landing page"/);
+    expect(html).toMatch(/<a[^>]*aria-label="truely. landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="truely. landing page"/);
     const top = html.slice(html.indexOf('aria-label="Primary"'), html.indexOf("</nav>"));
     expect(top).toMatch(/aria-label="Home"/);
     expect(top).toContain('aria-current="page"');

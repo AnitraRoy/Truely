@@ -185,19 +185,19 @@ export function useTurnTaking({
     const audio = await current.rec.stop();
     const endMs = now();
     if (isSilentClip(current.rec.speech(), SPEECH_CHECK.minVoicedMs)) {
-      setError(`Cue didn't hear anything in that answer, so it wasn't sent. Press ${PRACTICE_CALL.answerKeyLabel} and try again.`);
+      setError(`truely. didn't hear anything in that answer, so it wasn't sent. Press ${PRACTICE_CALL.answerKeyLabel} and try again.`);
       setStatus("your-turn");
       return null;
     }
     setStatus("transcribing");
     const res = await transcribeAudio(audio);
     if (!res.ok) {
-      setError("Cue couldn't transcribe that answer. Try again, or type it below.");
+      setError("truely. couldn't transcribe that answer. Try again, or type it below.");
       setStatus("your-turn");
       return null;
     }
     if (!res.text) {
-      setError("Cue didn't catch any speech. Check your microphone, then try again.");
+      setError("truely. didn't catch any speech. Check your microphone, then try again.");
       setStatus("your-turn");
       return null;
     }

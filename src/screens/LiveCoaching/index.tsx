@@ -26,7 +26,7 @@ import { useCameraCoaching } from "../practice/useCameraCoaching";
 /**
  * 05 · Live coaching (PRD §6 Screen C) — the most important screen.
  * Private Field Journal. Starts with a preflight where the person chooses
- * exactly what Cue may access (microphone, camera signals, recording); nothing
+ * exactly what truely. may access (microphone, camera signals, recording); nothing
  * is requested until they start.
  *
  * CLAUDE.md §6: with the camera on, the preview is the focal point; cues and
@@ -60,7 +60,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
   const goals = useMemo(() => goalsFrom(profile, DEFAULT_PRACTICE_GOALS), [profile]);
   const cam = useCameraCoaching();
   const { videoRef, state } = cam;
-  const overlay = useFloatingOverlay({ title: "Cue", ...OVERLAY_SIZE });
+  const overlay = useFloatingOverlay({ title: "truely.", ...OVERLAY_SIZE });
   const desktop = overlay.desktop;
   const floating = overlay.overlayWindow != null;
 
@@ -170,7 +170,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
         <span className="flex items-center gap-4 font-display text-[20px] font-semibold">
           <BackButton fallback="/home" label="Back to choices" onBack={() => setConfirmLeave(true)} />
           <span>
-          Cue<span className="text-ochre-mark">.</span>
+          truely<span className="text-ochre-mark">.</span>
           {choices.title && <span className="ml-3 font-sans text-[14.5px] font-normal text-text-muted">{choices.title}</span>}
           </span>
         </span>
@@ -204,7 +204,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
         <aside className="border-l border-border pl-5">
           <h2 className="text-[13.5px] font-medium text-text-muted">Field notes</h2>
           <p className="mt-2 font-serif text-[15px] italic leading-snug">
-            {paused ? "Coaching is paused. Nothing is being listened to or measured." : "Cue stays quiet unless something is worth a small note."}
+            {paused ? "Coaching is paused. Nothing is being listened to or measured." : "truely. stays quiet unless something is worth a small note."}
           </p>
 
           <ul className="mt-5 space-y-2 text-[13px] text-text-muted">
@@ -290,7 +290,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
               )
             ) : (
               <p className="m-0 font-serif text-[14px] italic text-text-muted">
-                To float cues over your other tabs, use Chrome, Edge, or the Cue desktop app.
+                To float cues over your other tabs, use Chrome, Edge, or the truely. desktop app.
               </p>
             )}
             <Button variant="ghost" onClick={togglePause} disabled={!live || ending}>

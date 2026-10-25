@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
  * An always-on-top window that floats over whatever the person switches to, so a
  * live session can sit on top of their meeting. Two backends, same portal:
  *
- *  - "desktop": inside the Cue desktop shell (electron/main.cjs), a frameless
+ *  - "desktop": inside the truely. desktop shell (electron/main.cjs), a frameless
  *    window above every app, excluded from screen shares and recordings where the
  *    OS supports it (Windows, macOS), with global shortcuts to hide it or make it
  *    click-through. This is OpenCluely's invisible-overlay technique.
@@ -108,7 +108,7 @@ async function requestWindow(mode: OverlayMode, width: number, height: number): 
   return api.requestWindow({ width, height });
 }
 
-export function useFloatingOverlay({ width = 340, height = 345, title = "Cue" } = {}) {
+export function useFloatingOverlay({ width = 340, height = 345, title = "truely." } = {}) {
   const [overlayWindow, setOverlayWindow] = useState<Window | null>(null);
   const [desktop, setDesktop] = useState<DesktopOverlayState | null>(null);
   const mode = getOverlayMode();

@@ -3,7 +3,7 @@ import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } f
 /**
  * Thin wrapper around the YouTube IFrame Player API. Used only to show a
  * public placeholder recording in the development fixture (`fixtures.ts`) —
- * Cue doesn't record real video, so there's nothing else to embed here. The
+ * truely. doesn't record real video, so there's nothing else to embed here. The
  * imperative surface mirrors the native `<video>` path closely enough that
  * `useVideoReviewPlayer` can drive either one the same way.
  */

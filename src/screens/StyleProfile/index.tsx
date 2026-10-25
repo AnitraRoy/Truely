@@ -88,7 +88,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
   const [mode, setMode] = useState<Mode>(saved?.reference?.source === "pasted" ? "paste" : saved?.reference?.url ? "link" : "search");
   const [url, setUrl] = useState(saved?.reference?.url ?? "");
   const [pasted, setPasted] = useState("");
-  // "Find one": the request, what Cue searched for, the results, and the one the person picked.
+  // "Find one": the request, what truely. searched for, the results, and the one the person picked.
   const [request, setRequest] = useState(saved?.reference?.query ?? "");
   const [searchedQuery, setSearchedQuery] = useState("");
   const [candidates, setCandidates] = useState<ReferenceCandidate[]>([]);
@@ -128,7 +128,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
             ? "No talks with captions turned up for that. Try a name plus \"talk\" or \"interview\", or paste a link."
             : res.reason === "empty_query"
               ? "Say who or what you want to sound like first."
-              : "Cue couldn't reach Apify just now. Try again, or paste a link or text instead.",
+              : "truely. couldn't reach Apify just now. Try again, or paste a link or text instead.",
       });
       return;
     }
@@ -155,12 +155,12 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
           kind: "error",
           message:
             res.reason === "no_transcript"
-              ? "That video has no captions Cue can read. Try another video, or paste a transcript instead."
+              ? "That video has no captions truely. can read. Try another video, or paste a transcript instead."
               : res.reason === "no_text"
                 ? "That page has too little readable text, or it blocks automated reading. Try another link, or paste the text instead."
                 : res.reason === "unsupported_url"
-                  ? "Cue can read YouTube links and public web pages. Paste the text for anything else."
-                  : "Cue couldn't reach Apify just now. Try again, or paste the text instead.",
+                  ? "truely. can read YouTube links and public web pages. Paste the text for anything else."
+                  : "truely. couldn't reach Apify just now. Try again, or paste the text instead.",
         });
         return;
       }
@@ -178,7 +178,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
     setPhase({ kind: "analysing" });
     const style = await extractStyle({ admire, contexts, referenceText, speech });
     if (!style) {
-      setPhase({ kind: "error", message: "Cue couldn't draft patterns this time. Try again, or write your own below." });
+      setPhase({ kind: "error", message: "truely. couldn't draft patterns this time. Try again, or write your own below." });
       return;
     }
     setReference(ref);
@@ -232,7 +232,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
           >
             <div>
               <p id="ref-mode-label" className="text-[14px] font-medium">
-                How do you want to give Cue a reference?
+                How do you want to give truely. a reference?
               </p>
               <div className="mt-2">
                 <ChoiceGroup<Mode>
@@ -286,7 +286,7 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
 
             <TextArea
               label="What do you admire?"
-              help="In your own words. Cue uses this to understand what you want to improve."
+              help="In your own words. truely. uses this to understand what you want to improve."
               placeholder="For example: they explain complex ideas simply, and pause before the important part."
               value={admire}
               onChange={(e) => setAdmire(e.target.value)}
@@ -385,9 +385,9 @@ export function StyleProfilePanel({ onReview }: { onReview: () => void }) {
         </h2>
         <div>
           <p className="max-w-[62ch] text-text-muted">
-            Cue doesn&apos;t record a sample of you talking to compare against. The style you choose here is the baseline for how
+            truely. doesn&apos;t record a sample of you talking to compare against. The style you choose here is the baseline for how
             you sound. Separately, a short camera calibration measures your natural head and gaze patterns, only if you turn it
-            on. Cue never infers one from the other.
+            on. truely. never infers one from the other.
           </p>
           <Link to="/calibrate" className="mt-3 inline-block underline underline-offset-4 hover:text-accent">
             {calibrated ? "Recalibrate your camera baseline" : "Set up camera calibration"}

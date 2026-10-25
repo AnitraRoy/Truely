@@ -1,15 +1,15 @@
 # CLAUDE.md — Frontend Design & UI/UX Standards
 
-This file governs how the **frontend / UI-UX** of Cue is designed and built. It is the
+This file governs how the **frontend / UI-UX** of truely. is designed and built. It is the
 design constitution: read it before touching anything under `src/screens`,
 `src/components`, `src/styles`, or `tailwind.config.ts`. Engine logic lives in
 `src/lib/*` and is out of scope for design changes (see "Boundaries" below).
 
 ---
 
-## 1. What Cue is (design in one paragraph)
+## 1. What truely. is (design in one paragraph)
 
-Cue is a **privacy-first, real-time communication coach**. It learns a person's
+truely. is a **privacy-first, real-time communication coach**. It learns a person's
 on-camera baseline during a short calibration, then offers *discreet, timely* cues when
 it detects a sustained, goal-relevant deviation — and otherwise stays quiet. The product
 promise is: **"a coach that learns when to leave you alone and when to help."** The UI

@@ -37,7 +37,7 @@ export function MicProblem({ state }: { state: "denied" | "unavailable" | string
   if (state === "denied")
     return (
       <p role="alert" className="text-[14.5px] text-warning">
-        The microphone is blocked. Allow microphone access for Cue in your browser or system settings, then try again.
+        The microphone is blocked. Allow microphone access for truely. in your browser or system settings, then try again.
       </p>
     );
   if (state === "unavailable")

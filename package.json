@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Cue — personalized real-time communication coach (hackathon MVP)",
+  "description": "truely. — personalized real-time communication coach (hackathon MVP)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

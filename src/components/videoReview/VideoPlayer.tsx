@@ -14,7 +14,7 @@ const SKIP_MS = 10_000;
  * The video review player. Shows the real recording when one exists
  * (`data.videoSrc`); a public YouTube placeholder when that's all the
  * development fixture has (`data.youtubeVideoId`); otherwise an honest
- * "no recording" panel — Cue doesn't record video today, so every real
+ * "no recording" panel — truely. doesn't record video today, so every real
  * report hits that last path (see `types.ts`). The playback bar, controls,
  * and transcript sync all work the same way regardless of which it is.
  */

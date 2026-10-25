@@ -26,7 +26,7 @@ Opening needs a click (browser rule). Two backends:
 
 | Where | How | Seen by screen shares? |
 | --- | --- | --- |
-| Cue desktop app (`npm run desktop:dev`) | `window.open` → frameless Electron window, OpenCluely-style: `setContentProtection(true)`, always-on-top at `screen-saver` level, off the taskbar (`electron/main.cjs`) | No on Windows 10 2004+ and macOS*; yes on Linux |
+| truely. desktop app (`npm run desktop:dev`) | `window.open` → frameless Electron window, OpenCluely-style: `setContentProtection(true)`, always-on-top at `screen-saver` level, off the taskbar (`electron/main.cjs`) | No on Windows 10 2004+ and macOS*; yes on Linux |
 | Chrome / Edge 116+ | Document Picture-in-Picture window, floats over tabs | Yes |
 | Other browsers | Not available; a note points to Chrome, Edge, or the desktop app | n/a |
 

@@ -36,5 +36,5 @@ export function classifyCameraError(err: unknown): CueError {
       message: "Your camera is being used by another app. Close it and try again.",
     };
   }
-  return { kind: "vision_init", message: `Cue couldn't start tracking. ${detail}`.trim() };
+  return { kind: "vision_init", message: `truely. couldn't start tracking. ${detail}`.trim() };
 }

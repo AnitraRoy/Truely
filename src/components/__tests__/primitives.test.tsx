@@ -34,7 +34,7 @@ describe("SiteNav", () => {
         <SiteNav />
       </MemoryRouter>,
     );
-    expect(html).toMatch(/<a[^>]*aria-label="Cue landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="Cue landing page"/);
+    expect(html).toMatch(/<a[^>]*aria-label="truely. landing page"[^>]*href="\/"|<a[^>]*href="\/"[^>]*aria-label="truely. landing page"/);
     expect(html).toMatch(/href="\/home"[^>]*>Home</);
     expect(html).not.toMatch(/href="\/home"[^>]*aria-current="page"/); // not marked current on another page
   });

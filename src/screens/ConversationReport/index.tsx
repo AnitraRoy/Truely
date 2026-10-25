@@ -151,7 +151,7 @@ function Board({ session, recordingUrl }: { session: ConversationSession; record
       />
 
       <p className="mt-6 max-w-[62ch] font-serif text-[clamp(19px,1.9vw,22px)] leading-snug">
-        {r ? r.summary : <span className="italic text-text-muted">Cue couldn&apos;t write a reflection for this session. The transcript and any notes are below.</span>}
+        {r ? r.summary : <span className="italic text-text-muted">truely. couldn&apos;t write a reflection for this session. The transcript and any notes are below.</span>}
       </p>
       {session.goals.length > 0 && <p className="mt-3 text-[14px] text-text-muted">Your focus: {session.goals.join(", ")}.</p>}
 

@@ -1,4 +1,4 @@
-# Cue — Frontend & UI/UX Organization Guide
+# truely. — Frontend & UI/UX Organization Guide
 
 Derived from the PRD ("Idea Generation.pdf"), `CLAUDE.md`, and what already exists in the repo
 (Field Journal art direction, 4 screens, shared primitives). It covers three additions: a **landing page
@@ -33,7 +33,7 @@ single report). It does not touch `src/lib/*` or change the type contract beyond
 ## 2. Information architecture
 
 Ten journal screens (Figma: "Truely — Communication Coaching Product - Reports"), in two groups.
-The brand stays **Cue**; the concept file's "truely" name is not used.
+The brand is **truely.** (all lowercase, with the period).
 
 ```
 APP SCREENS
@@ -59,7 +59,7 @@ Routing rules:
 
 - `/session` (once started) and `/calibrate` never show the app shell (distraction-free).
 - Every app screen uses `AppShell`, with two toolbars fed by one list of tools (same names in both):
-  - **Top toolbar:** the "Cue." wordmark (links to the landing page `/`), a home icon (Home, `/home`),
+  - **Top toolbar:** the "truely." wordmark (links to the landing page `/`), a home icon (Home, `/home`),
     then My profile, Practise out loud, Rehearse an interview, Coach me live, Review sessions.
   - **Side toolbar** (`lg` and up): the journey in order, each tool with a one-line purpose:
     Home, Find your style, Practise out loud, Rehearse an interview, Coach me live, Review sessions;
@@ -94,7 +94,7 @@ voice baseline *is* the desired style the person sets on `/profile/style`.
 
 ### 3.1 Landing page (`/`) — `src/screens/Landing`
 
-**Purpose:** say what Cue is, what it won't do, and get the visitor to a first session.
+**Purpose:** say what truely. is, what it won't do, and get the visitor to a first session.
 
 **Focal point (one):** the hero headline + the specimen plate beside it. Reuse the Dashboard's
 composition (asymmetric `1fr / minmax(280px,380px)` grid), since it already passes the squint test.
@@ -104,7 +104,7 @@ composition (asymmetric `1fr / minmax(280px,380px)` grid), since it already pass
 | Hero banner | PRD headline "Show up as yourself. A little better every time." Supporting line on personalized real-time coaching. Primary **Start a session**; secondary **See how it works** (anchor). | The one expressive moment. Blue jay plate on the right. Not a banner of equal-weight columns. |
 | Privacy strip | "Processed on your device. Nothing is uploaded; the camera turns on only when you start a session." | Ochre left rule, as on the Dashboard. Directly under the hero, never in the footer only. |
 | How it works | The PRD §5 loop in four steps: choose a goal, calibrate a baseline, coach quietly, review. | A numbered `Ledger`, not four cards. |
-| What Cue won't do | Does not judge personality, detect honesty, or score confidence; no raw video stored. | Plain list. Builds trust, supports ethics frame (§5). |
+| What truely. won't do | Does not judge personality, detect honesty, or score confidence; no raw video stored. | Plain list. Builds trust, supports ethics frame (§5). |
 | Who it's for | The five PRD audiences, one line each. | Tertiary tier; small type. |
 | Closing CTA | Repeat **Start a session**. | |
 

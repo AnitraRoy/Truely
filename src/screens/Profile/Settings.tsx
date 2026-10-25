@@ -62,7 +62,7 @@ export function Settings() {
         <SettingRow
           label="Keep learning from my sessions"
           helpId="set-learning-help"
-          help="On: Cue keeps fine-tuning your usual head position and movement as you settle in, and spaces out cues you mark as distracting. Off: Cue keeps the baseline it first learned and leaves cue timing as it is. A first baseline is still learned once, since camera cues need it."
+          help="On: truely. keeps fine-tuning your usual head position and movement as you settle in, and spaces out cues you mark as distracting. Off: truely. keeps the baseline it first learned and leaves cue timing as it is. A first baseline is still learned once, since camera cues need it."
         >
           <Toggle
             checked={settings.keepLearning}
@@ -105,7 +105,7 @@ export function Settings() {
         <SettingRow
           label="Reduce motion"
           helpId="set-motion-help"
-          help="Cue already follows your device's reduced-motion setting. Turn this on to reduce motion here regardless."
+          help="truely. already follows your device's reduced-motion setting. Turn this on to reduce motion here regardless."
         >
           <Toggle
             checked={settings.reducedMotion === "on"}

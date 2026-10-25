@@ -114,14 +114,14 @@ export function useLiveConversation({
           }
           publish();
         },
-        onError: () => setProblem("Transcription paused: Cue couldn't reach Cartesia. It will keep trying."),
+        onError: () => setProblem("Transcription paused: truely. couldn't reach Cartesia. It will keep trying."),
       });
       if (cancelled) {
         cap.stop();
         return;
       }
       if (!res.ok) {
-        setProblem("Transcription paused: Cue couldn't reach Cartesia. It will keep trying.");
+        setProblem("Transcription paused: truely. couldn't reach Cartesia. It will keep trying.");
         cap.stop();
         return;
       }

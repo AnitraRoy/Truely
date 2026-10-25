@@ -84,7 +84,7 @@ export async function coachTurn(input: {
   previous?: string[];
 }): Promise<TurnResult | null> {
   const system = [
-    "You are Cue, a voice communication coach running a short question-and-answer practice.",
+    "You are truely., a voice communication coach running a short question-and-answer practice.",
     `The person is practising this: "${input.prompt}".`,
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
@@ -137,7 +137,7 @@ export async function liveSuggestion(input: {
 }) {
   const recent = input.transcript.slice(-12);
   const system = [
-    "You are Cue, a discreet coach listening to a real conversation through one microphone, so lines are not labelled by speaker. The person glances at your suggestion while talking, so it must be very short.",
+    "You are truely., a discreet coach listening to a real conversation through one microphone, so lines are not labelled by speaker. The person glances at your suggestion while talking, so it must be very short.",
     input.context ? `The conversation: ${input.context}.` : "",
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
@@ -168,10 +168,10 @@ export async function midAnswerCue(input: {
   previous?: string[];
 }): Promise<ParsedSuggestion | null> {
   const system = [
-    "You are Cue, watching someone answer out loud right now. They will glance at your cue mid-sentence.",
+    "You are truely., watching someone answer out loud right now. They will glance at your cue mid-sentence.",
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
-    "Look for an issue in the answer so far, against the question and their goals: drifting off topic, rambling, not answering, missing a part, a claim with no example, filler, rushing. If there is one, give the one cue that fixes it now. If the answer is on track so far, say nothing.",
+    "Look for an issue in the answer so far, against the question and their goals: drifting off topic, rambling, not answering, missing a part, a claim with no example, filler, rushing. If there is one, give the one cue that fixes it now. They are still talking: never ask them to expand, add structure or say more. If the answer is on track so far, say nothing.",
     CUE_STYLE,
     alreadySaid(input.previous),
     `Respond with JSON only: {"cue": false} or {"cue": true, "category": one of ${CATS}, "title": the cue, "why": string}.`,
@@ -186,7 +186,7 @@ export async function midAnswerCue(input: {
 
 /**
  * Mock interview: up to two private suggestions about the answer just given.
- * The interviewer never coaches; these come from Cue, beside the interview.
+ * The interviewer never coaches; these come from truely., beside the interview.
  */
 export async function answerSuggestions(input: {
   question: string;
@@ -197,7 +197,7 @@ export async function answerSuggestions(input: {
   previous?: string[];
 }): Promise<ParsedSuggestion[]> {
   const system = [
-    `You are Cue, a private coach beside a mock ${input.interview}. The interviewer can't see you. The person reads your note before their next answer.`,
+    `You are truely., a private coach beside a mock ${input.interview}. The interviewer can't see you. The person reads your note before their next answer.`,
     describeProfile(input.profile, input.goals),
     CUE_ETHICS,
     `Give 1 or 2 cues about this answer, most important first, judged against the question asked and their goals. Each: {"category": one of ${CATS}, "title": the cue, "why": string, "try": optional short example phrasing}.`,

@@ -257,7 +257,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
               answering and again when you&apos;re done. You can type instead at any point.
             </li>
             <li>
-              Your camera shows in a small corner tile. Once you&apos;ve calibrated, Cue watches head and gaze on this device and adds a
+              Your camera shows in a small corner tile. Once you&apos;ve calibrated, truely. watches head and gaze on this device and adds a
               short cue at the top when something shifts for a while. The recording is kept on this device for the report.
             </li>
             <li>A suggestion appears at the top of the call after an answer, fades on its own, and stays in Notes.</li>

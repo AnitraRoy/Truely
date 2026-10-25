@@ -1,5 +1,5 @@
 /**
- * The only bridge between the Cue page and the desktop shell (sandboxed preload).
+ * The only bridge between the truely. page and the desktop shell (sandboxed preload).
  * Typed for the renderer in src/components/useFloatingOverlay.ts (`CueDesktop`).
  */
 const { contextBridge, ipcRenderer } = require("electron");

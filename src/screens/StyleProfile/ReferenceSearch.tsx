@@ -3,9 +3,9 @@ import { TextArea } from "@/components/Field";
 import type { ReferenceCandidate } from "@/lib/conversation";
 
 /**
- * Stage 1, "find one": describe who or what you want to sound like, Cue turns
+ * Stage 1, "find one": describe who or what you want to sound like, truely. turns
  * that into a YouTube search through Apify, and the person picks the result to
- * learn from. Choosing is deliberate: Cue never picks a reference for them.
+ * learn from. Choosing is deliberate: truely. never picks a reference for them.
  * Owner: Integration + UI.
  */
 function clock(sec?: number): string {
@@ -32,7 +32,7 @@ export function ReferenceSearch({
   onSearch: () => void;
   searching: boolean;
   canSearch: boolean;
-  /** The query Cue actually searched for, shown so the person can see what ran. */
+  /** The query truely. actually searched for, shown so the person can see what ran. */
   searchedQuery: string;
   candidates: ReferenceCandidate[];
   picked: string;

@@ -22,7 +22,7 @@ import { TURN_STATUS_LABEL, type TurnStatus } from "./useTurnTaking";
  * follows the loudness of its voice (the "who is talking" cue every meeting
  * app uses). Secondary: the caption of what it just said, along the bottom,
  * and the control bar. Tertiary: the person's own camera in a small self-view
- * tile, and what Cue notices: a camera cue (from the on-device analysis the
+ * tile, and what truely. notices: a camera cue (from the on-device analysis the
  * screen runs, useCameraCoaching) and suggestions arrive at the top centre and
  * fade on their own; suggestions stay in Notes. A session without live
  * suggestions (mock interviews) omits them and gets a transcript panel only.
@@ -275,7 +275,7 @@ export function MeetingStage(props: MeetingStageProps) {
   // The floating overlay (top centre of the screen in the desktop app; a
   // picture-in-picture window in the browser) carries the cues once open. It
   // opens with the call, while the Start click still counts as a gesture.
-  const overlay = useFloatingOverlay({ title: "Cue", ...OVERLAY_SIZE });
+  const overlay = useFloatingOverlay({ title: "truely.", ...OVERLAY_SIZE });
   const openOverlay = useRef(overlay.open);
   openOverlay.current = overlay.open;
   useEffect(() => {
@@ -313,7 +313,7 @@ export function MeetingStage(props: MeetingStageProps) {
     >
       <header className="flex min-h-14 items-center gap-4 px-4 sm:px-6">
         <span className="font-display text-[17px] font-semibold leading-none">
-          Cue<span className="text-ochre-mark">.</span>
+          truely<span className="text-ochre-mark">.</span>
         </span>
         {props.onLeave && (
           <button

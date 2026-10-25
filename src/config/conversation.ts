@@ -135,6 +135,6 @@ export const PRACTICE_CALL = {
 
 /** Plain-language reasons a provider isn't available, keyed by the service error. */
 export const SERVICE_UNAVAILABLE_COPY: Record<string, string> = {
-  desktop_only: "This needs the Cue desktop app, where your service keys stay private.",
+  desktop_only: "This needs the truely. desktop app, where your service keys stay private.",
   not_configured: "The service isn't set up yet. Add its key to .env.local and restart the desktop app.",
 };

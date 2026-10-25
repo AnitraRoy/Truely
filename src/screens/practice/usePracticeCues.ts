@@ -24,8 +24,11 @@ export function usePracticeCues({ enabled, profile, goals }: { enabled: boolean;
   const question = useRef("");
 
   const add = (found: ParsedSuggestion[], atMs: number, segmentId?: string) => {
-    if (found.length === 0) return;
-    const events: FeedbackEvent[] = found.map((s) => ({ id: newId("fb"), atMs, ...(segmentId ? { segmentId } : {}), ...s }));
+    // One title per answer: the model's notes after an answer often repeat a cue already given during it.
+    const taken = new Set(feedback.current.filter((f) => segmentId && f.segmentId === segmentId).map((f) => f.title.toLowerCase()));
+    const fresh = found.filter((s) => !taken.has(s.title.toLowerCase()));
+    if (fresh.length === 0) return;
+    const events: FeedbackEvent[] = fresh.map((s) => ({ id: newId("fb"), atMs, ...(segmentId ? { segmentId } : {}), ...s }));
     if (!segmentId) pending.current.push(...events.map((e) => e.id));
     feedback.current = [...feedback.current, ...events];
     setSuggestions((prev) => [...events, ...prev].slice(0, VOICE_MAX_SUGGESTIONS));

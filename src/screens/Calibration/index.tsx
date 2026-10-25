@@ -45,7 +45,7 @@ export function Calibration() {
   const hasStyle = useProfileStore((s) => Boolean(s.communicationProfile?.traits.some((t) => t.keep)));
   const { videoRef, state, enable, disable } = useWebcamPreview();
   const [phase, setPhase] = useState<Phase>("setup");
-  const target = useFloatingOverlay({ width: 260, height: 150, title: "Cue — look here" });
+  const target = useFloatingOverlay({ width: 260, height: 150, title: "truely. — look here" });
 
   const live = state === "live";
   // The pending CV/personalization engine confirms at the configured sample
@@ -118,7 +118,7 @@ export function Calibration() {
                   <GoalPicker value={goal} onChange={setGoal} labelledBy="calibration-goal-heading" />
                 </div>
                 <p className="mt-3 italic text-text-muted">
-                  Looking at the camera all the time isn&apos;t the goal. Cue learns your own normal.
+                  Looking at the camera all the time isn&apos;t the goal. truely. learns your own normal.
                 </p>
               </section>
 
@@ -126,7 +126,7 @@ export function Calibration() {
                 <h2 className={HEADING}>Draw your camera baseline</h2>
                 <p className="mt-3 text-text-muted">
                   Follow the directions above your preview to look up, down, left and right. It takes under a
-                  minute, and lets Cue tell your normal from a real, sustained change.
+                  minute, and lets truely. tell your normal from a real, sustained change.
                 </p>
                 <p className="mt-2 text-[14.5px] text-text-muted">
                   You won&apos;t be asked to talk. How you want to sound comes from your desired style, which you
@@ -171,13 +171,13 @@ export function Calibration() {
             <section>
               <h2 className={HEADING}>Your camera baseline is ready.</h2>
               <p className="mt-3 text-text-muted">
-                Cue will compare your head and gaze to your own normal, not a generic standard. You can recalibrate any
+                truely. will compare your head and gaze to your own normal, not a generic standard. You can recalibrate any
                 time.
               </p>
               <p className="mt-3 text-text-muted">
                 {hasStyle
-                  ? "For how you sound, Cue coaches toward the desired style you chose."
-                  : "For how you sound, Cue coaches toward a desired style that you choose. You haven't set one yet."}
+                  ? "For how you sound, truely. coaches toward the desired style you chose."
+                  : "For how you sound, truely. coaches toward a desired style that you choose. You haven't set one yet."}
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
                 {hasStyle ? (

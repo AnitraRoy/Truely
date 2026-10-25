@@ -3,13 +3,13 @@ import { CueBubble } from "@/components/CueBubble";
 /**
  * The floating overlay: cues only. It sits over the person's meeting, so it
  * carries no video, no controls, and no status beyond a quiet idle line — the
- * Cue window keeps the preview and the session controls (CLAUDE.md §6).
+ * truely. window keeps the preview and the session controls (CLAUDE.md §6).
  *
  * In the desktop shell the window is frameless and fully transparent
  * (electron/main.cjs) and opens top-center, clear of most meeting controls.
  * This panel is what actually draws its shape: a slightly translucent fill,
  * clipped to rounded corners so the transparent window shows through outside
- * them. The top row is the drag handle, and ✕ docks cues back into the Cue
+ * them. The top row is the drag handle, and ✕ docks cues back into the truely.
  * window.
  */
 const DRAG = "[-webkit-app-region:drag]";
@@ -43,17 +43,17 @@ export function SessionOverlay({
     <main className="flex h-screen select-none flex-col gap-2 overflow-hidden rounded-xl border border-border bg-bg/90 p-2.5">
       <header className={`flex items-center gap-2 ${draggable ? DRAG : ""}`}>
         <span className="font-display text-[14px] font-semibold leading-none">
-          Cue<span className="text-ochre-mark">.</span>
+          truely<span className="text-ochre-mark">.</span>
         </span>
         {onDock && (
           // Text, not a second ✕: the cue already has its own dismiss control.
           <button
             type="button"
             onClick={onDock}
-            aria-label="Show cues in the Cue window instead"
+            aria-label="Show cues in the truely. window instead"
             className={`${NO_DRAG} ml-auto min-h-6 px-1 font-serif text-[13px] italic text-text-muted underline-offset-2 transition-colors duration-cue ease-cue hover:text-text-primary hover:underline`}
           >
-            Back to Cue
+            Back to truely.
           </button>
         )}
       </header>

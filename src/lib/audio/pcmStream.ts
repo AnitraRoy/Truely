@@ -5,7 +5,7 @@
  * context's native sample rate — what a realtime STT websocket needs.
  *
  * Uses ScriptProcessorNode: deprecated, but it needs no separate worklet
- * module file and every browser Cue targets still supports it. The processor
+ * module file and every browser truely. targets still supports it. The processor
  * is routed through a silent GainNode rather than straight to the
  * destination, so capture keeps running without playing the mic back out
  * loud (some browsers only drive onaudioprocess while the graph is connected

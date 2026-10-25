@@ -22,8 +22,8 @@ export function SavingStep({
         Keep a record of your sessions?
       </StepHeading>
       <p className="mt-3 max-w-[56ch] text-text-muted">
-        Saving lets you look back at past reports and lets Cue refine your baseline over time. It&apos;s
-        optional. Cue coaches the same way either way.
+        Saving lets you look back at past reports and lets truely. refine your baseline over time. It&apos;s
+        optional. truely. coaches the same way either way.
       </p>
 
       <div className="mt-6 border-t border-border">

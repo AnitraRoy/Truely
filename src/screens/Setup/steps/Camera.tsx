@@ -51,7 +51,7 @@ export function CameraStep({
       )}
       {state === "unavailable" && (
         <p className="mt-4 text-[15px] text-text-muted">
-          Cue couldn&apos;t find a camera. Connect one, then try again.
+          truely. couldn&apos;t find a camera. Connect one, then try again.
         </p>
       )}
 

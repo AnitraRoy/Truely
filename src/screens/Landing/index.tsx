@@ -10,15 +10,15 @@ import bluejay from "@/assets/bluejay_final.jpg";
 
 /**
  * Landing (docs/FRONTEND_GUIDE.md §3.1). Field Journal.
- * Says what Cue is, what it won't do, and gets the visitor to a first session.
+ * Says what truely. is, what it won't do, and gets the visitor to a first session.
  * Focal point: the hero headline against the blue jay plate — the screen's one
  * expressive moment. No stats, testimonials, or sample scores (CLAUDE.md §5).
  * Never requests the camera.
  */
 const STEPS = [
-  { title: "Learn how you want to sound", body: "Point Cue at a talk or interview you admire. It drafts patterns you can practise, and you keep the ones that fit." },
+  { title: "Learn how you want to sound", body: "Point truely. at a talk or interview you admire. It drafts patterns you can practise, and you keep the ones that fit." },
   { title: "Practise out loud", body: "A short voice session or a mock interview, with suggestions tied to what you actually said." },
-  { title: "Get quiet help in the real thing", body: "During a meeting or interview, Cue offers a small note only when it's useful, then leaves you alone." },
+  { title: "Get quiet help in the real thing", body: "During a meeting or interview, truely. offers a small note only when it's useful, then leaves you alone." },
   { title: "Review and carry it forward", body: "A transcript, the moments worth revisiting, and one thing to try next time. Never a score." },
 ];
 
@@ -67,7 +67,7 @@ export function Landing() {
               </span>
             </h1>
             <p className="mt-6 max-w-[44ch] text-[17.5px] leading-relaxed">
-              Cue is a private coach for webcam conversations. It learns how you normally look and move on
+              truely. is a private coach for webcam conversations. It learns how you normally look and move on
               camera, then offers a small cue only when something you&apos;re working on drifts for a while.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4">
@@ -120,7 +120,7 @@ export function Landing() {
 
           <section aria-labelledby="wont-title" className="md:pt-[62px]">
             <h2 id="wont-title" className="font-display text-[22px] leading-snug">
-              What Cue won&apos;t do
+              What truely. won&apos;t do
             </h2>
             <ul className="mt-4 space-y-3 border-l-2 border-ochre-mark pl-4">
               {WONT.map((w) => (

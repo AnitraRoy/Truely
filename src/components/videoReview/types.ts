@@ -30,7 +30,7 @@ export type { TranscriptSegment } from "@/types";
  * Everything the video review section needs. Neither `videoSrc` nor
  * `youtubeVideoId` present → no recording exists (the honest, real-world
  * case today). `youtubeVideoId` is a public placeholder used only in the
- * development fixture, never a real session recording — Cue doesn't have
+ * development fixture, never a real session recording — truely. doesn't have
  * any (see `fixtures.ts`). `durationMs` is a fallback estimate; once a
  * YouTube placeholder reports its real duration, the player uses that
  * instead.

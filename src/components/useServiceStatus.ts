@@ -17,7 +17,7 @@ export function useServiceStatus(): ServiceStatus | null {
   return status;
 }
 
-/** True when a service bridge exists: the Cue desktop shell, or the Vite dev server in development. */
+/** True when a service bridge exists: the truely. desktop shell, or the Vite dev server in development. */
 export function hasDesktopBridge(): boolean {
   return serviceBridge() !== null;
 }

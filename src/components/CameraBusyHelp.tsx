@@ -36,11 +36,11 @@ export function CameraBusyHelp({ windows = isWindows() }: { windows?: boolean })
   return (
     <div className="space-y-3 text-[15px] leading-relaxed text-text-muted">
       <p className="m-0 text-text-primary">
-        Another app is using your camera. Cue keeps trying and will pick it up as soon as it&apos;s free.
+        Another app is using your camera. truely. keeps trying and will pick it up as soon as it&apos;s free.
       </p>
       {windows ? (
         <>
-          <p className="m-0">To use Cue and your meeting app at the same time, let Windows share the camera:</p>
+          <p className="m-0">To use truely. and your meeting app at the same time, let Windows share the camera:</p>
           <ol className="m-0 list-decimal space-y-1 pl-5">
             <li>Open Settings, then Bluetooth &amp; devices, then Cameras.</li>
             <li>Choose your camera.</li>
@@ -57,7 +57,7 @@ export function CameraBusyHelp({ windows = isWindows() }: { windows?: boolean })
           <OpenSettings />
         </>
       ) : (
-        <p className="m-0">Turn off video in the other app, or close it, and Cue will continue.</p>
+        <p className="m-0">Turn off video in the other app, or close it, and truely. will continue.</p>
       )}
     </div>
   );

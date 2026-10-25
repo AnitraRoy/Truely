@@ -1,5 +1,5 @@
 /**
- * Cue desktop shell (Electron). Owner: App-shell team.
+ * truely. desktop shell (Electron). Owner: App-shell team.
  *
  * Wraps the same Vite app in a desktop window so the live-session cue overlay can
  * do what a browser can't: float above every app and stay out of screen captures.
@@ -122,7 +122,7 @@ function protectOverlay(win) {
   win.setAlwaysOnTop(true, "screen-saver");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  // Top-center of the screen Cue is on, clear of most meeting controls (which
+  // Top-center of the screen truely. is on, clear of most meeting controls (which
   // tend to sit bottom-center or in a corner).
   const { width, height } = win.getBounds();
   const { workArea } = screen.getDisplayMatching(mainWindow?.getBounds() ?? win.getBounds());
@@ -158,7 +158,7 @@ function createMainWindow() {
     height: 820,
     minWidth: 720,
     minHeight: 560,
-    title: "Cue",
+    title: "truely.",
     backgroundColor: PAPER,
     autoHideMenuBar: true,
     webPreferences: {
@@ -228,7 +228,7 @@ function serveDist() {
 app.whenReady().then(() => {
   if (!DEV_URL) serveDist();
 
-  // Camera only, and only for Cue's own pages.
+  // Camera only, and only for truely.'s own pages.
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
     callback(permission === "media" && isAppUrl(details.requestingUrl));
   });

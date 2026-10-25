@@ -1,4 +1,4 @@
-# Cue — Personalized Real-Time Communication Coach
+# truely. — Personalized Real-Time Communication Coach
 
 A privacy-first web app that learns your on-camera baseline and offers discreet,
 timely coaching during webcam sessions. Hackathon MVP. See the PRD for the full spec.

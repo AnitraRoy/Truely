@@ -3,7 +3,7 @@ import type { VideoReviewData } from "./types";
 /**
  * Development fixture for the video review UI.
  *
- * Cue does not record video, audio, or speech during a session (PRD §12 /
+ * truely. does not record video, audio, or speech during a session (PRD §12 /
  * `src/lib/storage`), so no real session will ever have a recording or
  * transcript to show here. This sample data exists purely so the video
  * player, playback-bar markers, and synced transcript can be built, reviewed,
@@ -15,7 +15,7 @@ import type { VideoReviewData } from "./types";
  * ship. Instead `youtubeVideoId` points at a public YouTube video, embedded
  * via the official IFrame Player API purely as a stand-in so the player,
  * markers, and transcript sync can be reviewed against real video playback —
- * it is not footage of any Cue session. `durationMs` below is a fallback
+ * it is not footage of any truely. session. `durationMs` below is a fallback
  * estimate; the player replaces it with the placeholder's real duration once
  * the embed reports one.
  */

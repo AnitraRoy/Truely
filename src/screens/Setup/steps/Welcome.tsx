@@ -5,7 +5,7 @@ import { PrivacyNote } from "@/components/PrivacyNote";
 import yellowhammer from "@/assets/yellowhammer_final.png";
 import { StepHeading } from "./StepHeading";
 
-/** Step 1: what Cue does with the camera, before it asks for anything. The wizard's one plate. */
+/** Step 1: what truely. does with the camera, before it asks for anything. The wizard's one plate. */
 export function WelcomeStep({ headingRef }: { headingRef: RefObject<HTMLHeadingElement> }) {
   return (
     <div className="grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-10 md:grid-cols-[1fr_220px]">
@@ -16,7 +16,7 @@ export function WelcomeStep({ headingRef }: { headingRef: RefObject<HTMLHeadingE
           here&apos;s what stays with you.
         </StepHeading>
         <p className="mt-4 max-w-[46ch] font-serif text-[clamp(17px,2vw,20px)] italic leading-snug text-text-muted">
-          Setup takes about two minutes. Cue learns your usual on-camera patterns first, so later cues
+          Setup takes about two minutes. truely. learns your usual on-camera patterns first, so later cues
           respond to you, not to a generic standard.
         </p>
 

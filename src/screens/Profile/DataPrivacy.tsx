@@ -26,14 +26,14 @@ const ACTIONS: Record<Action, { title: string; body: string; confirm: string; do
   baseline: {
     button: "Reset baseline",
     title: "Reset your baseline?",
-    body: "Cue will forget your learned patterns and ask you to calibrate again before your next session. Saved reports stay.",
+    body: "truely. will forget your learned patterns and ask you to calibrate again before your next session. Saved reports stay.",
     confirm: "Reset baseline",
     done: "Baseline reset. You'll calibrate before your next session.",
   },
   everything: {
     button: "Reset everything",
     title: "Reset everything?",
-    body: "Saved sessions, transcripts, recordings, your baseline, your communication profile and all settings will be removed, and Cue will start from first-time setup.",
+    body: "Saved sessions, transcripts, recordings, your baseline, your communication profile and all settings will be removed, and truely. will start from first-time setup.",
     confirm: "Reset everything",
     done: "",
   },
@@ -61,12 +61,12 @@ export function DataPrivacy() {
 
   return (
     <div>
-      <h2 className="font-display text-[22px]">What Cue keeps</h2>
+      <h2 className="font-display text-[22px]">What truely. keeps</h2>
       <Ledger className="mt-3">
         <LedgerRow label="By default">A video and audio recording of each session, with its transcript and notes, on this device for playback. Turn recording off before any session to skip it.</LedgerRow>
         <LedgerRow label="If you allow">Summaries and notes of sessions you didn&apos;t record, on this device.</LedgerRow>
         <LedgerRow label="Never">Camera frames on their own. They&apos;re analysed on this device and discarded; only the recording keeps video.</LedgerRow>
-        <LedgerRow label="Always">Your communication profile, goal and settings, so Cue remembers them.</LedgerRow>
+        <LedgerRow label="Always">Your communication profile, goal and settings, so truely. remembers them.</LedgerRow>
       </Ledger>
 
       <h2 className="mt-10 font-display text-[22px]">What leaves this device</h2>
@@ -82,7 +82,7 @@ export function DataPrivacy() {
           helpId="data-saving-help"
           help={
             consent
-              ? "New sessions are kept so you can review them and Cue can refine your baseline."
+              ? "New sessions are kept so you can review them and truely. can refine your baseline."
               : "New sessions aren't kept after you close the tab. Turning this off doesn't delete what's already saved."
           }
         >
