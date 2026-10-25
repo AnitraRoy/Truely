@@ -32,6 +32,55 @@ body {
   outline-color: rgb(var(--cue-on-accent));
 }
 
+/*
+ * FieldArt: a faded plate behind the page. Two masks stack: the outer element
+ * fades the plate toward the content (data-fade); an engraving's own shape is
+ * a second mask painted in the ink token, so themes recolour it.
+ */
+@layer components {
+  .field-art {
+    pointer-events: none;
+    user-select: none;
+    opacity: var(--cue-art-opacity);
+  }
+  .field-art[data-strength="strong"] {
+    opacity: var(--cue-art-opacity-strong);
+  }
+  .field-art[data-fade="top-right"] {
+    -webkit-mask-image: radial-gradient(farthest-side at 100% 0%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(farthest-side at 100% 0%, #000 30%, transparent 100%);
+  }
+  .field-art[data-fade="bottom-right"] {
+    -webkit-mask-image: radial-gradient(farthest-side at 100% 100%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(farthest-side at 100% 100%, #000 35%, transparent 100%);
+  }
+  .field-art[data-fade="up"] {
+    -webkit-mask-image: linear-gradient(to top, #000 40%, transparent 100%);
+    mask-image: linear-gradient(to top, #000 40%, transparent 100%);
+  }
+  .field-art[data-fade="left"] {
+    -webkit-mask-image: linear-gradient(to left, #000 40%, transparent 100%);
+    mask-image: linear-gradient(to left, #000 40%, transparent 100%);
+  }
+  .field-art__ink {
+    width: 100%;
+    background-color: rgb(var(--cue-art-ink));
+    -webkit-mask: var(--art-src) center / contain no-repeat;
+    mask: var(--art-src) center / contain no-repeat;
+  }
+  .field-art__plate {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: var(--cue-art-plate-filter);
+  }
+  @media print {
+    .field-art {
+      display: none;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

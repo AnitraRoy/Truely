@@ -15,12 +15,14 @@ import {
   INTERVIEW_DIFFICULTIES,
   INTERVIEW_QUESTION_COUNT,
   INTERVIEW_TYPES,
+  VOICE_MAX_SUGGESTIONS,
   type InterviewDifficulty,
 } from "@/config/conversation";
-import { interviewerTurn } from "@/lib/conversation";
+import { answerSuggestions, interviewerTurn } from "@/lib/conversation";
+import { newId } from "@/state/conversations";
 import { reportHref } from "@/state/history";
 import { useProfileStore } from "@/state/profileStore";
-import type { TranscriptSegment } from "@/types";
+import type { FeedbackEvent, TranscriptSegment } from "@/types";
 import { DEV_INTERVIEW_TURNS } from "../practice/devScript";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
 import { MeetingStage } from "../practice/MeetingStage";
@@ -32,8 +34,9 @@ import { usePracticeCamera } from "../practice/useCameraCoaching";
  * Configure a scenario, then a two-way spoken interview in the call room
  * (MeetingStage): Moss plays the interviewer, Cartesia speaks its questions
  * (captioned as they are spoken) and transcribes the answers, and Space starts
- * and stops each answer. The interviewer never coaches mid-interview, so the
- * room shows no suggestions; feedback comes in the report afterwards.
+ * and stops each answer. The interviewer never coaches; after each answer Cue
+ * itself adds up to two private suggestions about it (answerSuggestions),
+ * shown in the overlay and kept for the report.
  * Focal point (running): the interviewer's speaker tile.
  */
 type Mode = "live" | "sample";
@@ -61,6 +64,8 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
   const [ending, setEnding] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const sampleTurn = useRef(0);
+  const [suggestions, setSuggestions] = useState<FeedbackEvent[]>([]);
+  const feedback = useRef<FeedbackEvent[]>([]);
 
   const voice = mode === "live" && Boolean(services?.cartesia);
   const turn = useTurnTaking({ speakerLabel: "Interviewer", aiRole: "interviewer", voice });
@@ -98,8 +103,28 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
     await ask([], m, 1);
   }
 
+  /** Cue's private notes on the answer just given. Runs beside the next question, never delays it. */
+  async function suggestAbout(transcript: TranscriptSegment[]) {
+    const answer = transcript[transcript.length - 1];
+    const asked = [...transcript].reverse().find((s) => s.role === "interviewer");
+    if (!answer || answer.role !== "you" || !asked) return;
+    const found = await answerSuggestions({
+      question: asked.text,
+      answer: answer.text,
+      interview: `${type.toLowerCase()}${role ? ` for ${role}` : ""}`,
+      profile,
+      goals,
+      previous: feedback.current.map((f) => f.title),
+    });
+    if (found.length === 0) return;
+    const events: FeedbackEvent[] = found.map((s) => ({ id: newId("fb"), atMs: answer.startMs, segmentId: answer.id, ...s }));
+    feedback.current = [...feedback.current, ...events];
+    setSuggestions((prev) => [...events, ...prev].slice(0, VOICE_MAX_SUGGESTIONS));
+  }
+
   async function answered(transcript: TranscriptSegment[] | null) {
     if (!transcript || !mode) return;
+    if (mode === "live") void suggestAbout(transcript);
     const last = mode === "sample" ? sampleTurn.current >= DEV_INTERVIEW_TURNS.length - 1 : question >= INTERVIEW_QUESTION_COUNT;
     await ask(transcript, mode, last ? INTERVIEW_QUESTION_COUNT + 1 : question + 1);
   }
@@ -119,7 +144,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
       context: { Role: role || "General", Difficulty: difficultyLabel },
       profile,
       transcript: done.transcript,
-      feedback: [],
+      feedback: feedback.current,
       startedAt: done.startedAt,
       endedAt: done.endedAt,
       recording: done.recording,
@@ -138,7 +163,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
 
   if (!running) {
     return (
-      <AppShell>
+      <AppShell art={{ plate: "woodcock", place: "foot" }}>
         <PageHeader
           step="Step 3 of 4: realistic practice"
           title="Rehearse the moments that matter."
@@ -205,7 +230,7 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
             <ul className="mt-3 border-t border-border">
               {[
                 ["Length", `About ${INTERVIEW_QUESTION_COUNT} questions, 15 to 20 minutes`],
-                ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type."],
+                ["During", "A call with the interviewer: its questions are spoken and captioned. Press Space to answer and again when done, or type. After each answer, Cue adds a private note at the top of your screen."],
                 ["After", "A review with selected moments from your answers and a next step to practise."],
                 ["Camera", "Once calibrated, Cue watches head and gaze on this device and marks those moments in your review."],
                 ["Privacy", "Your speech goes to Cartesia and the transcript to Moss, only during the interview. The recording and camera stay on this device."],
@@ -236,6 +261,8 @@ function MockInterviewSession({ onReset }: { onReset: () => void }) {
         error={turn.error}
         sample={mode === "sample"}
         {...camera.stageProps(turn.recording)}
+      suggestions={suggestions}
+      onDismissSuggestion={(id) => setSuggestions((all) => all.filter((x) => x.id !== id))}
         now={turn.now}
         progress={finished ? "Interview complete" : `Question ${Math.min(question, INTERVIEW_QUESTION_COUNT)} of ${INTERVIEW_QUESTION_COUNT}`}
         closed={finished}

@@ -5,12 +5,15 @@
  */
 export function CueBubble({
   text,
+  detail,
   index,
   label,
   onDismiss,
   floating = false,
 }: {
   text: string;
+  /** One quiet line under the cue, e.g. why a suggestion was made. */
+  detail?: string;
   index?: number;
   /** Replaces the index marker, e.g. "sample" for showcase cues that aren't observations. */
   label?: string;
@@ -33,7 +36,10 @@ export function CueBubble({
       }`}
     >
       {marker != null && <span className="mt-[2px] font-mono text-[11px] text-ochre">{marker}</span>}
-      <p className="m-0 flex-1 font-serif text-[15.5px] italic text-text-primary">{text}</p>
+      <div className="flex-1">
+        <p className="m-0 font-serif text-[15.5px] italic text-text-primary">{text}</p>
+        {detail && <p className="m-0 mt-1 text-[13.5px] leading-snug text-text-muted">{detail}</p>}
+      </div>
       {onDismiss && (
         <button
           type="button"

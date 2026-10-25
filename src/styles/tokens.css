@@ -56,6 +56,15 @@
   --cue-motion: 240ms;
   --cue-ease: cubic-bezier(0.2, 0.6, 0.2, 1);
 
+  /* artwork — faded plates behind the page (FieldArt). Engravings are alpha
+     masks painted in `art-ink`, so a theme recolours them; the hand-coloured
+     plate takes `art-plate-filter`. Opacities keep text-muted ≥ 4.5:1 even
+     over the densest ink (checked at 0.12 on paper). */
+  --cue-art-ink: 37 41 35;
+  --cue-art-opacity: 0.12; /* page backdrops */
+  --cue-art-opacity-strong: 0.2; /* small vignettes clear of text */
+  --cue-art-plate-filter: none;
+
   color-scheme: light;
 }
 
@@ -87,6 +96,10 @@
   --cue-ochre-mark: 214 172 104;
   --cue-positive: 150 184 158;
   --cue-warning: 222 182 100;
+  --cue-art-ink: 234 230 220;
+  --cue-art-opacity: 0.08;
+  --cue-art-opacity-strong: 0.13;
+  --cue-art-plate-filter: grayscale(1) invert(1);
 
   color-scheme: dark;
 }
@@ -108,6 +121,10 @@
     --cue-ochre-mark: 214 172 104;
     --cue-positive: 150 184 158;
     --cue-warning: 222 182 100;
+  --cue-art-ink: 234 230 220;
+  --cue-art-opacity: 0.08;
+  --cue-art-opacity-strong: 0.13;
+  --cue-art-plate-filter: grayscale(1) invert(1);
 
     color-scheme: dark;
   }

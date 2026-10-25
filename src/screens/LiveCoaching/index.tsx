@@ -16,7 +16,7 @@ import { useServiceStatus } from "@/components/useServiceStatus";
 import { WebcamFrame } from "@/components/WebcamFrame";
 import { DEFAULT_PRACTICE_GOALS } from "@/config/conversation";
 import { reportHref } from "@/state/history";
-import { SessionOverlay } from "./SessionOverlay";
+import { OVERLAY_SIZE, SessionOverlay } from "./SessionOverlay";
 import { useLiveConversation } from "./useLiveConversation";
 import { Preflight, type LiveChoices } from "./Preflight";
 import { finishConversation, goalsFrom } from "../practice/finishSession";
@@ -39,8 +39,6 @@ import { useCameraCoaching } from "../practice/useCameraCoaching";
  * "Float cues over" moves cues into a small always-on-top window
  * (<SessionOverlay>), kept out of screen shares in the desktop shell.
  */
-/** The overlay holds one cue: wide enough for two lines of cue copy. */
-const OVERLAY_SIZE = { width: 380, height: 150 };
 
 function fmt(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -75,11 +73,13 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
   // While floating, this tab is usually hidden and its timers get throttled;
   // the overlay window stays visible, so timers run on its clock instead.
   const clock = overlay.overlayWindow ?? window;
-  const convo = useLiveConversation({ enabled: choices.microphone, paused, suggest: Boolean(services?.moss), profile, goals });
+  const convo = useLiveConversation({ enabled: choices.microphone, paused, suggest: Boolean(services?.moss), profile, goals, context: choices.title || undefined });
 
   // The person chose these in the preflight; the browser asks for permission now.
-  // Camera first, so the recording can include it.
+  // Camera first, so the recording can include it. The overlay opens right
+  // away too, while the Start click still counts as a gesture.
   useEffect(() => {
+    void overlay.open();
     void (async () => {
       const video = camera && (await cam.start()) ? cam.stream() : null;
       await convo.start({ record: choices.record, video });
@@ -110,7 +110,7 @@ function LiveSession({ choices, onBack }: { choices: LiveChoices; onBack: () => 
   const cameraCue = cam.cue ? { id: cam.cue.id, text: cam.cue.cueText } : null;
 
   // One cue at a time: a conversation suggestion wins over a camera cue.
-  const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title } : cameraCue;
+  const overlayCue = convo.suggestion ? { id: convo.suggestion.id, text: convo.suggestion.title, detail: convo.suggestion.explanation } : cameraCue;
   const dismissOverlay = convo.suggestion ? convo.dismissSuggestion : cam.dismissCue;
 
   // Back out to the choices without saving a report. The camera, microphone and

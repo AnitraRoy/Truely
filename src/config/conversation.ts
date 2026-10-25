@@ -72,9 +72,9 @@ export const LIVE_CONVERSATION = {
   /** Audio is transcribed in chunks of about this length. */
   chunkMs: 9000,
   /** New transcript lines required before another suggestion is considered. */
-  minNewSegments: 3,
-  /** Minimum gap between two suggestions, so the person is mostly left alone. */
-  suggestionCooldownMs: 90000,
+  minNewSegments: 2,
+  /** Minimum gap between two suggestions, so the person is still mostly left alone. */
+  suggestionCooldownMs: 45000,
   /** How long a suggestion stays before it fades on its own. */
   suggestionVisibleMs: 14000,
 } as const;

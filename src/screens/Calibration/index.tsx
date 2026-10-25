@@ -11,7 +11,7 @@ import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { useHeadPose } from "@/components/useHeadPose";
 import { BackButton } from "@/components/BackButton";
 import { WebcamFrame } from "@/components/WebcamFrame";
-import { useFloatingOverlay } from "@/components/useFloatingOverlay";
+import { useFloatingOverlay, type OverlayPosition } from "@/components/useFloatingOverlay";
 import { FloatingOverlay } from "@/components/FloatingOverlay";
 
 /**
@@ -25,8 +25,8 @@ import { FloatingOverlay } from "@/components/FloatingOverlay";
  *
  * Where the desktop shell can actually move a window (`supportsPositioning` —
  * not Document PiP, which has no position API), the head-range part also
- * floats a small target to the centre of the screen, then each edge, so the
- * person looks straight ahead and then up/down/left/right at a real
+ * floats a small target to the top centre of the screen, under the camera,
+ * then each edge, so the person looks at the camera and then up/down/left/right at a real
  * on-screen point rather than an arrow drawn over their own preview. The
  * direction (`HeadRangePrompt`) is also shown in a banner above the preview the
  * whole time, so nothing is lost where positioning isn't available. It is never
@@ -73,7 +73,8 @@ export function Calibration() {
   // shell can actually reposition a window (not Document PiP).
   useEffect(() => {
     if (phase !== "range" || !target.overlayWindow || !target.supportsPositioning) return;
-    target.setPosition(HEAD_RANGE_CALIBRATION.steps[range.index].direction);
+    const step: { direction: OverlayPosition; overlayPosition?: OverlayPosition } = HEAD_RANGE_CALIBRATION.steps[range.index];
+    target.setPosition(step.overlayPosition ?? step.direction);
   }, [phase, range.index, target.overlayWindow, target.supportsPositioning, target.setPosition]);
 
   return (

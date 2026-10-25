@@ -39,7 +39,7 @@ export function Preflight({ onStart }: { onStart: (c: LiveChoices) => void }) {
   const blocked = (!microphone && !camera) || (record && !agreed);
 
   return (
-    <AppShell>
+    <AppShell art={{ plate: "yellowhammer" }}>
       <PageHeader
         step="Step 4 of 4: in the moment"
         title="Stay present in the conversation."

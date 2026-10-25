@@ -213,13 +213,17 @@ export const HEAD_RANGE_CALIBRATION = {
     neutralMaxSamples: 40,
   },
   steps: [
-    { direction: "center", label: "Centre", prompt: "Look at the screen", instruction: "Look at the screen as you normally would" },
+    // The centre pose is the person looking at their camera, so its target sits
+    // at the top centre of the screen, just under where most webcams are.
+    { direction: "center", overlayPosition: "camera", label: "Centre", prompt: "Look at the camera", instruction: "Look at your camera, at the top of your screen" },
     { direction: "up", label: "Up", prompt: "Tilt your head up", instruction: "Tilt your head up a little" },
     { direction: "down", label: "Down", prompt: "Tilt your head down", instruction: "Now tilt your head down" },
     { direction: "left", label: "Left", prompt: "Turn left", instruction: "Turn your head to your left" },
     { direction: "right", label: "Right", prompt: "Turn right", instruction: "Turn your head to your right" },
   ] as const satisfies ReadonlyArray<{
     direction: HeadDirection;
+    /** Where the desktop shell puts the floating target for this step; defaults to `direction`. */
+    overlayPosition?: "camera";
     label: string;
     /** Short text drawn on the preview. */
     prompt: string;

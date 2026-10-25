@@ -34,10 +34,11 @@ export interface DesktopOverlayState {
 
 /**
  * Explicit overlay placements (electron/main.cjs `positionOverlay`): centre of
- * the screen plus the four edges. Used for visual calibration, so the person
- * naturally looks straight ahead, then up/down/left/right as the window moves.
+ * the screen, the four edges, and "camera" (flush with the top centre, nearest
+ * a typical webcam). Used for visual calibration, so the person looks at the
+ * camera, then up/down/left/right as the window moves.
  */
-export type OverlayPosition = "center" | "up" | "down" | "left" | "right";
+export type OverlayPosition = "center" | "camera" | "up" | "down" | "left" | "right";
 
 /** Bridge exposed by electron/preload.cjs. Exported for other desktop-aware components. */
 export interface CueDesktop {

@@ -29,7 +29,7 @@ export function Profile() {
   };
 
   return (
-    <AppShell>
+    <AppShell art={{ plate: "yellowhammer" }}>
       <PageHeader
         step="My profile"
         title="A style that still sounds like you."

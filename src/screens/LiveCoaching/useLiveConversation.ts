@@ -22,6 +22,7 @@ export function useLiveConversation({
   suggest,
   profile,
   goals,
+  context,
 }: {
   enabled: boolean;
   paused: boolean;
@@ -29,6 +30,8 @@ export function useLiveConversation({
   suggest: boolean;
   profile: CommunicationProfile | null;
   goals: string[];
+  /** What the conversation is, in the person's words. Helps the suggestions fit. */
+  context?: string;
 }) {
   const mic = useMicrophone();
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
@@ -57,14 +60,14 @@ export function useLiveConversation({
     if (!suggest || sinceSuggestion.current < LIVE_CONVERSATION.minNewSegments) return;
     if (now - lastSuggestionAt.current < LIVE_CONVERSATION.suggestionCooldownMs) return;
     sinceSuggestion.current = 0;
-    const s = await liveSuggestion({ profile, goals, transcript: lines.current });
+    const s = await liveSuggestion({ profile, goals, context, transcript: lines.current, previous: feedback.current.map((f) => f.title) });
     if (!s) return;
     const seg = lines.current.find((l) => l.id === s.segmentId);
     const event: FeedbackEvent = { id: newId("fb"), atMs: seg?.startMs ?? now, ...s };
     lastSuggestionAt.current = now;
     feedback.current = [...feedback.current, event];
     setSuggestion(event);
-  }, [goals, profile, suggest]);
+  }, [context, goals, profile, suggest]);
 
   // The chunk loop: record ~chunkMs, transcribe, repeat, while live and not paused.
   const { record, state: micState } = mic;

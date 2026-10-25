@@ -5,6 +5,9 @@ import { MicProblem } from "@/components/PermissionList";
 import { SuggestionNote } from "@/components/SuggestionNote";
 import type { MicState } from "@/components/useMicrophone";
 import { CueBubble } from "@/components/CueBubble";
+import { FloatingOverlay } from "@/components/FloatingOverlay";
+import { useFloatingOverlay } from "@/components/useFloatingOverlay";
+import { OVERLAY_SIZE, SessionOverlay } from "../LiveCoaching/SessionOverlay";
 import type { PreviewState } from "@/components/useWebcamPreview";
 import { formatClock } from "@/components/videoReview/time";
 import { PRACTICE_CALL } from "@/config/conversation";
@@ -192,11 +195,6 @@ function SelfView({
 
 /** The newest suggestion, top centre. Fades after a while; always kept in Notes. */
 function SuggestionToast({ suggestion, sample, onHide }: { suggestion: FeedbackEvent; sample?: boolean; onHide: () => void }) {
-  useEffect(() => {
-    const id = window.setTimeout(onHide, PRACTICE_CALL.suggestionVisibleMs);
-    return () => window.clearTimeout(id);
-  }, [suggestion.id, onHide]);
-
   return (
     <div className="rounded-lg border border-border-strong bg-bg/95 px-4 py-3">
       <SuggestionNote
@@ -255,6 +253,29 @@ export function MeetingStage(props: MeetingStageProps) {
   const caption = [...props.transcript].reverse().find((s) => s.role !== "you");
   const toast = props.suggestions?.find((s) => !hidden.has(s.id));
   const hideToast = () => toast && setHidden((h) => new Set(h).add(toast.id));
+  // Each suggestion fades on its own (keyed on its id, so re-renders don't restart the clock).
+  const toastId = toast?.id;
+  useEffect(() => {
+    if (!toastId) return;
+    const id = window.setTimeout(() => setHidden((h) => new Set(h).add(toastId)), PRACTICE_CALL.suggestionVisibleMs);
+    return () => window.clearTimeout(id);
+  }, [toastId]);
+
+  // The floating overlay (top centre of the screen in the desktop app; a
+  // picture-in-picture window in the browser) carries the cues once open. It
+  // opens with the call, while the Start click still counts as a gesture.
+  const overlay = useFloatingOverlay({ title: "Cue", ...OVERLAY_SIZE });
+  const openOverlay = useRef(overlay.open);
+  openOverlay.current = overlay.open;
+  useEffect(() => {
+    void openOverlay.current();
+  }, []);
+  const floating = overlay.overlayWindow != null;
+  const overlayCue = toast
+    ? { id: toast.id, text: toast.title, detail: toast.explanation }
+    : props.cue
+      ? { id: props.cue.id, text: props.cue.text }
+      : null;
 
   const answerHint = !canSpeak
     ? null
@@ -313,7 +334,7 @@ export function MeetingStage(props: MeetingStageProps) {
 
       <div className="flex min-h-0 flex-1 gap-3 px-3 pb-3 sm:px-4">
         <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg bg-surface">
-          {(toast || props.cue) && (
+          {!floating && (toast || props.cue) && (
             <div className="absolute left-1/2 top-[108px] z-10 w-[min(460px,calc(100%-24px))] -translate-x-1/2 space-y-2 sm:top-4" aria-live="polite">
               {props.cue && (
                 <div className="rounded-lg">
@@ -489,6 +510,15 @@ export function MeetingStage(props: MeetingStageProps) {
             {hasNotes ? "Notes" : "Transcript"}
             {props.suggestions && props.suggestions.length > 0 && <span className="ml-1.5 text-text-muted">{props.suggestions.length}</span>}
           </button>
+          {overlay.supported && (
+            <button
+              type="button"
+              onClick={() => (floating ? overlay.close() : void overlay.open())}
+              className="hidden min-h-12 whitespace-nowrap rounded-pill bg-bg px-4 text-[14.5px] hover:bg-border md:block"
+            >
+              {floating ? "Cues in call" : "Pop out cues"}
+            </button>
+          )}
         </div>
 
         <div className="flex justify-end sm:col-start-3">
@@ -503,6 +533,20 @@ export function MeetingStage(props: MeetingStageProps) {
           )}
         </div>
       </footer>
+
+      {overlay.overlayWindow && (
+        <FloatingOverlay target={overlay.overlayWindow}>
+          <SessionOverlay
+            cue={overlayCue}
+            paused={false}
+            idleText={props.suggestions ? "Suggestions appear here after you answer." : "Camera cues appear here."}
+            onDismiss={toast ? hideToast : (props.onDismissCue ?? (() => undefined))}
+            sample={props.sample ?? false}
+            draggable={overlay.mode === "desktop"}
+            onDock={overlay.close}
+          />
+        </FloatingOverlay>
+      )}
     </div>
   );
 }

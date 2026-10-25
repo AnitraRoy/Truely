@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BackButton, backFallback } from "./BackButton";
+import { FieldArt } from "./FieldArt";
+import { PLATES, type PlateName } from "@/assets/art";
 
 /**
  * The journal's application shell: a top toolbar (wordmark, home icon, and the
@@ -13,6 +15,11 @@ import { BackButton, backFallback } from "./BackButton";
  * and the top toolbar's Menu disclosure shows the tools with their purpose
  * lines; the home icon stays. Never used while a live session is running
  * (CLAUDE.md §6); the live screen renders its own quiet header.
+ *
+ * Artwork: the side toolbar ends in a small woodcock vignette, and a page can
+ * print one faded plate into its own empty space with `art` (behind the page
+ * header, or at the foot of a short page). A page that shows a camera preview
+ * passes `quiet` and gets neither (CLAUDE.md §4A.3).
  */
 type Match = (pathname: string, search: string) => boolean;
 interface Tool {
@@ -170,10 +177,16 @@ function ToolList({ onNavigate, idBase }: { onNavigate?: () => void; idBase: str
 export function AppShell({
   children,
   back,
+  art,
+  quiet = false,
 }: {
   children: ReactNode;
   /** Step back within the page (e.g. leave a running session for its setup form) instead of leaving the page. */
   back?: { onBack: () => void; label?: string };
+  /** One faded plate for this page's empty space. */
+  art?: { plate: PlateName; place?: "header" | "foot" };
+  /** No artwork at all: the page shows a camera preview. */
+  quiet?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -249,12 +262,36 @@ export function AppShell({
       <div className="lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
         {/* Side toolbar: the same tools in journey order, each with its purpose */}
         <aside className="hidden border-r border-border bg-surface lg:block">
-          <nav aria-label="Tools" className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto px-3 pb-8 pt-6">
-            <ToolList idBase="side" />
-          </nav>
+          <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col overflow-y-auto px-3 pb-5 pt-6">
+            <nav aria-label="Tools">
+              <ToolList idBase="side" />
+            </nav>
+            {/* The journal's colophon: a plate tipped in below the tools. It takes only leftover height, never squeezing the list. */}
+            {!quiet && (
+              <figure aria-hidden className="m-0 mt-auto px-3 pt-8">
+                <FieldArt plate="woodcock" fade="up" strength="strong" className="mx-auto w-[200px]" />
+                <figcaption className="mt-2 border-t border-border pt-2 font-serif text-[12.5px] italic text-text-muted">
+                  {PLATES.woodcock.credit}
+                </figcaption>
+              </figure>
+            )}
+          </div>
         </aside>
 
-        <main id="main" tabIndex={-1} className="min-w-0 px-4 py-9 focus:outline-none sm:px-8 md:py-12 lg:px-12">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="relative isolate min-h-[calc(100vh-4rem)] min-w-0 overflow-x-clip px-4 py-9 focus:outline-none sm:px-8 md:py-12 lg:px-12"
+        >
+          {art && !quiet && (
+            <FieldArt
+              plate={art.plate}
+              fade={art.place === "foot" ? "bottom-right" : "top-right"}
+              className={`absolute right-0 -z-10 hidden md:block ${
+                art.place === "foot" ? "bottom-0 w-[clamp(340px,44vw,660px)]" : "top-0 w-[clamp(300px,36vw,560px)]"
+              }`}
+            />
+          )}
           <div className="mx-auto max-w-[1120px]">
             <div className="mb-6">
               <BackButton fallback={backFallback(pathname)} onBack={back?.onBack} label={back?.label} />

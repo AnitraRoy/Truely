@@ -13,3 +13,11 @@ Artwork rule (`CLAUDE.md` §4A.3): components that show illustration or brand im
 take a real, pre-drawn asset file (with `alt` or `aria-hidden`), not inline SVG drawn in
 code. Inline SVG is for functional icons and data marks only. Primitives should make the
 focal element easy to scale up and the supporting ones easy to recede (§4A.1).
+
+Two artwork primitives, both fed only by plates in `src/assets` (registry: `src/assets/art.ts`):
+
+- `SpecimenPlate`: a plate tipped in and captioned. The screen's expressive moment (Landing, Setup welcome).
+- `FieldArt`: a plate printed faintly behind the page and faded toward the content, filling
+  deliberate empty space. Decorative (`aria-hidden`), token-coloured, hidden below `md`. Usually
+  reached through `AppShell`'s `art` prop, which also adds the side-toolbar woodcock. Never beside a
+  camera preview.

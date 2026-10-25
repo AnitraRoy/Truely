@@ -30,3 +30,20 @@ Type: `font-display` Fraunces (headings), `font-sans` Instrument Sans (UI and bo
 (timestamps and counts only). Radius: `rounded` 4px controls, `rounded-lg` 8px sheets.
 Buttons: `primary` (forest, one per surface), `secondary` (outlined), `inverse` (on the forest
 field), `ghost` (italic link). Dark scheme is designed separately in `tokens.css`.
+
+## Artwork tokens (2026-10-24)
+
+Faded plates printed behind pages (`FieldArt`, `src/components/FieldArt.tsx`). Engravings are alpha
+masks painted in `--cue-art-ink`, so the dark scheme recolours them; the hand-coloured plate goes
+through `--cue-art-plate-filter`.
+
+| Token | Light | Dark | Use |
+| --- | --- | --- | --- |
+| `--cue-art-ink` | ink | bone | engraving line colour |
+| `--cue-art-opacity` | 0.12 | 0.08 | page backdrops (keeps `text-muted` ≥ 4.5:1 over dense ink) |
+| `--cue-art-opacity-strong` | 0.2 | 0.13 | small vignettes kept clear of text (side toolbar) |
+| `--cue-art-plate-filter` | none | greyscale + invert | hand-coloured plate in the dark scheme |
+
+Placement: one backdrop per page, in its own empty space: `AppShell art={{ plate }}` (behind the
+header) or `art={{ plate, place: "foot" }}` (foot of a short page). Never on a screen with a camera
+preview (`quiet`), never on Live Coaching or Calibration.

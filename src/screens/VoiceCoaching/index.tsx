@@ -69,7 +69,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
     if (m === "sample") {
       res = DEV_COACH_TURNS[Math.min(sampleTurn.current++, DEV_COACH_TURNS.length - 1)];
     } else {
-      res = await coachTurn({ prompt: practicePrompt, profile, goals, transcript });
+      res = await coachTurn({ prompt: practicePrompt, profile, goals, transcript, previous: feedback.current.map((f) => f.title) });
     }
     if (!res) {
       turn.setError("The coach couldn't reply just now. Answer again, or end and review.");
@@ -176,7 +176,7 @@ function VoiceCoachingSession({ onReset }: { onReset: () => void }) {
   }
 
   return (
-    <AppShell>
+    <AppShell art={{ plate: "bluejayVine" }}>
       <PageHeader
         step="Step 2 of 4: practise out loud"
         title="Think it through, out loud."

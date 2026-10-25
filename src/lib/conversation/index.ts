@@ -12,7 +12,7 @@
 import { llmReply, runApifyActor, type ChatMessage } from "@/lib/services";
 import { APIFY_REFERENCE_ACTOR, FEEDBACK_CATEGORIES, INTERVIEW_QUESTION_COUNT, REFERENCE_MAX_CHARS } from "@/config/conversation";
 import type { CommunicationProfile, ConversationKind, ConversationReport, TranscriptSegment } from "@/types";
-import { parseLiveSuggestion, parseReport, parseStyle, parseTurn, str, type ParsedSuggestion } from "./parse";
+import { extractJson, parseLiveSuggestion, parseReport, parseStyle, parseSuggestions, parseTurn, str, type ParsedSuggestion } from "./parse";
 
 export * from "./parse";
 
@@ -41,6 +41,10 @@ const toHistory = (transcript: TranscriptSegment[]): ChatMessage[] =>
 const numbered = (transcript: TranscriptSegment[]) =>
   transcript.map((t) => `[${t.id}] ${t.role === "you" ? "You" : (t.speaker ?? "Other")}: ${t.text}`).join("\n");
 
+/** A line telling the model which suggestions were already given, so it doesn't repeat them. */
+const alreadySaid = (previous: string[] | undefined) =>
+  previous?.length ? `Suggestions already given this session (do not repeat these or rephrase them): ${previous.slice(-6).join("; ")}.` : "";
+
 export interface TurnResult {
   reply: string;
   suggestions: ParsedSuggestion[];
@@ -52,6 +56,8 @@ export async function coachTurn(input: {
   profile: CommunicationProfile | null;
   goals: string[];
   transcript: TranscriptSegment[];
+  /** Titles of suggestions already shown, newest last. */
+  previous?: string[];
 }): Promise<TurnResult | null> {
   const system = [
     "You are Cue, a voice communication coach running a short question-and-answer practice.",
@@ -59,7 +65,8 @@ export async function coachTurn(input: {
     describeProfile(input.profile, input.goals),
     ETHICS,
     "After each answer: reply in at most two spoken sentences (acknowledge one thing that worked, then ask them to try again or go one step further).",
-    `Then give 0 to 3 suggestions about their LAST answer only. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, "why": one sentence quoting or pointing at what they said, "try": optional short example phrasing}.`,
+    `Then give 1 to 3 suggestions about their LAST answer only, each about something specific in it. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, "why": one sentence quoting or pointing at what they said, "try": optional short example phrasing built from their own content}.`,
+    alreadySaid(input.previous),
     'Respond with JSON only: {"reply": string, "suggestions": [...]}',
   ]
     .filter(Boolean)
@@ -98,20 +105,53 @@ export async function liveSuggestion(input: {
   profile: CommunicationProfile | null;
   goals: string[];
   transcript: TranscriptSegment[];
+  /** What the conversation is, in the person's words (e.g. "Team check-in"). */
+  context?: string;
+  /** Titles of suggestions already shown, newest last. */
+  previous?: string[];
 }) {
   const recent = input.transcript.slice(-12);
   const system = [
-    "You are Cue, a discreet coach listening to a real conversation. The person will glance at your suggestion while talking, so it must be very short.",
+    "You are Cue, a discreet coach listening to a real conversation through one microphone, so lines are not labelled by speaker. The person glances at your suggestion while talking, so it must be very short.",
+    input.context ? `The conversation: ${input.context}.` : "",
     describeProfile(input.profile, input.goals),
     ETHICS,
-    "Most of the time, say nothing. Only suggest when a recent line clearly shows a chance to apply one of their goals.",
-    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line it is based on, "category": one of ${CATS}, "title": imperative, max 7 words, "why": one short sentence}.`,
+    "Look at the most recent lines. If one of them is something the person could say better next (vague, rambling, buried main point, hedged, filler-heavy, missing a concrete detail), suggest one concrete change they can make in their very next sentence. If the recent lines give no such chance, say nothing.",
+    alreadySaid(input.previous),
+    `If nothing is worth saying, respond {"suggest": false}. Otherwise respond {"suggest": true, "segmentId": the id of the line it is based on, "category": one of ${CATS}, "title": imperative, max 7 words, specific to that line, "why": one short sentence pointing at what was said}.`,
     "JSON only.",
   ]
     .filter(Boolean)
     .join("\n");
   const text = await llmReply(system, [{ role: "user", content: numbered(recent) }], { temperature: 0.3, maxTokens: 160 });
   return parseLiveSuggestion(text, recent);
+}
+
+/**
+ * Mock interview: up to two private suggestions about the answer just given.
+ * The interviewer never coaches; these come from Cue, beside the interview.
+ */
+export async function answerSuggestions(input: {
+  question: string;
+  answer: string;
+  interview: string;
+  profile: CommunicationProfile | null;
+  goals: string[];
+  previous?: string[];
+}): Promise<ParsedSuggestion[]> {
+  const system = [
+    `You are Cue, a private coach beside a mock ${input.interview}. The interviewer can't see you. The person reads your note before their next answer.`,
+    describeProfile(input.profile, input.goals),
+    ETHICS,
+    `Give 1 or 2 suggestions about how they answered THIS question, each about something specific in the answer. Each: {"category": one of ${CATS}, "title": imperative, max 6 words, "why": one sentence quoting or pointing at what they said, "try": optional short example phrasing built from their own content}.`,
+    alreadySaid(input.previous),
+    'Respond with JSON only: {"suggestions": [...]}',
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const user = `Question: ${input.question}\nTheir answer: ${input.answer}`;
+  const json = extractJson(await llmReply(system, [{ role: "user", content: user }], { temperature: 0.3, maxTokens: 400 }));
+  return parseSuggestions((json as { suggestions?: unknown } | null)?.suggestions, 2);
 }
 
 const KIND_LABEL: Record<ConversationKind, string> = {

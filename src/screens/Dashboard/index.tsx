@@ -88,7 +88,7 @@ export function Dashboard() {
   const step = nextStep(kept.length > 0, counts);
 
   return (
-    <AppShell>
+    <AppShell art={{ plate: "bluejayVine" }}>
       <PageHeader
         title="Your next conversation, with more intention."
         lede="A private place to understand how you communicate, practise deliberately, and bring what works into real conversations."

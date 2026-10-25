@@ -40,7 +40,7 @@ export function Reports() {
   }, [all, filter, query]);
 
   return (
-    <AppShell>
+    <AppShell art={{ plate: "yellowhammer", place: "foot" }}>
       <PageHeader
         step="Your session history"
         title="Small moments, worth revisiting."

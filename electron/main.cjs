@@ -72,8 +72,9 @@ function sendOverlayState() {
 
 /**
  * Explicit placements used for visual calibration (src/screens/Calibration):
- * centre of the screen plus the four edges, so moving the overlay there gets
- * the person to naturally look straight ahead, then up/down/left/right.
+ * "camera" (top centre, under a typical webcam) plus the four edges, so moving
+ * the overlay there gets the person to look at the camera, then
+ * up/down/left/right. "center" is the middle of the screen.
  * Unrelated to the default top-centre placement a session's cue overlay opens
  * at (`protectOverlay`) — this only runs when the renderer asks for it.
  */
@@ -85,6 +86,8 @@ function positionOverlay(key) {
   const cy = workArea.y + Math.round((workArea.height - height) / 2);
   const positions = {
     center: [cx, cy],
+    // Flush with the top centre, as close as a window gets to a typical webcam.
+    camera: [cx, workArea.y],
     up: [cx, workArea.y + OVERLAY_MARGIN],
     down: [cx, workArea.y + workArea.height - height - OVERLAY_MARGIN],
     left: [workArea.x + OVERLAY_MARGIN, cy],

@@ -15,6 +15,7 @@ import { GoalStep } from "./steps/Goal";
 import { SavingStep } from "./steps/Saving";
 import { CameraStep } from "./steps/Camera";
 import { BaselineStep, type BaselinePhase } from "./steps/Baseline";
+import { FieldArt } from "@/components/FieldArt";
 
 /**
  * First-time setup (docs/FRONTEND_GUIDE.md §3.2). Field Journal.
@@ -109,51 +110,57 @@ export function Setup() {
   const showNav = !(step === BASELINE && phase !== "setup");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
-      <Masthead size="sm" folio="First-time setup" homeHref="/" />
+    <div className="relative isolate min-h-screen overflow-x-clip">
+      {/* A plate at the foot of the page, never beside the camera preview (CLAUDE.md §4A.3). */}
+      {!usesCamera && (
+        <FieldArt plate="woodcock" fade="bottom-right" className="absolute bottom-0 right-0 -z-10 hidden w-[clamp(340px,40vw,620px)] md:block" />
+      )}
+      <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
+        <Masthead size="sm" folio="First-time setup" homeHref="/" />
 
-      <div className="mt-8 max-w-md">
-        <Stepper steps={STEPS} current={step} />
-      </div>
-
-      {/* The preview stays mounted across Camera and Baseline so the stream isn't lost. */}
-      <div
-        className={`mt-10 grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-8 ${
-          usesCamera ? "md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]" : ""
-        }`}
-      >
-        <div className={usesCamera ? "" : "hidden"}>
-          {/* The direction sits above the preview, never over the person's face. */}
-          {step === BASELINE && phase === "range" && <HeadRangePrompt range={range} />}
-          <WebcamFrame videoRef={camera.videoRef} state={camera.state} />
+        <div className="mt-8 max-w-md">
+          <Stepper steps={STEPS} current={step} />
         </div>
 
-        <section className={usesCamera || step === 0 ? "" : "max-w-3xl"}>
-          {stepBody}
+        {/* The preview stays mounted across Camera and Baseline so the stream isn't lost. */}
+        <div
+          className={`mt-10 grid items-start gap-x-[clamp(24px,4vw,56px)] gap-y-8 ${
+            usesCamera ? "md:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]" : ""
+          }`}
+        >
+          <div className={usesCamera ? "" : "hidden"}>
+            {/* The direction sits above the preview, never over the person's face. */}
+            {step === BASELINE && phase === "range" && <HeadRangePrompt range={range} />}
+            <WebcamFrame videoRef={camera.videoRef} state={camera.state} />
+          </div>
 
-          {showNav && (
-            <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-border pt-6">
-              {step < BASELINE && (
-                <Button onClick={() => setStep(step + 1)} disabled={!canContinue}>
-                  Continue
-                </Button>
-              )}
-              {step > 0 ? (
-                <Button variant="ghost" onClick={() => setStep(step - 1)}>
-                  Back
-                </Button>
-              ) : (
-                <BackButton fallback="/" />
-              )}
-              {!canContinue && (
-                <p className="w-full text-[14.5px] text-text-muted">
-                  {step === 1 ? "Choose a goal to continue." : "Turn on your camera to continue."}
-                </p>
-              )}
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+          <section className={usesCamera || step === 0 ? "" : "max-w-3xl"}>
+            {stepBody}
+
+            {showNav && (
+              <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-border pt-6">
+                {step < BASELINE && (
+                  <Button onClick={() => setStep(step + 1)} disabled={!canContinue}>
+                    Continue
+                  </Button>
+                )}
+                {step > 0 ? (
+                  <Button variant="ghost" onClick={() => setStep(step - 1)}>
+                    Back
+                  </Button>
+                ) : (
+                  <BackButton fallback="/" />
+                )}
+                {!canContinue && (
+                  <p className="w-full text-[14.5px] text-text-muted">
+                    {step === 1 ? "Choose a goal to continue." : "Turn on your camera to continue."}
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }
