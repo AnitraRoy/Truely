@@ -23,6 +23,7 @@ const min = (m: number, s = 0) => (m * 60 + s) * 1000;
 
 export const DEV_VIDEO_REVIEW_FIXTURE: VideoReviewData = {
   youtubeVideoId: "Mmw-PpWhKFg",
+  fixture: true,
   durationMs: min(6, 40),
   markers: [
     { id: "m1", kind: "observation", atMs: min(0, 42), label: "Gaze drifted off-camera", transcriptSegmentId: "t2" },

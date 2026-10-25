@@ -1,34 +1,54 @@
 /*
- * Design tokens — Field Journal art direction (chosen 2026-10-24).
- * Owner: Design System team. The single source of truth for colour, type,
- * radius, and motion. Colour values are RGB channels (space-separated) so
- * Tailwind's <alpha-value> works. Changing a value here re-skins the whole
- * app — that is the test of centralization (CLAUDE.md §7).
+ * Design tokens — Private Field Journal (revised 2026-10-24 from the Truely
+ * concept file). Owner: Design System team. The single source of truth for
+ * colour, type, radius, and motion. Colour values are RGB channels
+ * (space-separated) so Tailwind's <alpha-value> works. Changing a value here
+ * re-skins the whole app — that is the test of centralization (CLAUDE.md §7).
  *
- * Personality: a naturalist's observation journal — warm oat paper, ink, and
- * restrained accents (ink-indigo, muted olive, muted ochre). Light by default.
- * No bright-red alerts for ordinary deviations (PRD §11, CLAUDE.md §4).
+ * Personality: a private communication journal — warm paper, ink, one forest
+ * accent, ochre reserved for selection marks. Light by default. No bright-red
+ * alerts for ordinary deviations (PRD §11, CLAUDE.md §4).
+ *
+ * Contrast (WCAG 2.2 AA, checked numerically on bg / surface):
+ *   text-primary 13.0 / 13.9   text-muted 5.8 / 6.2   accent 5.1 / 5.5
+ *   ochre (text) 5.2 / 5.6     warning 4.7 / 5.0      border-strong 3.0 / 3.3
+ *   on-accent over accent 5.5. `ochre-mark` (#B38A4A) is 2.8:1, so it is for
+ *   rules, dots and selection bars only, never text. `border` is a divider
+ *   (decorative); control edges use `border-strong`.
  */
 :root {
-  /* colour */
-  --cue-bg: 243 238 227; /* oat paper */
-  --cue-surface: 237 231 217; /* paper, slightly deeper */
-  --cue-border: 216 207 189; /* ruled line */
-  --cue-accent: 47 58 86; /* ink-indigo (primary accent) */
-  --cue-ochre: 156 116 48; /* muted ochre (secondary accent / annotations) */
-  --cue-positive: 92 106 76; /* restrained olive */
-  --cue-warning: 154 123 51; /* muted amber — never bright red */
-  --cue-text-primary: 35 33 27; /* ink */
-  --cue-text-muted: 81 76 64; /* soft ink */
-  --cue-scrim: 35 33 27; /* dims the page behind dialogs; always darker than bg */
+  /* colour: surfaces */
+  --cue-bg: 243 240 232; /* #F3F0E8 warm paper */
+  --cue-surface: 250 248 243; /* raised sheet */
+  --cue-sunken: 234 230 220; /* inset fill: wells, tracks, idle preview */
+  --cue-scrim: 37 41 35; /* dims the page behind dialogs; always darker than bg */
+
+  /* colour: lines */
+  --cue-border: 217 212 200; /* #D9D4C8 divider */
+  --cue-border-strong: 140 138 128; /* control edges, ≥ 3:1 */
+
+  /* colour: text */
+  --cue-text-primary: 37 41 35; /* #252923 ink */
+  --cue-text-muted: 90 94 86;
+  --cue-on-accent: 250 248 243;
+
+  /* colour: accents */
+  --cue-accent: 82 107 88; /* #526B58 forest */
+  --cue-accent-hover: 64 86 70;
+  --cue-ochre: 128 94 40; /* ochre for text */
+  --cue-ochre-mark: 179 138 74; /* #B38A4A selection marks, rules */
+  --cue-positive: 82 107 88; /* same forest: status is always text + shape too */
+  --cue-warning: 138 100 32; /* muted amber — never bright red */
 
   /* typography */
   --cue-font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --cue-font-serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --cue-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  --cue-font-sans: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --cue-font-serif: "Newsreader", Georgia, "Times New Roman", serif; /* quoted speech, marginal notes */
+  --cue-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace; /* timestamps, counts */
 
-  /* radius — Field Journal keeps corners nearly square */
-  --cue-radius: 2px;
+  /* radius — small, two steps plus pill; hierarchy, not decoration */
+  --cue-radius: 4px; /* controls */
+  --cue-radius-lg: 8px; /* sheets and panels */
   --cue-radius-pill: 999px;
 
   /* motion — restrained (CLAUDE.md §4A.2) */
@@ -41,38 +61,48 @@
 
 /*
  * Dark scheme — opt-in only (profile → Settings → Theme). Light is the default.
- * Designed, not inverted: the same journal at night — ink-black paper, bone text,
- * accents lifted for contrast (all text tokens ≥ 6.9:1 on bg, WCAG AA).
+ * Designed, not inverted: the journal at night — ink-green paper, bone text,
+ * forest and ochre lifted for contrast (text tokens ≥ 6.6:1 on bg and surface).
  * Applied via <html data-theme="dark">, or data-theme="system" to follow the OS.
  * Keep the two blocks below identical. See src/styles/theme.ts.
  */
 :root[data-theme="dark"] {
-  --cue-bg: 26 24 20; /* ink-black paper */
-  --cue-surface: 36 33 27;
-  --cue-border: 110 102 84; /* ruled line, ≥ 3:1 for control edges */
-  --cue-accent: 168 182 222; /* lifted ink-indigo */
-  --cue-ochre: 214 170 95;
-  --cue-positive: 150 168 126;
-  --cue-warning: 214 176 92;
-  --cue-text-primary: 236 230 216; /* bone */
-  --cue-text-muted: 178 170 154;
+  --cue-bg: 26 28 25;
+  --cue-surface: 34 37 33;
+  --cue-sunken: 20 22 19;
   --cue-scrim: 0 0 0;
+  --cue-border: 62 66 60;
+  --cue-border-strong: 120 124 114;
+  --cue-text-primary: 234 230 220;
+  --cue-text-muted: 172 170 160;
+  --cue-on-accent: 26 28 25;
+  --cue-accent: 150 184 158;
+  --cue-accent-hover: 176 204 182;
+  --cue-ochre: 214 172 104;
+  --cue-ochre-mark: 214 172 104;
+  --cue-positive: 150 184 158;
+  --cue-warning: 222 182 100;
 
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --cue-bg: 26 24 20;
-    --cue-surface: 36 33 27;
-    --cue-border: 110 102 84;
-    --cue-accent: 168 182 222;
-    --cue-ochre: 214 170 95;
-    --cue-positive: 150 168 126;
-    --cue-warning: 214 176 92;
-    --cue-text-primary: 236 230 216;
-    --cue-text-muted: 178 170 154;
+    --cue-bg: 26 28 25;
+    --cue-surface: 34 37 33;
+    --cue-sunken: 20 22 19;
     --cue-scrim: 0 0 0;
+    --cue-border: 62 66 60;
+    --cue-border-strong: 120 124 114;
+    --cue-text-primary: 234 230 220;
+    --cue-text-muted: 172 170 160;
+    --cue-on-accent: 26 28 25;
+    --cue-accent: 150 184 158;
+    --cue-accent-hover: 176 204 182;
+    --cue-ochre: 214 172 104;
+    --cue-ochre-mark: 214 172 104;
+    --cue-positive: 150 184 158;
+    --cue-warning: 222 182 100;
 
     color-scheme: dark;
   }

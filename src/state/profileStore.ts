@@ -10,7 +10,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
-import type { CoachingGoal } from "@/types";
+import type { CoachingGoal, CommunicationProfile } from "@/types";
 import type { ThemePreference } from "@/styles/theme";
 
 export interface ProfileSettings {
@@ -26,10 +26,13 @@ interface ProfileState {
   /** Opt-in, off by default (PRD §4.4 "ask permission before saving session metrics"). */
   consentSaveMetrics: boolean;
   primaryGoal: CoachingGoal | null;
+  /** Desired communication style (Stage 1). Text only; separate from the behavioral baseline. */
+  communicationProfile: CommunicationProfile | null;
   settings: ProfileSettings;
   setSetupComplete: (v: boolean) => void;
   setConsentSaveMetrics: (v: boolean) => void;
   setPrimaryGoal: (goal: CoachingGoal) => void;
+  setCommunicationProfile: (profile: CommunicationProfile | null) => void;
   updateSettings: (patch: Partial<ProfileSettings>) => void;
   resetProfile: () => void;
 }
@@ -46,6 +49,7 @@ const INITIAL = {
   setupComplete: false,
   consentSaveMetrics: false,
   primaryGoal: null,
+  communicationProfile: null,
   settings: DEFAULT_SETTINGS,
 };
 
@@ -83,6 +87,7 @@ export const useProfileStore = create<ProfileState>()(
       setSetupComplete: (setupComplete) => set({ setupComplete }),
       setConsentSaveMetrics: (consentSaveMetrics) => set({ consentSaveMetrics }),
       setPrimaryGoal: (primaryGoal) => set({ primaryGoal }),
+      setCommunicationProfile: (communicationProfile) => set({ communicationProfile }),
       updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
       resetProfile: () => set(INITIAL),
     }),
@@ -90,10 +95,11 @@ export const useProfileStore = create<ProfileState>()(
       name: PROFILE_STORAGE_KEY,
       version: 1,
       storage: createJSONStorage(() => safeLocalStorage),
-      partialize: ({ setupComplete, consentSaveMetrics, primaryGoal, settings }) => ({
+      partialize: ({ setupComplete, consentSaveMetrics, primaryGoal, communicationProfile, settings }) => ({
         setupComplete,
         consentSaveMetrics,
         primaryGoal,
+        communicationProfile,
         settings,
       }),
       // Settings added later get their defaults instead of `undefined`.

@@ -46,13 +46,20 @@ export function VideoPlayer({
     <div className="border border-border bg-surface p-3.5">
       <div className="relative aspect-video overflow-hidden border border-border bg-bg">
         {isFile ? (
-          <video
-            ref={videoRef}
-            src={data.videoSrc}
-            playsInline
-            className="h-full w-full object-cover"
-            aria-label="Session recording"
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={data.videoSrc}
+              playsInline
+              className={`h-full w-full object-cover ${data.audioOnly ? "opacity-0" : ""}`}
+              aria-label={data.audioOnly ? "Session audio recording" : "Session recording"}
+            />
+            {data.audioOnly && (
+              <p className="absolute inset-0 m-auto flex items-center justify-center bg-sunken px-10 text-center font-serif italic text-text-muted">
+                Audio recording, kept on this device. The transcript follows along as it plays.
+              </p>
+            )}
+          </>
         ) : isYoutube ? (
           <YouTubePlayer
             ref={youtubeRef}
@@ -71,7 +78,7 @@ export function VideoPlayer({
             </p>
           </div>
         )}
-        {!isFile && (
+        {data.fixture && (
           <div className="absolute left-3 top-3">
             <Pill tone="ochre">Dev fixture</Pill>
           </div>

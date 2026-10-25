@@ -18,7 +18,7 @@ export function Masthead({
 }) {
   const wordmark = (
     <>
-      Cue<span className="text-ochre">.</span>
+      Cue<span className="text-ochre-mark">.</span>
     </>
   );
   const cls = `font-display font-semibold tracking-[-0.01em] ${size === "lg" ? "text-[26px]" : "text-[20px]"}`;

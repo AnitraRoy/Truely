@@ -7,6 +7,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("cueDesktop", {
   overlayName: "cue-overlay",
   getOverlayState: () => ipcRenderer.invoke("cue:overlay-state"),
+  setOverlayPosition: (position) => ipcRenderer.invoke("cue:overlay-position", position),
   openCameraSettings: () => ipcRenderer.invoke("cue:open-camera-settings"),
   // Third-party services; keys stay in the main process (electron/services.cjs).
   services: {

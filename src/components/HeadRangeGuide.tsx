@@ -146,6 +146,29 @@ export function HeadRangePrompt({ range }: { range: HeadRange }) {
   );
 }
 
+/**
+ * The same direction, drawn inside the floating overlay window instead of on
+ * the preview (Calibration screen, desktop shell only — see
+ * `useFloatingOverlay.setPosition`). The window itself has already moved to
+ * the matching screen position (centre, then each edge); this is just what
+ * fills it, styled like SessionOverlay's panel: rounded, slightly
+ * translucent, no header or dismiss control since its position is automatic.
+ */
+export function HeadRangeFloatingTarget({ range }: { range: HeadRange }) {
+  const step = STEPS[range.index];
+  return (
+    <main className="flex h-screen select-none flex-col items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-border bg-bg/90 p-4 text-center">
+      <DirectionMark direction={step.direction} />
+      <p className="font-display text-[clamp(16px,2.4vw,20px)] font-semibold leading-tight">
+        {range.paused ? "Paused" : step.prompt}
+      </p>
+      <div className="h-[3px] w-full max-w-[140px] bg-border" aria-hidden>
+        <div className="h-full bg-accent" style={{ width: `${range.progress * 100}%` }} />
+      </div>
+    </main>
+  );
+}
+
 /** Text side: what this part is for, the five positions, and the controls. */
 export function HeadRangeSteps({ range, onSkip }: { range: HeadRange; onSkip: () => void }) {
   const step = STEPS[range.index];

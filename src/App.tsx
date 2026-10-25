@@ -8,6 +8,10 @@ import { Reports } from "./screens/Reports";
 import { Calibration } from "./screens/Calibration";
 import { LiveCoaching } from "./screens/LiveCoaching";
 import { PostSession } from "./screens/PostSession";
+import { StyleProfile } from "./screens/StyleProfile";
+import { VoiceCoaching } from "./screens/VoiceCoaching";
+import { MockInterview } from "./screens/MockInterview";
+import { ConversationReport } from "./screens/ConversationReport";
 import { useProfileStore } from "./state/profileStore";
 import { useSessionStore } from "./state/sessionStore";
 import { getStorage, syncSaveConsent } from "./state/savedData";
@@ -15,8 +19,10 @@ import { applyTheme } from "./styles/theme";
 
 /**
  * App shell + routing. Owner: UI / App-shell team.
- * The PRD screens (§6) plus first-time setup are mounted here. Each screen owns
- * its own folder. See docs/FRONTEND_GUIDE.md §2 for the planned route map.
+ * The ten journal screens (Overview → profile → voice → interview → live →
+ * history → report boards → profile review), plus the public landing, first-time
+ * setup and calibration. Each screen owns its own folder. Route map:
+ * docs/FRONTEND_GUIDE.md §2.
  */
 export function App() {
   const theme = useProfileStore((s) => s.settings.theme);
@@ -57,9 +63,13 @@ export function App() {
           <Route path="/home" element={<Dashboard />} />
           <Route path="/start" element={<Setup />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/style" element={<StyleProfile />} />
+          <Route path="/practice/voice" element={<VoiceCoaching />} />
+          <Route path="/practice/interview" element={<MockInterview />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/calibrate" element={<Calibration />} />
           <Route path="/session" element={<LiveCoaching />} />
+          <Route path="/report/:kind/:id" element={<ConversationReport />} />
           <Route path="/report/:sessionId" element={<PostSession />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

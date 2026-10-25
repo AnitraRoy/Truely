@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Masthead } from "@/components/Masthead";
+import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusChip } from "@/components/StatusChip";
@@ -115,48 +115,37 @@ export function PostSession() {
 
   if (state.status === "loading") {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <Masthead homeHref="/" folio={<>ENTRY — session report</>} />
+      <AppShell>
         <p className="mt-10 font-serif italic text-text-muted" aria-live="polite">
           Opening this session…
         </p>
-      </main>
+      </AppShell>
     );
   }
 
   if (state.status === "not-found") {
     return (
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <Masthead homeHref="/" folio={<>ENTRY — session report</>} />
+      <AppShell>
         <h1 className="mt-7 font-display text-[clamp(28px,4.4vw,40px)] font-semibold leading-tight">Session not found</h1>
         <p className="mt-2 max-w-[54ch] font-serif text-text-muted">
           This report isn&apos;t on this device — it may have been deleted, or saving was off when it ran.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-6">
-          <Button onClick={() => navigate("/calibrate")}>Start a session</Button>
+          <Button onClick={() => navigate("/session")}>Start a session</Button>
           <Button variant="ghost" onClick={() => navigate("/reports")}>
             View previous sessions
           </Button>
         </div>
-      </main>
+      </AppShell>
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <Masthead
-        homeHref="/"
-        folio={
-          <>
-            ENTRY — session report
-            <br />
-            self observation
-          </>
-        }
-      />
+    <AppShell>
+      <p className="text-[13.5px] text-text-muted">Session report: live coaching, camera signals</p>
 
       {state.isFixture && (
-        <p className="mt-6 border-l-2 border-ochre pl-3.5 font-serif italic text-text-muted">
+        <p className="mt-6 border-l-2 border-ochre-mark pl-3.5 font-serif italic text-text-muted">
           Development preview — no saved session matched this link, so this report shows clearly-fictional sample data
           instead of an error screen. This only happens in local development.
         </p>
@@ -174,13 +163,13 @@ export function PostSession() {
         <StatusChip status={session!.status} />
       </section>
 
-      <h2 className="mt-10 font-mono text-[16px] uppercase tracking-[0.06em] text-text-muted">Video &amp; transcript</h2>
+      <h2 className="mt-10 font-display text-[21px] font-semibold leading-snug">Video &amp; transcript</h2>
       <div className="mt-3">
         {showVideoFixture ? (
           <>
-            <p className="mb-4 border-l-2 border-ochre pl-3.5 font-serif italic text-text-muted">
-              Development fixture — sample video and transcript shown for interface review only. Cue doesn&apos;t record
-              video or audio during sessions, so this isn&apos;t footage of this session.{" "}
+            <p className="mb-4 border-l-2 border-ochre-mark pl-3.5 font-serif italic text-text-muted">
+              Development fixture: sample video and transcript shown for interface review only. Camera sessions never record
+              video, so this isn&apos;t footage of this session.{" "}
               <button type="button" onClick={() => setShowVideoFixture(false)} className="not-italic underline underline-offset-4">
                 Hide preview
               </button>
@@ -198,19 +187,19 @@ export function PostSession() {
               ) : undefined
             }
           >
-            Cue doesn&apos;t record video or audio while coaching, so there&apos;s nothing to play back here. This report
-            is built entirely from on-device measurements, below.
+            Camera signals are measured on this device and video is never recorded, so there&apos;s nothing to play back.
+            This report is built entirely from those on-device measurements, below.
           </EmptyState>
         )}
       </div>
 
-      <h2 className="mt-10 font-mono text-[16px] uppercase tracking-[0.06em] text-text-muted">Session</h2>
+      <h2 className="mt-10 font-display text-[21px] font-semibold leading-snug">Session</h2>
       <div className="mt-3">
         <SessionMetrics summary={summary!} />
       </div>
 
       <div ref={timelineRef} className="mt-9">
-        <h2 className="font-mono text-[16px] uppercase tracking-[0.06em] text-text-muted">Behavioral timeline</h2>
+        <h2 className="font-display text-[21px] font-semibold leading-snug">Behavioral timeline</h2>
         <p className="mt-1 mb-4 font-serif text-[14px] text-text-muted">
           Measured from this session&apos;s on-device tracking — independent of the sample recording above.
         </p>
@@ -218,7 +207,7 @@ export function PostSession() {
         {timeline!.items.length === 0 && <p className="mt-3 font-serif italic text-text-muted">No events were recorded in this session.</p>}
       </div>
 
-      <h2 className="mt-10 font-mono text-[16px] uppercase tracking-[0.06em] text-text-muted">Key observations</h2>
+      <h2 className="mt-10 font-display text-[21px] font-semibold leading-snug">Key observations</h2>
       <div className="mt-3">
         {eventDetails.length === 0 && insights.length === 0 ? (
           <p className="font-serif italic text-text-muted">Not enough data in this session to highlight a pattern.</p>
@@ -229,7 +218,7 @@ export function PostSession() {
 
       {comparison && (
         <>
-          <h2 className="mt-10 font-mono text-[16px] uppercase tracking-[0.06em] text-text-muted">Progress</h2>
+          <h2 className="mt-10 font-display text-[21px] font-semibold leading-snug">Progress</h2>
           <div className="mt-3">
             <ProgressNote comparison={comparison} />
           </div>
@@ -241,14 +230,14 @@ export function PostSession() {
       </PrivacyNote>
 
       <div className="mt-8 flex flex-wrap items-center gap-6 border-t border-border pt-6">
-        <Button onClick={() => navigate("/calibrate")}>Start another session</Button>
+        <Button onClick={() => navigate("/session")}>Start another session</Button>
         <Button variant="ghost" onClick={() => navigate("/home")}>
-          Return to dashboard
+          Return to overview
         </Button>
         <Button variant="ghost" onClick={() => navigate("/reports")}>
           View previous sessions
         </Button>
       </div>
-    </main>
+    </AppShell>
   );
 }

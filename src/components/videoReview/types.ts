@@ -9,6 +9,8 @@
  * the meantime (see `fixtures.ts`). Nothing here is wired to real recordings.
  */
 
+import type { TranscriptSegment } from "@/types";
+
 /** What a marker on the playback bar represents. */
 export type ReviewMarkerKind = "cue" | "observation" | "highlight";
 
@@ -22,15 +24,8 @@ export interface ReviewMarker {
   transcriptSegmentId?: string;
 }
 
-export interface TranscriptSegment {
-  id: string;
-  /** Offsets from the start of the recording, in ms. */
-  startMs: number;
-  endMs: number;
-  text: string;
-  /** Only shown when speaker identification is available. */
-  speaker?: string;
-}
+/** Shared with conversation sessions, so reports and playback use one clock. */
+export type { TranscriptSegment } from "@/types";
 
 /**
  * Everything the video review section needs. Neither `videoSrc` nor
@@ -47,4 +42,8 @@ export interface VideoReviewData {
   durationMs: number;
   markers: ReviewMarker[];
   transcript: TranscriptSegment[];
+  /** `videoSrc` is an audio-only recording (practice sessions record the microphone only). */
+  audioOnly?: boolean;
+  /** Development fixture: the player shows a "Dev fixture" label. */
+  fixture?: boolean;
 }

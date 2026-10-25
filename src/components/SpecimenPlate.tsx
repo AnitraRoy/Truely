@@ -23,10 +23,10 @@ export function SpecimenPlate({
   return (
     <figure className={`relative m-0 ${className}`} style={{ transform: `rotate(${rotate}deg)` }}>
       {taped !== "none" && (
-        <span aria-hidden className="absolute -top-2 left-7 h-[19px] w-[66px] -rotate-[19deg] border border-ochre/25 bg-ochre/30" />
+        <span aria-hidden className="absolute -top-2 left-7 h-[19px] w-[66px] -rotate-[19deg] border border-ochre-mark/25 bg-ochre-mark/30" />
       )}
       {taped === "both" && (
-        <span aria-hidden className="absolute -top-2 right-7 h-[19px] w-[66px] rotate-[16deg] border border-ochre/25 bg-ochre/30" />
+        <span aria-hidden className="absolute -top-2 right-7 h-[19px] w-[66px] rotate-[16deg] border border-ochre-mark/25 bg-ochre-mark/30" />
       )}
       <div className="relative border border-border bg-surface p-4 pb-[11px]">
         <span aria-hidden className="pointer-events-none absolute inset-[7px] border border-border" />

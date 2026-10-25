@@ -1,5 +1,4 @@
 import { CueBubble } from "@/components/CueBubble";
-import type { SampleCue } from "./useSampleCues";
 
 /**
  * The floating overlay: cues only. It sits over the person's meeting, so it
@@ -20,12 +19,16 @@ export function SessionOverlay({
   cue,
   paused,
   onDismiss,
+  sample = true,
   draggable = false,
   onDock,
 }: {
-  cue: SampleCue | null;
+  /** A behavioral sample cue or a conversation suggestion's title. */
+  cue: { id: number | string; text: string } | null;
   paused: boolean;
   onDismiss: () => void;
+  /** Label the cue as a sample (true for behavioral showcase cues). */
+  sample?: boolean;
   /** Frameless desktop window: make the top row a drag handle. */
   draggable?: boolean;
   onDock?: () => void;
@@ -34,7 +37,7 @@ export function SessionOverlay({
     <main className="flex h-screen select-none flex-col gap-2 overflow-hidden rounded-xl border border-border bg-bg/90 p-2.5">
       <header className={`flex items-center gap-2 ${draggable ? DRAG : ""}`}>
         <span className="font-display text-[14px] font-semibold leading-none">
-          Cue<span className="text-ochre">.</span>
+          Cue<span className="text-ochre-mark">.</span>
         </span>
         {onDock && (
           // Text, not a second ✕: the cue already has its own dismiss control.
@@ -51,7 +54,7 @@ export function SessionOverlay({
 
       <div className={`flex flex-1 flex-col justify-center ${NO_DRAG}`}>
         {cue ? (
-          <CueBubble key={cue.id} text={cue.text} label="sample" onDismiss={onDismiss} floating />
+          <CueBubble key={cue.id} text={cue.text} label={sample ? "sample" : undefined} onDismiss={onDismiss} floating />
         ) : (
           <p className="m-0 px-1 font-serif text-[14px] italic text-text-muted">
             {paused ? "Coaching is paused." : "Observing quietly. Cues appear here."}

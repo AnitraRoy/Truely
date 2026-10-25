@@ -12,7 +12,7 @@ import type { TimelineItem, TimelineItemKind } from "@/lib/reports";
  * fabricated events (CLAUDE.md §5); an empty session renders an empty axis.
  */
 const KIND: Record<TimelineItemKind, { label: string; swatch: string; bar: string }> = {
-  deviation: { label: "deviation", swatch: "bg-ochre", bar: "bg-ochre/70" },
+  deviation: { label: "deviation", swatch: "bg-ochre", bar: "bg-ochre-mark/70" },
   cue: { label: "cue", swatch: "bg-accent", bar: "bg-accent" },
   response_window: {
     label: "measured after",

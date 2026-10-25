@@ -2,7 +2,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import type { SessionSummary } from "@/types";
+import type { HistoryEntry } from "@/state/history";
 import { SessionList } from "../SessionList";
 import { formatDuration, plural } from "@/components/format";
 import { Reports } from "..";
@@ -21,20 +21,24 @@ describe("formatDuration", () => {
 });
 
 describe("SessionList", () => {
-  const sessions: SessionSummary[] = [
-    { id: "b/2", startedAt: Date.UTC(2026, 9, 20, 15), durationMs: 600_000, goal: "head_movement", eventCount: 4, cueCount: 2 },
+  const base = { startedAt: Date.UTC(2026, 9, 20, 15), categories: [], hasRecording: false, sample: false };
+  const entries: HistoryEntry[] = [
+    { ...base, id: "b/2", kind: "live", title: "Live coaching", focus: "Head movement awareness", durationMs: 600_000, href: "/report/b%2F2", hasTranscript: false },
+    { ...base, id: "i1", kind: "interview", title: "Behavioral interview", focus: "Answer with structure", durationMs: 1_080_000, href: "/report/interview/i1", hasTranscript: true, hasRecording: true },
   ];
 
-  it("renders a real table whose date links to the report, with counts and no score", () => {
+  it("renders a real table whose session cell links to the matching report board, with no score", () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
-        <SessionList sessions={sessions} />
+        <SessionList entries={entries} />
       </MemoryRouter>,
     );
     expect(html).toContain("<table");
     expect(html).toContain('scope="col"');
     expect(html).toContain('href="/report/b%2F2"');
+    expect(html).toContain('href="/report/interview/i1"');
     expect(html).toContain("Head movement awareness");
+    expect(html).toContain("Transcript, Recording");
     expect(html).toContain("10 min");
     expect(html).not.toMatch(/score|\d%/i);
   });
@@ -47,7 +51,7 @@ describe("Reports screen", () => {
         <Reports />
       </MemoryRouter>,
     );
-    expect(html).toContain("Session reports");
+    expect(html).toContain("Small moments, worth revisiting.");
     expect(html).not.toContain("<table");
   });
 });

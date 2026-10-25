@@ -18,7 +18,7 @@ describe("Landing", () => {
   });
 
   it("states privacy and what Cue won't do, with no fabricated proof", () => {
-    expect(html).toContain("Nothing is uploaded");
+    expect(html).toContain("never uploaded");
     expect(html).toContain("Give you a score");
     expect(html).not.toMatch(/\d+%|testimonial|trusted by/i);
   });
@@ -33,11 +33,14 @@ describe("Landing", () => {
   });
 });
 
-describe("Dashboard at /home", () => {
-  it("sends people who haven't finished setup back to it", () => {
+describe("Overview at /home", () => {
+  it("leads with one next step from real state, and no fabricated progress", () => {
     const html = render(<Dashboard />);
-    expect(html).toContain("Continue setup");
+    expect(html).toContain("Suggested next");
+    expect(html).toContain("Build my profile"); // no desired style yet
     expect(html).toContain("Recent sessions");
-    expect(html).not.toContain("Corvus"); // the plate moved to Landing
+    expect(html).toContain('aria-label="Primary"');
+    expect(html).not.toMatch(/\d+%|score|streak/i);
+    expect(html).not.toContain("Corvus"); // the plate stays on Landing
   });
 });

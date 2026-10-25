@@ -32,11 +32,20 @@ export interface DesktopOverlayState {
   shortcuts: { toggleHidden: string; toggleClickThrough: string };
 }
 
+/**
+ * Explicit overlay placements (electron/main.cjs `positionOverlay`): centre of
+ * the screen plus the four edges. Used for visual calibration, so the person
+ * naturally looks straight ahead, then up/down/left/right as the window moves.
+ */
+export type OverlayPosition = "center" | "up" | "down" | "left" | "right";
+
 /** Bridge exposed by electron/preload.cjs. Exported for other desktop-aware components. */
 export interface CueDesktop {
   overlayName: string;
   getOverlayState(): Promise<DesktopOverlayState>;
   onOverlayState(callback: (state: DesktopOverlayState) => void): () => void;
+  /** No-op unless the overlay is open. Desktop shell only — Document PiP has no position API. */
+  setOverlayPosition(position: OverlayPosition): Promise<void>;
   /** Opens Windows' Settings › Cameras page (no-op elsewhere). */
   openCameraSettings(): Promise<void>;
 }
@@ -130,6 +139,14 @@ export function useFloatingOverlay({ width = 340, height = 345, title = "Cue" } 
     setOverlayWindow(null);
   }, [overlayWindow]);
 
+  // Desktop only: Document PiP exposes no window-position API, so elsewhere this is a no-op.
+  const setPosition = useCallback(
+    (position: OverlayPosition) => {
+      if (mode === "desktop" && overlayWindow) void window.cueDesktop?.setOverlayPosition(position);
+    },
+    [mode, overlayWindow],
+  );
+
   // Desktop shell: hidden / click-through come from global shortcuts, and the
   // window can close from the shell's side, so follow its reports.
   useEffect(() => {
@@ -153,5 +170,15 @@ export function useFloatingOverlay({ width = 340, height = 345, title = "Cue" } 
   // The overlay belongs to the screen that opened it.
   useEffect(() => () => overlayWindow?.close(), [overlayWindow]);
 
-  return { mode, supported: mode != null, overlayWindow, desktop, open, close };
+  return {
+    mode,
+    supported: mode != null,
+    /** True only when positioning actually moves the window (desktop shell, not PiP). */
+    supportsPositioning: mode === "desktop",
+    overlayWindow,
+    desktop,
+    open,
+    close,
+    setPosition,
+  };
 }

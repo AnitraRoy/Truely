@@ -1,20 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { COACHING_CONFIG } from "@/config/coaching";
+import { COACHING_CONFIG, HEAD_RANGE_CALIBRATION } from "@/config/coaching";
 import { useSessionStore } from "@/state/sessionStore";
 import { Masthead } from "@/components/Masthead";
 import { Button } from "@/components/Button";
 import { GoalPicker } from "@/components/GoalPicker";
-import { HeadRangePrompt, HeadRangeSteps, useHeadRange } from "@/components/HeadRangeGuide";
+import { HeadRangeFloatingTarget, HeadRangePrompt, HeadRangeSteps, useHeadRange } from "@/components/HeadRangeGuide";
 import { useWebcamPreview } from "@/components/useWebcamPreview";
 import { WebcamFrame } from "@/components/WebcamFrame";
+import { useFloatingOverlay } from "@/components/useFloatingOverlay";
+import { FloatingOverlay } from "@/components/FloatingOverlay";
 
 /**
  * Screen B: Goal selection + calibration (PRD §6 Screen B). Field Journal.
  * Pick one goal → enable the camera → draw a baseline in two parts: head range
- * (directions shown on the preview) then natural speech. The preview holds the
- * left column throughout so the directions stay in view. Honest copy only; no
- * fabricated precision or personality assessment (PRD §6, CLAUDE.md §5).
+ * then natural speech. The preview holds the left column throughout so the
+ * directions stay in view. Honest copy only; no fabricated precision or
+ * personality assessment (PRD §6, CLAUDE.md §5).
+ *
+ * Where the desktop shell can actually move a window (`supportsPositioning` —
+ * not Document PiP, which has no position API), the head-range part also
+ * floats a small target to the centre of the screen, then each edge, so the
+ * person looks straight ahead and then up/down/left/right at a real
+ * on-screen point rather than an arrow drawn over their own preview. The
+ * preview's directions (`HeadRangePrompt`) stay up the whole time regardless,
+ * so nothing is lost where positioning isn't available.
  */
 type Phase = "setup" | "range" | "calibrating" | "ready";
 
@@ -31,10 +41,21 @@ export function Calibration() {
   const setCalibrated = useSessionStore((s) => s.setCalibrated);
   const { videoRef, state, enable, disable } = useWebcamPreview();
   const [phase, setPhase] = useState<Phase>("setup");
+  const target = useFloatingOverlay({ width: 260, height: 150, title: "Cue — look here" });
 
   const live = state === "live";
-  const startSpeaking = () => setPhase("calibrating");
+  const startSpeaking = () => {
+    target.close();
+    setPhase("calibrating");
+  };
   const range = useHeadRange({ active: phase === "range" && live, onComplete: startSpeaking });
+
+  // Move the floating target to match the current step, only where the desktop
+  // shell can actually reposition a window (not Document PiP).
+  useEffect(() => {
+    if (phase !== "range" || !target.overlayWindow || !target.supportsPositioning) return;
+    target.setPosition(HEAD_RANGE_CALIBRATION.steps[range.index].direction);
+  }, [phase, range.index, target.overlayWindow, target.supportsPositioning, target.setPosition]);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
@@ -89,8 +110,9 @@ export function Calibration() {
                 <div className="mt-6">
                   <Button
                     disabled={!goal || !live}
-                    onClick={() => {
+                    onClick={async () => {
                       setStatus("calibrating");
+                      if (target.supportsPositioning) await target.open();
                       setPhase("range");
                     }}
                   >
@@ -108,6 +130,12 @@ export function Calibration() {
             <section>
               <p className={PART}>Part 1 of 2</p>
               <h2 className={HEADING}>Look around</h2>
+              {target.overlayWindow && target.supportsPositioning && (
+                <p className="mt-2 italic text-text-muted">
+                  A small target will move to the centre of your screen, then each edge — follow it with your eyes
+                  and head.
+                </p>
+              )}
               <div className="mt-3">
                 <HeadRangeSteps range={range} onSkip={startSpeaking} />
               </div>
@@ -152,6 +180,12 @@ export function Calibration() {
           )}
         </div>
       </div>
+
+      {phase === "range" && target.overlayWindow && (
+        <FloatingOverlay target={target.overlayWindow}>
+          <HeadRangeFloatingTarget range={range} />
+        </FloatingOverlay>
+      )}
     </main>
   );
 }

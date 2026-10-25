@@ -32,25 +32,53 @@ single report). It does not touch `src/lib/*` or change the type contract beyond
 
 ## 2. Information architecture
 
+Ten journal screens (Figma: "Truely — Communication Coaching Product - Reports"), in two groups.
+The brand stays **Cue**; the concept file's "truely" name is not used.
+
 ```
-/                    Landing           public, marketing + hero, no camera
-/start               First-time setup  wizard (only reached once; re-enterable from Profile)
-/home                Dashboard         returning user's hub (today's "/" screen, relocated)
-/calibrate           Calibration       existing; recalibration entry
-/session             Live coaching     existing; NO artwork, NO new chrome (CLAUDE.md §6)
-/reports             Session history   list of past sessions
-/report/:sessionId   Session report     existing route, built out
-/profile             Profile           tabs: Overview · Settings · Data & privacy
+APP SCREENS
+/home                      01 Overview            one suggested next step from real state
+/profile/style             02 Communication profile  desired style: Apify reference + Moss patterns
+/practice/voice            03 Voice coaching      Moss coach, Cartesia speech in/out, typing always works
+/practice/interview        04 Mock interviews     Moss interviewer, Cartesia speech, live transcript
+/session                   05 Live coaching       preflight consent, then preview/transcript (CLAUDE.md §6)
+/reports                   06 Session history     all kinds, filter + search, rows open their report
+/profile                   10 Profile review      desired style beside natural baseline; + Settings, Data
+
+SESSION REPORT BOARDS (one layout: src/components/report/ReportParts.tsx)
+/report/interview/:id      07 Mock interview report  recording or timeline + synced transcript
+/report/voice/:id          08 Voice session report   before/after moments, coach notes
+/report/live/:id           09 Live coaching report   timeline of moments + transcript
+/report/:sessionId         camera-signals report for live sessions without a transcript (PostSession)
+
+OTHER
+/                          Landing (public)   /start  First-time setup   /calibrate  Calibration
 ```
 
 Routing rules:
 
-- First visit to `/` shows the landing page. The primary CTA goes to `/start` if setup is incomplete,
-  `/home` if complete (`profile.setupComplete`).
-- `/session` and `/calibrate` never show the global nav (distraction-free).
-- Keep the existing `*` redirect; point it to `/`.
-- Global nav (landing, home, reports, profile only): the `Masthead` wordmark left; **Reports** and
-  **Profile** text links right. No icon-only nav.
+- `/session` (once started) and `/calibrate` never show the app shell (distraction-free).
+- Every app screen uses `AppShell`: one numbered sidebar (the concept's duplicate top nav is dropped);
+  below `md` it becomes a top bar with a disclosure menu.
+- In dev builds, `/report/<kind>/sample` shows a labelled fictional sample of each board.
+
+### Data model (src/types)
+
+`ConversationSession` holds transcript segments, feedback events and the optional report and
+recording ref. Every timestamp is **ms from session start**, so the transcript, feedback, timeline
+markers and recording share one clock. Feedback and report moments cite a `segmentId`; anything
+that cites a line that doesn't exist is dropped (`lib/conversation/parse.ts`). Desired style
+(`CommunicationProfile`) and natural baseline (`BehavioralBaseline`) are separate types and are never
+combined.
+
+### Integrations (what is real, what isn't)
+
+- **Moss** is used as an LLM (chat completions via the desktop bridge), not as a voice API.
+- **Cartesia** does batch speech-to-text per answer / per ~9 s live chunk and text-to-speech for
+  coach and interviewer lines, using a short-lived token. Streaming STT is not wired yet.
+- **Apify** reads YouTube captions through the allow-listed actor. Other references are pasted text.
+- All three only work in the desktop app with keys in `.env.local`; screens show `ServiceNotice`
+  otherwise. Live suggestions and the live transcript use one microphone, so speakers aren't labelled.
 
 ---
 

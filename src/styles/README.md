@@ -11,3 +11,22 @@ pairing, dominant palette with one sharp accent, considered surfaces and motion)
 support bold, asymmetric composition with a clear focal hierarchy. See `CLAUDE.md` §4A.
 Illustration and brand imagery are pre-drawn asset files, never tokens or coded SVG.
 No information conveyed by color alone; reduced-motion supported in `index.css`.
+
+## Private Field Journal tokens (2026-10-24)
+
+| Role | Token | Light | Notes |
+| --- | --- | --- | --- |
+| Paper | `bg` | #F3F0E8 | page |
+| Sheet | `surface` | #FAF8F3 | raised working surface (`Sheet`) |
+| Inset | `sunken` | #EAE6DC | wells, tracks, idle preview |
+| Ink | `text-primary` | #252923 | 13.0:1 on paper |
+| Soft ink | `text-muted` | #5A5E56 | 5.8:1 |
+| Forest | `accent`, `accent-hover`, `on-accent` | #526B58 | primary buttons, the one forest field per screen |
+| Ochre | `ochre` (text, 5.2:1) / `ochre-mark` (#B38A4A) | | `ochre-mark` is 2.8:1: rules, dots, selection bars only |
+| Lines | `border` (#D9D4C8, divider) / `border-strong` (control edges, 3:1) | | |
+
+Type: `font-display` Fraunces (headings), `font-sans` Instrument Sans (UI and body),
+`font-serif` Newsreader (quoted speech, transcripts, marginal notes), `font-mono` Plex Mono
+(timestamps and counts only). Radius: `rounded` 4px controls, `rounded-lg` 8px sheets.
+Buttons: `primary` (forest, one per surface), `secondary` (outlined), `inverse` (on the forest
+field), `ghost` (italic link). Dark scheme is designed separately in `tokens.css`.

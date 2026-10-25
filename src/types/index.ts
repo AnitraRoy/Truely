@@ -199,3 +199,130 @@ export interface SessionSummary {
   eventCount: number;
   cueCount: number;
 }
+
+// -----------------------------------------------------------------------------
+// Conversation practice (voice coaching, mock interviews, live transcripts)
+// Added for the Moss / Cartesia / Apify integrations. All additive: behavioral
+// `Session` above is unchanged. Every timestamp below is ms from the start of
+// its session, so transcripts, feedback, recordings and report markers share
+// ONE clock (the same convention as the video review player).
+// -----------------------------------------------------------------------------
+
+/** Which practice surface produced a conversation session. */
+export type ConversationKind = "voice" | "interview" | "live";
+
+/** Who said a transcript line. "other" = someone else in a real conversation. */
+export type SpeakerRole = "you" | "coach" | "interviewer" | "other";
+
+/** One transcribed utterance. `speaker` is a display label, only when known. */
+export interface TranscriptSegment {
+  id: string;
+  startMs: number;
+  endMs: number;
+  text: string;
+  speaker?: string;
+  role?: SpeakerRole;
+}
+
+/** Communication aspects feedback can be about (never traits of the person). */
+export type FeedbackCategory =
+  | "clarity"
+  | "conciseness"
+  | "structure"
+  | "pacing"
+  | "relevance"
+  | "warmth"
+  | "delivery";
+
+/**
+ * A timestamped suggestion or observation. `segmentId` points at the
+ * transcript line it is based on; feedback without evidence is never shown in
+ * a report (CLAUDE.md §5).
+ */
+export interface FeedbackEvent {
+  id: string;
+  atMs: number;
+  category: FeedbackCategory;
+  title: string;
+  explanation: string;
+  suggestion?: string;
+  segmentId?: string;
+}
+
+/** A transcript line the report calls out, with the reason. */
+export interface ReportMoment {
+  segmentId: string;
+  label: string;
+  note: string;
+}
+
+/** Post-session reflection, generated from the transcript only. No score. */
+export interface ConversationReport {
+  summary: string;
+  strengths: string[];
+  improvements: string[];
+  nextSteps: string[];
+  moments: ReportMoment[];
+}
+
+/** A local recording, saved only with explicit consent. The blob lives in storage. */
+export interface RecordingRef {
+  blobKey: string;
+  mimeType: string;
+  hasVideo: boolean;
+  durationMs: number;
+}
+
+export interface ConversationSession {
+  id: string;
+  kind: ConversationKind;
+  title: string;
+  startedAt: number;
+  endedAt?: number;
+  /** The practice goals chosen for this session, in the person's words. */
+  goals: string[];
+  /** e.g. interview type, role, difficulty. Display strings. */
+  context?: Record<string, string>;
+  transcript: TranscriptSegment[];
+  feedback: FeedbackEvent[];
+  report?: ConversationReport;
+  recording?: RecordingRef;
+  /** The behavioral (webcam) session recorded alongside, if signals were on. */
+  behavioralSessionId?: string;
+  /** Development sample, never real data. Always labelled in the UI. */
+  sample?: boolean;
+}
+
+/** One communication pattern the person wants to work toward. */
+export interface StyleTrait {
+  id: string;
+  category: FeedbackCategory;
+  name: string;
+  description: string;
+  /** A short quote from the reference that shows it, when one exists. */
+  evidence?: string;
+  keep: boolean;
+}
+
+/** Where a desired style came from. Public material or text the person pasted. */
+export interface StyleReference {
+  source: "youtube" | "pasted";
+  url?: string;
+  title?: string;
+  /** Character count of the material analysed (never the full text). */
+  analysedChars?: number;
+}
+
+/**
+ * Desired communication profile: how the person wants to come across.
+ * Separate from `BehavioralBaseline`, which is what calibration measured.
+ */
+export interface CommunicationProfile {
+  reference?: StyleReference;
+  admire: string;
+  contexts: string[];
+  /** One-line restatement of what the person asked for. */
+  intent?: string;
+  traits: StyleTrait[];
+  updatedAt: number;
+}

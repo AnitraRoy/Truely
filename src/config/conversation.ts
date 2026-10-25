@@ -1,0 +1,89 @@
+/**
+ * Conversation practice configuration: voice coaching, mock interviews, and the
+ * live-conversation transcript. Owner: Integration + Coaching teams.
+ *
+ * Like `coaching.ts`, every timing, provider id and piece of user-facing copy
+ * for these flows lives here so screens never hardcode them. Copy stays
+ * observational and nonjudgmental (CLAUDE.md §5): it talks about what was
+ * said, never about who the person is.
+ */
+import type { FeedbackCategory } from "@/types";
+
+/** Cartesia models and voices. Same ids as scripts/smoke-services.mjs. */
+export const CARTESIA = {
+  sttModel: "ink-whisper",
+  ttsModel: "sonic-3.6",
+  /** One calm voice for both the coach and the interviewer. */
+  voiceId: "a0e99841-438c-4a64-b679-ae501e7d6091",
+  sampleRate: 24000,
+} as const;
+
+/** Apify actor used to read a public reference (must be on the main-process allow-list). */
+export const APIFY_REFERENCE_ACTOR = "codepoetry/youtube-transcript-ai-scraper";
+
+/** Only this much reference text is sent to the model for style analysis. */
+export const REFERENCE_MAX_CHARS = 9000;
+
+export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  clarity: "Clarity",
+  conciseness: "Conciseness",
+  structure: "Structure",
+  pacing: "Pacing",
+  relevance: "Relevance",
+  warmth: "Warmth",
+  delivery: "Delivery",
+};
+
+export const FEEDBACK_CATEGORIES = Object.keys(FEEDBACK_CATEGORY_LABELS) as FeedbackCategory[];
+
+/** Where the person wants to use their style. Multi-select on the profile screen. */
+export const STYLE_CONTEXTS = ["Job interviews", "Team meetings", "Presentations", "Conferences", "Client calls"] as const;
+
+/** Voice coaching: things to practise explaining. The person can also write their own. */
+export const VOICE_PROMPTS = [
+  "Explain a project update to someone outside your team.",
+  "Walk through a decision you made recently and why.",
+  "Describe what you do to someone you have just met.",
+  "Ask your manager for something you need.",
+] as const;
+
+export const INTERVIEW_TYPES = [
+  "Behavioral interview",
+  "Technical interview",
+  "Internship interview",
+  "Professional presentation",
+] as const;
+
+export const INTERVIEW_DIFFICULTIES = [
+  { value: "warmup", label: "Warm-up", detail: "Friendly, one follow-up at most." },
+  { value: "realistic", label: "Realistic", detail: "Typical pace and follow-ups." },
+  { value: "challenging", label: "Challenging", detail: "Probing follow-ups, less time to think." },
+] as const;
+export type InterviewDifficulty = (typeof INTERVIEW_DIFFICULTIES)[number]["value"];
+
+/** Default practice goals offered before the profile has its own traits. */
+export const DEFAULT_PRACTICE_GOALS = ["Answer with structure", "Lead with the main point", "Use one concrete example"] as const;
+
+/** How many questions a mock interview runs before it wraps up. */
+export const INTERVIEW_QUESTION_COUNT = 6;
+
+/** Live conversation transcript + suggestions. */
+export const LIVE_CONVERSATION = {
+  /** Audio is transcribed in chunks of about this length. */
+  chunkMs: 9000,
+  /** New transcript lines required before another suggestion is considered. */
+  minNewSegments: 3,
+  /** Minimum gap between two suggestions, so the person is mostly left alone. */
+  suggestionCooldownMs: 90000,
+  /** How long a suggestion stays before it fades on its own. */
+  suggestionVisibleMs: 14000,
+} as const;
+
+/** Voice coaching: suggestions shown at once (newest first). */
+export const VOICE_MAX_SUGGESTIONS = 3;
+
+/** Plain-language reasons a provider isn't available, keyed by the service error. */
+export const SERVICE_UNAVAILABLE_COPY: Record<string, string> = {
+  desktop_only: "This needs the Cue desktop app, where your service keys stay private.",
+  not_configured: "The service isn't set up yet. Add its key to .env.local and restart the desktop app.",
+};

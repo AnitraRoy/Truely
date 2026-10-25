@@ -8,7 +8,7 @@ export type PillTone = "positive" | "ochre" | "warning" | "muted";
 
 const TEXT: Record<PillTone, string> = {
   positive: "text-positive border-positive",
-  ochre: "text-ochre border-ochre",
+  ochre: "text-ochre border-ochre-mark",
   warning: "text-warning border-warning",
   muted: "text-text-muted border-border",
 };

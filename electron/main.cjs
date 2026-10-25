@@ -70,6 +70,30 @@ function sendOverlayState() {
   mainWindow?.webContents.send("cue:overlay-state", overlayState());
 }
 
+/**
+ * Explicit placements used for visual calibration (src/screens/Calibration):
+ * centre of the screen plus the four edges, so moving the overlay there gets
+ * the person to naturally look straight ahead, then up/down/left/right.
+ * Unrelated to the default top-centre placement a session's cue overlay opens
+ * at (`protectOverlay`) — this only runs when the renderer asks for it.
+ */
+function positionOverlay(key) {
+  if (!overlay) return;
+  const { width, height } = overlay.getBounds();
+  const { workArea } = screen.getDisplayMatching(mainWindow?.getBounds() ?? overlay.getBounds());
+  const cx = workArea.x + Math.round((workArea.width - width) / 2);
+  const cy = workArea.y + Math.round((workArea.height - height) / 2);
+  const positions = {
+    center: [cx, cy],
+    up: [cx, workArea.y + OVERLAY_MARGIN],
+    down: [cx, workArea.y + workArea.height - height - OVERLAY_MARGIN],
+    left: [workArea.x + OVERLAY_MARGIN, cy],
+    right: [workArea.x + workArea.width - width - OVERLAY_MARGIN, cy],
+  };
+  const [x, y] = positions[key] ?? positions.center;
+  overlay.setPosition(x, y);
+}
+
 function toggleHidden() {
   if (!overlay) return;
   if (overlay.isVisible()) overlay.hide();
@@ -213,6 +237,7 @@ app.whenReady().then(() => {
   registerServices({ isTrustedSender: (event) => isAppUrl(event.senderFrame?.url ?? "") });
 
   ipcMain.handle("cue:overlay-state", () => overlayState());
+  ipcMain.handle("cue:overlay-position", (_event, key) => positionOverlay(key));
   // Fixed target, never a renderer-supplied URL: Settings › Bluetooth & devices › Cameras.
   ipcMain.handle("cue:open-camera-settings", async () => {
     if (process.platform === "win32") await shell.openExternal("ms-settings:camera");

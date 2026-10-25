@@ -15,10 +15,10 @@ import bluejay from "@/assets/bluejay_final.jpg";
  * Never requests the camera.
  */
 const STEPS = [
-  { title: "Choose one goal", body: "Camera engagement, head movement, or general on-camera habits. The goal decides which signals Cue watches." },
-  { title: "Calibrate for about a minute", body: "Talk the way you normally do. Cue learns your usual head orientation and gaze, glances and all." },
-  { title: "Get coached, quietly", body: "Cue speaks up only when a goal-related change lasts, then leaves you alone for a while." },
-  { title: "Read the report", body: "A timeline of what was measured and when cues appeared, so you can choose one thing to try next time." },
+  { title: "Learn how you want to sound", body: "Point Cue at a talk or interview you admire. It drafts patterns you can practise, and you keep the ones that fit." },
+  { title: "Practise out loud", body: "A short voice session or a mock interview, with suggestions tied to what you actually said." },
+  { title: "Get quiet help in the real thing", body: "During a meeting or interview, Cue offers a small note only when it's useful, then leaves you alone." },
+  { title: "Review and carry it forward", body: "A transcript, the moments worth revisiting, and one thing to try next time. Never a score." },
 ];
 
 const WONT = [
@@ -118,7 +118,7 @@ export function Landing() {
           <h2 id="wont-title" className="font-display text-[22px] leading-snug">
             What Cue won&apos;t do
           </h2>
-          <ul className="mt-4 space-y-3 border-l-2 border-ochre pl-4">
+          <ul className="mt-4 space-y-3 border-l-2 border-ochre-mark pl-4">
             {WONT.map((w) => (
               <li key={w} className="font-serif italic leading-snug text-text-muted">
                 {w}

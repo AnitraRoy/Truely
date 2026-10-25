@@ -1,26 +1,32 @@
 import { Link } from "react-router-dom";
-import { GOAL_LABELS } from "@/config/coaching";
-import type { SessionSummary } from "@/types";
-import { formatDate, formatDuration, formatTime } from "@/components/format";
+import { formatDuration } from "@/components/format";
+import { KIND_LABELS, type HistoryEntry } from "@/state/history";
 
 /**
- * The session register: a real table (date, goal, length, events, cues), ruled
- * like the Ledger. The date cell is the link to that session's report. Counts
- * only, never a score (CLAUDE.md §5). Expects sessions already sorted.
+ * The session register: a real table across voice coaching, mock interviews and
+ * live coaching. The session cell links to the matching report board. Counts
+ * and what's available to review only, never a score (CLAUDE.md §5).
+ * Expects entries already sorted.
  */
-export function SessionList({ sessions }: { sessions: SessionSummary[] }) {
+const DATE = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
+const TIME = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+function available(e: HistoryEntry): string {
+  const parts = [e.hasTranscript ? "Transcript" : "", e.hasRecording ? "Recording" : "", e.kind === "live" && !e.hasTranscript ? "Timeline" : ""];
+  return parts.filter(Boolean).join(", ") || "Summary";
+}
+
+export function SessionList({ entries }: { entries: HistoryEntry[] }) {
   return (
     <table className="w-full border-collapse text-left">
-      <caption className="sr-only">Saved sessions, newest first</caption>
+      <caption className="sr-only">Sessions, newest first</caption>
       <thead>
         <tr className="border-b-2 border-text-primary">
-          {["Date", "Goal", "Length", "Events", "Cues"].map((h, i) => (
+          {["Date", "Session", "Focus", "To review", "Length"].map((h, i) => (
             <th
               key={h}
               scope="col"
-              className={`pb-2 font-mono text-[11px] font-normal text-text-muted ${i >= 3 ? "text-right" : ""} ${
-                i === 1 || i === 3 ? "hidden sm:table-cell" : ""
-              }`}
+              className={`pb-2 text-[12.5px] font-normal text-text-muted ${i === 4 ? "text-right" : ""} ${i === 2 || i === 3 ? "hidden md:table-cell" : ""}`}
             >
               {h}
             </th>
@@ -28,21 +34,25 @@ export function SessionList({ sessions }: { sessions: SessionSummary[] }) {
         </tr>
       </thead>
       <tbody>
-        {sessions.map((s) => (
-          <tr key={s.id} className="border-b border-border transition-colors duration-cue ease-cue hover:bg-surface">
-            <th scope="row" className="py-4 pr-4 font-normal">
+        {entries.map((e) => (
+          <tr key={`${e.kind}-${e.id}`} className="border-b border-border transition-colors duration-cue-fast ease-cue hover:bg-surface">
+            <td className="py-4 pr-4 align-top">
+              <span className="block text-[14.5px]">{DATE.format(e.startedAt)}</span>
+              <span className="font-mono text-[12px] text-text-muted">{TIME.format(e.startedAt)}</span>
+            </td>
+            <th scope="row" className="py-4 pr-4 align-top font-normal">
               <Link
-                to={`/report/${encodeURIComponent(s.id)}`}
-                className="font-display text-[19px] leading-tight underline decoration-border decoration-1 underline-offset-4 hover:text-accent hover:decoration-accent"
+                to={e.href}
+                className="font-display text-[18.5px] font-semibold leading-tight underline decoration-border-strong decoration-1 underline-offset-4 hover:text-accent hover:decoration-accent"
               >
-                {formatDate(s.startedAt)}
+                {e.title}
               </Link>
-              <span className="block font-mono text-[12px] text-text-muted">{formatTime(s.startedAt)}</span>
+              {e.title !== KIND_LABELS[e.kind] && <span className="block text-[13.5px] text-text-muted">{KIND_LABELS[e.kind]}</span>}
+              {e.sample && <span className="block text-[13px] text-ochre">Development sample</span>}
             </th>
-            <td className="hidden py-4 pr-4 sm:table-cell">{GOAL_LABELS[s.goal]}</td>
-            <td className="py-4 pr-4 tabular-nums">{formatDuration(s.durationMs)}</td>
-            <td className="hidden py-4 pr-4 text-right tabular-nums sm:table-cell">{s.eventCount}</td>
-            <td className="py-4 text-right tabular-nums">{s.cueCount}</td>
+            <td className="hidden py-4 pr-4 align-top text-text-muted md:table-cell">{e.focus || "—"}</td>
+            <td className="hidden py-4 pr-4 align-top text-[14px] text-text-muted md:table-cell">{available(e)}</td>
+            <td className="py-4 text-right align-top font-mono text-[13px] tabular-nums">{formatDuration(e.durationMs)}</td>
           </tr>
         ))}
       </tbody>

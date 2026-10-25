@@ -14,9 +14,9 @@ body {
   margin: 0;
   background: rgb(var(--cue-bg));
   color: rgb(var(--cue-text-primary));
-  font-family: var(--cue-font-serif);
-  font-size: 16.5px;
-  line-height: 1.6;
+  font-family: var(--cue-font-sans);
+  font-size: 16px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -25,6 +25,11 @@ body {
 :focus-visible {
   outline: 2px solid rgb(var(--cue-accent));
   outline-offset: 2px;
+}
+
+/* On the forest field (Sheet tone="accent") the ring flips to paper so it stays visible. */
+.on-accent :focus-visible {
+  outline-color: rgb(var(--cue-on-accent));
 }
 
 @media (prefers-reduced-motion: reduce) {

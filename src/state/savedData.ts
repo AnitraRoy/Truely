@@ -14,6 +14,7 @@ import { createDefaultStorage, type CueStorage } from "@/lib/storage";
 import { toSessionSummary } from "@/lib/reports";
 import type { SessionSummary } from "@/types";
 import { useProfileStore } from "./profileStore";
+import { deleteAllConversations } from "./conversations";
 import { useSessionStore } from "./sessionStore";
 
 let shared: CueStorage | null = null;
@@ -59,11 +60,11 @@ export async function syncSaveConsent(allowed: boolean): Promise<void> {
   await getStorage().setConsent(allowed);
 }
 
-/** Remove every saved session; baselines, feedback history and preferences stay. */
+/** Remove every saved session, transcript and recording; baselines, feedback history and preferences stay. */
 export async function deleteSessionHistory(): Promise<void> {
   const storage = getStorage();
   const sessions = await storage.listSessions();
-  await Promise.all(sessions.map((s) => storage.deleteSession(s.id)));
+  await Promise.all([...sessions.map((s) => storage.deleteSession(s.id)), deleteAllConversations()]);
 }
 
 /** Forget the learned baseline (saved and in-app) so the next session recalibrates. */
@@ -74,7 +75,7 @@ export async function resetBaseline(): Promise<void> {
 
 /** Delete everything saved (sessions, baselines, feedback history, consent) and return to first-run. */
 export async function resetEverything(): Promise<void> {
-  await getStorage().deleteAllData();
+  await Promise.all([getStorage().deleteAllData(), deleteAllConversations()]);
   useSessionStore.getState().reset();
   useProfileStore.getState().resetProfile();
 }
