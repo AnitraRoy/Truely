@@ -8,3 +8,4 @@ dist-ssr
 coverage
 *.log
 *.tsbuildinfo
+.env
